@@ -113,7 +113,8 @@ button, input, select, textarea { font: inherit; color: inherit; }
 .theme-toggle-label { min-width: 2.4rem; text-align: left; }
 
 /* ---------- header / footer ---------- */
-header.top { position: sticky; top: 0; z-index: 20; background: var(--bg); border-bottom: 3px solid var(--line); padding-top: env(safe-area-inset-top, 0px); }
+header.top { position: sticky; top: 0; z-index: 20; background: #fff; border-bottom: 3px solid var(--line); padding-top: env(safe-area-inset-top, 0px); }
+html[data-theme="dark"] header.top { background: var(--bg); }
 .top .wrap { display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: 1rem; padding-block: .5rem; }
 .brand { display: flex; flex-shrink: 0; grid-column: 2; justify-self: center; }
 .brand img { width: 186px; height: auto; transition: transform .25s; }
@@ -610,6 +611,8 @@ ol.steps > li > div > p:first-child { margin-top: 0; }
 .about-copy { min-width: 0; }
 .about-copy .h1 { margin-bottom: .9rem; }
 .about p, .about .lede { font-weight: 600; max-width: none; }
+.about p:has(+ .about-note) { margin-bottom: 0; }
+.about-note { font-size: .92rem; font-style: italic; font-weight: 600; color: var(--muted); margin: 0; }
 .about h2 { margin: 1.8rem 0 .6rem; font-size: 1.7rem; }
 .about-slide { position: sticky; top: 5rem; justify-self: center; width: 100%; }
 .about-slide .mascot, .about-slide .hero-slide-stack { max-width: min(520px, 100%); margin-inline: auto; }

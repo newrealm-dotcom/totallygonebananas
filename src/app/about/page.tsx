@@ -21,7 +21,8 @@ export default async function AboutPage() {
           <p>Whether you&apos;re a seasoned baker or someone with three overripe bananas and a dream, there&apos;s a place for you here. Come peel back the fun and go totally bananas with us!</p>
           <h2>How The Recipe Section works</h2>
           <p>Browse recipes by category or search for what&apos;s in your kitchen. Every recipe has a servings scaler and an ingredient checklist, and many come with step-by-step photos or video.</p>
-          <p>Sign in to save favorites to your Banana Stand, rate what you cook, and share your own recipes. Editors give new submissions a quick look before they go live.</p>
+          <p>Sign in to save favorites to your Banana Stand, rate what you cook, and share your own recipes.</p>
+          <p className="about-note">* Editors give new submissions a quick look before they go live.</p>
           <p><Link className="btn" href="/recipes/new">Share a recipe</Link></p>
         </div>
         <div className="mascot-wrap about-slide">
