@@ -12,9 +12,9 @@ export default async function AboutPage() {
 
   return (
     <div className="wrap">
-      <div className="page-head"><h1>About Totally Gone Bananas</h1></div>
       <div className="about">
-        <div>
+        <div className="about-copy">
+          <h1 className="h1">About Totally Gone Bananas</h1>
           <p className="lede">We&apos;re a home for banana recipes at every stage, from firm and green to spotty and gone. No banana left behind.</p>
           <h2>How it works</h2>
           <p>Browse recipes by category or search for what&apos;s in your kitchen. Every recipe has a servings scaler and an ingredient checklist, and many come with step-by-step photos or video.</p>

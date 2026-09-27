@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
+import Image from "next/image";
 import { redirect } from "next/navigation";
 import { LoginForm } from "@/components/LoginForm";
-import { Mascot } from "@/components/Mascot";
 import { getViewer } from "@/lib/queries";
 
 export const metadata: Metadata = { title: "Sign in" };
@@ -15,7 +15,14 @@ export default async function LoginPage({ searchParams }: PageProps<"/login">) {
   if (userId && !failed) redirect(next);
   return (
     <div className="wrap narrow login">
-      <Mascot className="login-mascot" />
+      <Image
+        className="login-hero"
+        src="/img-login.webp"
+        alt=""
+        width={1200}
+        height={800}
+        priority
+      />
       <div className="page-head" style={{ textAlign: "center" }}>
         <h1>Come on in</h1>
         <p className="lede" style={{ marginInline: "auto" }}>Sign in to save recipes, rate what you cook, and share your own.</p>

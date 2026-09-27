@@ -1,5 +1,6 @@
 import { cache } from "react";
 import { createClient } from "@/lib/supabase/server";
+import { pointsFromCounts, standingsFor } from "@/lib/standings";
 import type { Category, Post, PostWithAuthor, Profile, Rating, Recipe, RecipeWithExtras } from "@/lib/types";
 
 const CARD_FIELDS =
@@ -36,6 +37,25 @@ export const getViewer = cache(async () => {
 
 export const isEditorRole = (p: Profile | null) => p?.role === "editor" || p?.role === "admin";
 export const isAdminRole = (p: Profile | null) => p?.role === "admin";
+
+/** Saved / made / published counts → points + rank for the signed-in user. */
+export const getViewerStandings = cache(async () => {
+  const { userId } = await getViewer();
+  if (!userId) return null;
+  const supabase = await createClient();
+  const [saves, made, published] = await Promise.all([
+    supabase.from("saves").select("*", { count: "exact", head: true }).eq("user_id", userId),
+    supabase.from("cook_logs").select("*", { count: "exact", head: true }).eq("user_id", userId),
+    supabase.from("recipes").select("*", { count: "exact", head: true }).eq("author_id", userId).eq("status", "published"),
+  ]);
+  return standingsFor(
+    pointsFromCounts({
+      saved: saves.count ?? 0,
+      made: made.count ?? 0,
+      published: published.count ?? 0,
+    }),
+  );
+});
 
 export const getCategories = cache(async (): Promise<Category[]> => {
   const supabase = await createClient();

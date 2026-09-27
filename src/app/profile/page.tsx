@@ -11,13 +11,11 @@ import { CopyLinkButton } from "@/components/OwnerTools";
 import { plural, shortDate, siteUrlSafe } from "@/app/profile/helpers";
 import { getDarkMainSliderImages, getMainSliderImages, pickRandomSlide } from "@/lib/main-slider";
 import { referralHandle } from "@/lib/referral";
+import { LEVELS, meterTone, pointsFromCounts, standingsFor } from "@/lib/standings";
 import type { RecipeStatus } from "@/lib/types";
 
 export const metadata: Metadata = { title: "My Banana Stand" };
 
-const LEVELS = [
-  { min: 0, name: "Green Rookie" }, { min: 20, name: "Ripe Regular" }, { min: 50, name: "Peel Pro" }, { min: 100, name: "Bread Boss" }, { min: 180, name: "Top Banana" },
-];
 const STATUS_LABEL: Record<RecipeStatus, string> = { draft: "Draft", pending: "In review", published: "Published", rejected: "Sent back" };
 
 export default async function ProfilePage({ searchParams }: PageProps<"/profile">) {
@@ -38,10 +36,15 @@ export default async function ProfilePage({ searchParams }: PageProps<"/profile"
   const mine = mineRes.data ?? [];
   const logs = (logsRes.data ?? []) as unknown as { id: string; rating: number; tip: string | null; created_at: string; recipe: { slug: string; title: string } | null }[];
 
-  const points = saved.length * 3 + logs.length * 8 + mine.filter((m) => m.status === "published").length * 15;
-  const level = LEVELS.reduce((a, l, i) => (points >= l.min ? i : a), 0);
-  const next = LEVELS[level + 1];
+  const { points, level, name: rankName, next } = standingsFor(
+    pointsFromCounts({
+      saved: saved.length,
+      made: logs.length,
+      published: mine.filter((m) => m.status === "published").length,
+    }),
+  );
   const pct = next ? Math.round(((points - LEVELS[level].min) / (next.min - LEVELS[level].min)) * 100) : 100;
+  const tone = meterTone(points, LEVELS[level].min, next?.min);
   const avatar = publicUrl(profile.avatar_path, AVATAR_BUCKET);
   const heroLight = pickRandomSlide(lightSlides);
   const heroDark = pickRandomSlide(darkSlides);
@@ -62,12 +65,12 @@ export default async function ProfilePage({ searchParams }: PageProps<"/profile"
             <div>
               <h1 className="h1">{profile.display_name || "Banana fan"}</h1>
               <p className="muted">
-                {profile.username ? `@${profile.username} · ` : ""}{LEVELS[level].name}{profile.role !== "member" ? ` · ${profile.role === "admin" ? "Admin" : "Editor"}` : ""}
+                {profile.username ? `@${profile.username} · ` : ""}{rankName}{profile.role !== "member" ? ` · ${profile.role === "admin" ? "Admin" : "Editor"}` : ""}
               </p>
             </div>
           </div>
           {profile.bio && <p>{profile.bio}</p>}
-          <div className="bar" role="progressbar" aria-valuemin={0} aria-valuemax={100} aria-valuenow={pct} aria-label="Progress to next level"><i style={{ width: `${Math.max(3, pct)}%` }} /></div>
+          <div className={`bar tone-${tone}`} role="progressbar" aria-valuemin={0} aria-valuemax={100} aria-valuenow={pct} aria-label="Progress to next level"><i style={{ width: `${Math.max(3, pct)}%` }} /></div>
           <p className="hint">{next ? `${points} points. ${next.min - points} more to become a ${next.name}.` : `${points} points. Top Banana. Crown secured.`}</p>
           <div className="stats">
             <div className="stat"><b>{saved.length}</b><span>saved</span></div>
@@ -133,7 +136,7 @@ export default async function ProfilePage({ searchParams }: PageProps<"/profile"
         ) : (
           <div className="empty"><span className="big">👩‍🍳</span><p>Tap &ldquo;I made it!&rdquo; on a recipe after you cook it and it&apos;ll show up here.</p></div>
         ))}
-        <p className="hint" style={{ marginTop: "1rem" }}>{plural(points, "point")} so far: saves are worth 3, each dish you make 8, and each published recipe 15.</p>
+        <p className="hint" style={{ marginTop: "1rem" }}>{plural(points, "point")} so far: saves are worth 3, each dish you make 8, and each published recipe 15. All points will have real value in the future so start collecting all you can now. Stay tuned!</p>
       </section>
     </div>
   );
