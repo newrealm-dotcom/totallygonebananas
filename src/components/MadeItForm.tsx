@@ -14,7 +14,7 @@ export function MadeItForm({ recipeId, signedIn, slug }: { recipeId: string; sig
   if (!signedIn) {
     return (
       <div className="panel">
-        <h2>Made it?</h2>
+        <h2>Made It?</h2>
         <p>Sign in to rate this recipe, share a tip, and keep track of what you&apos;ve cooked.</p>
         <Link className="btn" href={`/login?next=/recipes/${slug}%23made`}>Sign in to rate</Link>
       </div>
@@ -35,7 +35,7 @@ export function MadeItForm({ recipeId, signedIn, slug }: { recipeId: string; sig
         });
       }}
     >
-      <h2>Made it?</h2>
+      <h2>Made It?</h2>
       <p>Rate it and share a tip for the next cook.</p>
       <fieldset className="rate-row" onMouseLeave={() => setHover(0)}>
         <legend>How did it turn out?</legend>

@@ -4,7 +4,7 @@ import { notFound } from "next/navigation";
 import { canEdit, getCategories, getRatings, getRecipeBySlug, getSavedIds, getViewer, isEditorRole } from "@/lib/queries";
 import { createClient } from "@/lib/supabase/server";
 import { publicUrl } from "@/lib/media";
-import { shortDate, timeLabel, tintFor, titleCase } from "@/lib/format";
+import { shortDate, tintFor, titleCase } from "@/lib/format";
 import { timersIn } from "@/lib/scale";
 import { MediaView } from "@/components/MediaView";
 import { SaveButton } from "@/components/SaveButton";
@@ -64,7 +64,7 @@ export default async function RecipePage({ params, searchParams }: PageProps<"/r
 
       <nav className="crumbs" aria-label="Breadcrumb">
         <Link href="/recipes">Recipes</Link>
-        {cat && <><span aria-hidden="true">/</span><Link href={`/recipes?category=${cat.id}`}>{cat.name}</Link></>}
+        {cat && <><span aria-hidden="true">&gt;&gt;</span><Link href={`/recipes?category=${cat.id}`}>{cat.name}</Link></>}
       </nav>
 
       <section className="d-hero">
@@ -72,18 +72,18 @@ export default async function RecipePage({ params, searchParams }: PageProps<"/r
           <div className="d-art" style={{ background: tintFor(r.category_id, categories) }}>
             {hero ? <MediaView path={hero.path} kind={hero.kind} alt={hero.caption || r.title} priority sizes="(max-width: 900px) 100vw, 520px" /> : <span aria-hidden="true">{r.emoji || cat?.emoji || "🍌"}</span>}
           </div>
-          <div className="meta">
-            {timeLabel(r.total_minutes, r.time_note) && <span className="pill time">{timeLabel(r.total_minutes, r.time_note)}</span>}
-            {r.servings ? <span className="pill">Serves {r.servings}</span> : null}
-            {rating && <span className="pill rate">★ {rating.avg_rating} ({rating.ratings_count})</span>}
-            {r.tags.map((t) => <Link key={t} className="pill" href={`/recipes?tag=${encodeURIComponent(t)}`}>{t}</Link>)}
-          </div>
           <div className="d-actions">
             <a className="btn" href="#made">I made it!</a>
             <SaveButton recipeId={r.id} title={r.title} initialSaved={saved} signedIn={!!userId} className="inline" />
             {editable && <Link className="btn ghost small" href={`/recipes/${r.slug}/edit`}>Edit recipe</Link>}
             {editable && <DeleteRecipeButton recipeId={r.id} />}
           </div>
+          {(rating || r.tags.length > 0) && (
+            <div className="meta">
+              {rating && <span className="pill rate">★ {rating.avg_rating} ({rating.ratings_count})</span>}
+              {r.tags.map((t) => <Link key={t} className="pill" href={`/recipes?tag=${encodeURIComponent(t)}`}>{t}</Link>)}
+            </div>
+          )}
           {gallery.length > 1 && (
             <ul className="thumbs" aria-label="More photos and videos">
               {gallery.slice(1).map((m) => (
@@ -104,42 +104,51 @@ export default async function RecipePage({ params, searchParams }: PageProps<"/r
         </div>
       </section>
 
-      <section className="d-steps" aria-labelledby="steps-h">
-        <h2 id="steps-h">Steps</h2>
-        <ol className="steps">
-          {r.steps.map((s, i) => (
-            <li key={i}>
-              <div>
-                <p>{s.text}</p>
-                {timersIn(s.text).length > 0 && <p className="timer-hint">⏲️ {timersIn(s.text).map((t) => t.label).join(", ")}</p>}
-                {s.media && <div className="step-media-view"><MediaView path={s.media.path} kind={s.media.kind} alt={`Step ${i + 1}`} sizes="(max-width: 900px) 100vw, 560px" /></div>}
-              </div>
-            </li>
-          ))}
-        </ol>
-      </section>
-
-      <section className="block made-grid" id="made" aria-label="Ratings and tips">
-        <MadeItForm recipeId={r.id} signedIn={!!userId} slug={r.slug} />
-        <div>
-          <h2 style={{ marginBottom: "1rem" }}>From other cooks</h2>
-          {logs.length ? (
-            <ul className="reviews">
-              {logs.map((l) => (
-                <li key={l.id} className="review">
-                  <div className="who">
-                    <span>{l.user_id === userId ? "You" : nameOf.get(l.user_id) || "A banana fan"}</span>
-                    <span role="img" aria-label={`${l.rating} out of 5`}>{"🍌".repeat(l.rating)}</span>
-                    <span className="muted">{shortDate(l.created_at)}</span>
-                    {(l.user_id === userId || isEditorRole(profile)) && <RemoveLogButton id={l.id} />}
+      <section className="made-grid d-cook" id="made" aria-label="Steps, ratings and tips">
+        <div className="d-steps" aria-labelledby="steps-h">
+          <h2 id="steps-h">Steps</h2>
+          <ol className="steps">
+            {r.steps.map((s, i) => {
+              const timers = timersIn(s.text);
+              return (
+                <li key={i}>
+                  <div>
+                    <p>{s.text}</p>
+                    {s.media && <div className="step-media-view"><MediaView path={s.media.path} kind={s.media.kind} alt={`Step ${i + 1}`} sizes="(max-width: 900px) 100vw, 560px" /></div>}
                   </div>
-                  {l.tip && <p>{l.tip}</p>}
+                  {timers.length > 0 && (
+                    <p className="timer-hint">
+                      <span className="timer-hint-icon" aria-hidden="true">⏲️</span>
+                      <span className="timer-hint-label">{timers.map((t) => t.label).join(", ")}</span>
+                    </p>
+                  )}
                 </li>
-              ))}
-            </ul>
-          ) : (
-            <p className="muted">No ratings yet. Be the first to share how it went!</p>
-          )}
+              );
+            })}
+          </ol>
+        </div>
+        <div className="d-made-col">
+          <MadeItForm recipeId={r.id} signedIn={!!userId} slug={r.slug} />
+          <div>
+            <h2 style={{ marginBottom: "1rem" }}>From Other Cooks</h2>
+            {logs.length ? (
+              <ul className="reviews">
+                {logs.map((l) => (
+                  <li key={l.id} className="review">
+                    <div className="who">
+                      <span>{l.user_id === userId ? "You" : nameOf.get(l.user_id) || "A banana fan"}</span>
+                      <span role="img" aria-label={`${l.rating} out of 5`}>{"🍌".repeat(l.rating)}</span>
+                      <span className="muted">{shortDate(l.created_at)}</span>
+                      {(l.user_id === userId || isEditorRole(profile)) && <RemoveLogButton id={l.id} />}
+                    </div>
+                    {l.tip && <p>{l.tip}</p>}
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p className="muted">No ratings yet. Be the first to share how it went!</p>
+            )}
+          </div>
         </div>
       </section>
     </div>

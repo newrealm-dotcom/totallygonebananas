@@ -17,7 +17,6 @@ export default async function RecipesPage({ searchParams }: PageProps<"/recipes"
     q: str(sp.q)?.trim().slice(0, 100) || undefined,
     category: str(sp.category),
     tag: TAGS.includes(str(sp.tag) as (typeof TAGS)[number]) ? str(sp.tag) : undefined,
-    maxMinutes: Number(str(sp.time)) || undefined,
     sort: (["new", "quick", "easy", "az"] as const).find((s) => s === str(sp.sort)) ?? "new",
     limit: PAGE_SIZE,
     offset: 0,
@@ -32,18 +31,18 @@ export default async function RecipesPage({ searchParams }: PageProps<"/recipes"
   const cat = categories.find((c) => c.id === f.category);
   const href = (patch: Partial<Record<string, string | undefined>>) => {
     const q = new URLSearchParams();
-    const merged = { q: f.q, category: f.category, tag: f.tag, time: f.maxMinutes ? String(f.maxMinutes) : undefined, sort: f.sort === "new" ? undefined : f.sort, ...patch };
+    const merged = { q: f.q, category: f.category, tag: f.tag, sort: f.sort === "new" ? undefined : f.sort, ...patch };
     Object.entries(merged).forEach(([k, v]) => v && q.set(k, v));
     const s = q.toString();
     return `/recipes${s ? `?${s}` : ""}`;
   };
-  const filtered = Boolean(f.q || f.category || f.tag || f.maxMinutes);
+  const filtered = Boolean(f.q || f.category || f.tag);
 
   return (
     <div className="wrap">
       <div className="page-head">
         <h1>{titleCase(cat ? cat.name : "Every banana recipe")}</h1>
-        <p className="lede">{cat?.tagline ?? "Filter by category, time, and diet, or search for whatever's already in your kitchen."}</p>
+        <p className="lede">{cat?.tagline ?? "Filter by category, tag or search for whatever's already in your kitchen."}</p>
       </div>
 
       <form className="filters" action="/recipes" role="search">
@@ -52,12 +51,6 @@ export default async function RecipesPage({ searchParams }: PageProps<"/recipes"
         <div className="f search-f">
           <label htmlFor="q">Search</label>
           <input id="q" name="q" type="search" className="field" defaultValue={f.q} placeholder="Chocolate, oats, walnuts…" />
-        </div>
-        <div className="f">
-          <label htmlFor="time">Time</label>
-          <select id="time" name="time" className="field" defaultValue={f.maxMinutes ? String(f.maxMinutes) : ""}>
-            <option value="">Any time</option><option value="15">15 min or less</option><option value="30">30 min or less</option><option value="60">1 hour or less</option>
-          </select>
         </div>
         <div className="f">
           <label htmlFor="sort">Sort by</label>
@@ -81,7 +74,7 @@ export default async function RecipesPage({ searchParams }: PageProps<"/recipes"
       </div>
 
       <RecipesInfiniteGrid
-        key={[f.q, f.category, f.tag, f.maxMinutes, f.sort].join("|")}
+        key={[f.q, f.category, f.tag, f.sort].join("|")}
         initialRecipes={recipes}
         initialRatings={Object.fromEntries(ratings)}
         initialSaved={[...saved]}
@@ -93,7 +86,6 @@ export default async function RecipesPage({ searchParams }: PageProps<"/recipes"
           q: f.q,
           category: f.category,
           tag: f.tag,
-          time: f.maxMinutes ? String(f.maxMinutes) : undefined,
           sort: f.sort,
         }}
         empty={<div className="empty"><span className="big">🍌🔍</span><p>Nothing matches all of those filters.</p><Link className="btn ghost" href="/recipes">Clear filters</Link></div>}

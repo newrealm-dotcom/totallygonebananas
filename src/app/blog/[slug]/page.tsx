@@ -39,7 +39,7 @@ export default async function BlogPostPage({ params }: PageProps<"/blog/[slug]">
     <article className="wrap narrow blog-post">
       <nav className="crumbs" aria-label="Breadcrumb">
         <Link href="/blog">Blog</Link>
-        <span aria-hidden="true">/</span>
+        <span aria-hidden="true">&gt;&gt;</span>
         <span>{post.title}</span>
       </nav>
       <header className="page-head">
