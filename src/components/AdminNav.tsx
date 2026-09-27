@@ -7,6 +7,7 @@ export function AdminNav({ isAdmin }: { isAdmin: boolean }) {
   const path = usePathname();
   const links = [
     { href: "/admin", label: "Overview", match: (p: string) => p === "/admin" },
+    { href: "/admin/homepage", label: "Homepage", match: (p: string) => p.startsWith("/admin/homepage") },
     { href: "/admin/recipes", label: "Recipes", match: (p: string) => p.startsWith("/admin/recipes") },
     { href: "/admin/posts", label: "Blog", match: (p: string) => p.startsWith("/admin/posts") },
     { href: "/admin/categories", label: "Categories", match: (p: string) => p.startsWith("/admin/categories") },

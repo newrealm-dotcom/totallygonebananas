@@ -1,13 +1,14 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { getCategories, listRecipes, type RecipeFilters } from "@/lib/queries";
+import { countRecipes, getCategories, getRatings, getSavedIds, getViewer, listRecipes, type RecipeFilters } from "@/lib/queries";
 import { CategoryStickers } from "@/components/CategoryStickers";
-import { RecipeGrid } from "@/components/RecipeGrid";
+import { RecipesInfiniteGrid } from "@/components/RecipesInfiniteGrid";
 import { TAGS } from "@/lib/types";
 import { plural, titleCase } from "@/lib/format";
 
 export const metadata: Metadata = { title: "Recipes" };
 
+const PAGE_SIZE = 40;
 const str = (v: string | string[] | undefined) => (typeof v === "string" ? v : undefined);
 
 export default async function RecipesPage({ searchParams }: PageProps<"/recipes">) {
@@ -18,8 +19,16 @@ export default async function RecipesPage({ searchParams }: PageProps<"/recipes"
     tag: TAGS.includes(str(sp.tag) as (typeof TAGS)[number]) ? str(sp.tag) : undefined,
     maxMinutes: Number(str(sp.time)) || undefined,
     sort: (["new", "quick", "easy", "az"] as const).find((s) => s === str(sp.sort)) ?? "new",
+    limit: PAGE_SIZE,
+    offset: 0,
   };
-  const [categories, recipes] = await Promise.all([getCategories(), listRecipes(f)]);
+  const [categories, recipes, total, viewer] = await Promise.all([
+    getCategories(),
+    listRecipes(f),
+    countRecipes(f),
+    getViewer(),
+  ]);
+  const [ratings, saved] = await Promise.all([getRatings(recipes.map((r) => r.id)), getSavedIds(viewer.userId)]);
   const cat = categories.find((c) => c.id === f.category);
   const href = (patch: Partial<Record<string, string | undefined>>) => {
     const q = new URLSearchParams();
@@ -67,11 +76,28 @@ export default async function RecipesPage({ searchParams }: PageProps<"/recipes"
       </nav>
 
       <div className="result-bar">
-        <p aria-live="polite">{plural(recipes.length, "recipe")}{filtered ? " found" : ""}</p>
+        <p aria-live="polite">{plural(total, "recipe")}{filtered ? " found" : ""}</p>
         {filtered && <Link className="btn ghost small" href="/recipes">Clear filters</Link>}
       </div>
 
-      <RecipeGrid recipes={recipes} showCategory={!cat} empty={<div className="empty"><span className="big">🍌🔍</span><p>Nothing matches all of those filters.</p><Link className="btn ghost" href="/recipes">Clear filters</Link></div>} />
+      <RecipesInfiniteGrid
+        key={[f.q, f.category, f.tag, f.maxMinutes, f.sort].join("|")}
+        initialRecipes={recipes}
+        initialRatings={Object.fromEntries(ratings)}
+        initialSaved={[...saved]}
+        categories={categories}
+        signedIn={!!viewer.userId}
+        showCategory={!cat}
+        total={total}
+        filters={{
+          q: f.q,
+          category: f.category,
+          tag: f.tag,
+          time: f.maxMinutes ? String(f.maxMinutes) : undefined,
+          sort: f.sort,
+        }}
+        empty={<div className="empty"><span className="big">🍌🔍</span><p>Nothing matches all of those filters.</p><Link className="btn ghost" href="/recipes">Clear filters</Link></div>}
+      />
       <div style={{ height: "3rem" }} />
     </div>
   );

@@ -17,6 +17,13 @@ export function publicUrl(path: string | null | undefined, bucket = RECIPE_BUCKE
   return base ? `${base}/storage/v1/object/public/${bucket}/${path}` : null;
 }
 
+/** Public site path (`/foo.webp`) or Supabase Storage path → browser URL. */
+export function promoImageSrc(path: string | null | undefined): string {
+  if (!path) return "/featured-home.webp";
+  if (path.startsWith("/") || path.startsWith("http://") || path.startsWith("https://")) return path;
+  return publicUrl(path, RECIPE_BUCKET) ?? "/featured-home.webp";
+}
+
 export function kindOf(file: File): MediaKind | null {
   if (IMAGE_TYPES.includes(file.type)) return "image";
   if (VIDEO_TYPES.includes(file.type)) return "video";

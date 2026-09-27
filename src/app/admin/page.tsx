@@ -19,6 +19,7 @@ export default async function AdminHomePage() {
       <div className="admin-actions">
         <Link className="btn" href="/recipes/new">New recipe</Link>
         <Link className="btn ghost" href="/admin/posts/new">New blog post</Link>
+        <Link className="btn ghost" href="/admin/homepage">Edit homepage promo</Link>
         <Link className="btn ghost" href="/admin/categories">Manage categories</Link>
         <Link className="btn ghost" href="/admin/referrals">View referrals</Link>
         {counts.pending > 0 && <Link className="btn dark" href="/admin/review">Review {counts.pending} pending</Link>}

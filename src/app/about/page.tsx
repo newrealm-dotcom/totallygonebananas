@@ -15,8 +15,11 @@ export default async function AboutPage() {
       <div className="about">
         <div className="about-copy">
           <h1 className="h1">About Totally Gone Bananas</h1>
-          <p className="lede">We&apos;re a home for banana recipes at every stage, from firm and green to spotty and gone. No banana left behind.</p>
-          <h2>How it works</h2>
+          <p className="lede">Welcome to Totally Gone Bananas, the internet&apos;s happiest corner for anyone who&apos;s ever looked at a bunch of bananas and thought, &quot;I could do something amazing with these.&quot;</p>
+          <p>Here you&apos;ll find a growing collection of recipes, from classic banana bread and silky smoothies to caramelized banana bread and inventive dishes you never knew you needed. We go beyond the kitchen, too, rounding up the coolest banana-related and banana-adjacent finds out there including gifts for the banana lover in your life.</p>
+          <p>At its heart, though, Totally Gone Bananas is a community. We want to see what you&apos;re making, so sign up, share your favorite recipes, swap tips with fellow fans, and help us build the ultimate banana-loving bunch.</p>
+          <p>Whether you&apos;re a seasoned baker or someone with three overripe bananas and a dream, there&apos;s a place for you here. Come peel back the fun and go totally bananas with us!</p>
+          <h2>How The Recipe Section works</h2>
           <p>Browse recipes by category or search for what&apos;s in your kitchen. Every recipe has a servings scaler and an ingredient checklist, and many come with step-by-step photos or video.</p>
           <p>Sign in to save favorites to your Banana Stand, rate what you cook, and share your own recipes. Editors give new submissions a quick look before they go live.</p>
           <p><Link className="btn" href="/recipes/new">Share a recipe</Link></p>

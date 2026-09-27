@@ -87,6 +87,29 @@ export const roleInput = z.object({
   role: z.enum(["member", "editor", "admin"]),
 });
 
+const publicOrMediaPath = z
+  .string()
+  .trim()
+  .min(1, "Add an image")
+  .refine(
+    (v) => v.startsWith("/") || v.startsWith("http://") || v.startsWith("https://") || MEDIA_PATH_RE.test(v),
+    "Use a public path like /featured-home.webp or upload an image",
+  );
+
+export const homepagePromoInput = z.object({
+  heading: z.string().trim().min(2, "Add a heading").max(120, "Keep the heading under 120 characters"),
+  body: z.string().trim().min(1, "Add body text").max(500, "Keep the body under 500 characters"),
+  buttonLabel: z.string().trim().min(1, "Add button text").max(40, "Keep the button under 40 characters"),
+  buttonHref: z
+    .string()
+    .trim()
+    .min(1, "Add a button link")
+    .refine((v) => v.startsWith("/") || /^https?:\/\//.test(v), "Link must start with / or http(s)"),
+  imagePath: publicOrMediaPath,
+});
+
+export type HomepagePromoInput = z.input<typeof homepagePromoInput>;
+
 /** Turns zod issues into { "steps.2.text": "message" } for inline form errors. */
 export function fieldErrors(error: z.ZodError): Record<string, string> {
   const out: Record<string, string> = {};

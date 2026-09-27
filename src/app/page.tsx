@@ -1,12 +1,13 @@
 import Image from "next/image";
 import Link from "next/link";
-import { getCategories, listRecipes } from "@/lib/queries";
+import { getCategories, getHomepagePromo, listRecipes } from "@/lib/queries";
 import { createClient } from "@/lib/supabase/server";
 import { CategoryStickers } from "@/components/CategoryStickers";
 import { RecipeGrid } from "@/components/RecipeGrid";
 import { HeroSlide } from "@/components/HeroSlide";
 import { MediaView } from "@/components/MediaView";
 import { timeLabel } from "@/lib/format";
+import { promoImageSrc } from "@/lib/media";
 import { getDarkMainSliderImages, getMainSliderImages, pickRandomSlide } from "@/lib/main-slider";
 
 /** Recipe of the day: the same pick for everyone for 24 hours (UTC). */
@@ -27,17 +28,20 @@ async function categoryCounts() {
 export default async function HomePage({ searchParams }: PageProps<"/">) {
   const sp = await searchParams;
   const active = typeof sp.category === "string" ? sp.category : undefined;
-  const [categories, counts, latest, all, lightSlides, darkSlides] = await Promise.all([
+  const [categories, counts, latest, all, lightSlides, darkSlides, promo] = await Promise.all([
     getCategories(),
     categoryCounts(),
     listRecipes({ category: active, limit: 8 }),
     listRecipes({ limit: 200, sort: "az" }),
     getMainSliderImages(),
     getDarkMainSliderImages(),
+    getHomepagePromo(),
   ]);
+  const promoSrc = promoImageSrc(promo.image_path);
   const cat = categories.find((c) => c.id === active);
   const heroLight = pickRandomSlide(lightSlides);
   const heroDark = pickRandomSlide(darkSlides);
+  const moreHref = cat ? `/recipes?category=${cat.id}` : "/recipes";
 
   const rotd = recipeOfTheDay(all);
 
@@ -60,36 +64,6 @@ export default async function HomePage({ searchParams }: PageProps<"/">) {
         </div>
       </section>
 
-      <section className="home-band" aria-labelledby="home-band-h">
-        <div className="home-band-bg" aria-hidden="true">
-          {/* Placeholder art — swap these paths when final band photography is ready. */}
-          <Image
-            className="home-band-img home-band-img-light"
-            src="/main-slider/main-banana-04.webp"
-            alt=""
-            fill
-            sizes="100vw"
-            priority={false}
-          />
-          <Image
-            className="home-band-img home-band-img-dark"
-            src="/main-slider/dark/dark-main-banana-04.webp"
-            alt=""
-            fill
-            sizes="100vw"
-            priority={false}
-          />
-        </div>
-        <div className="wrap home-band-inner">
-          <h2 id="home-band-h">Got ripe bananas? We have ideas.</h2>
-          <p>
-            Placeholder copy for a full-width homepage band. Swap this text for a seasonal
-            promo, community callout, or whatever you want to spotlight next.
-          </p>
-          <Link className="btn" href="/recipes">See what&apos;s cooking</Link>
-        </div>
-      </section>
-
       <section className="block" id="latest" aria-labelledby="latest-h">
         <div className="wrap">
           <div className="sec-head">
@@ -97,14 +71,46 @@ export default async function HomePage({ searchParams }: PageProps<"/">) {
               <h2 id="latest-h">{cat ? cat.name : "Fresh from the kitchen"}</h2>
               <p>{cat ? cat.tagline : "The newest recipes on the site."}</p>
             </div>
-            <Link className="btn ghost" href={cat ? `/recipes?category=${cat.id}` : "/recipes"}>Browse and filter</Link>
           </div>
-          <RecipeGrid recipes={latest} showCategory={!cat} empty={<div className="empty"><span className="big">🍌</span><p>No recipes here yet.</p><Link className="btn" href="/recipes/new">Share the first one</Link></div>} />
+          <div className="home-latest">
+            <RecipeGrid recipes={latest} showCategory={!cat} empty={<div className="empty"><span className="big">🍌</span><p>No recipes here yet.</p><Link className="btn" href="/recipes/new">Share the first one</Link></div>} />
+            {latest.length > 0 && (
+              <p className="home-more-wrap">
+                <Link className="home-more" href={moreHref}>View More Recipes</Link>
+              </p>
+            )}
+          </div>
+        </div>
+      </section>
+
+      <section className="home-band-section" aria-labelledby="home-band-kicker">
+        <div className="wrap">
+          <h2 id="home-band-kicker" className="home-band-kicker">Check Out Our Current Obsession</h2>
+        </div>
+        <div className="home-band" aria-labelledby="home-band-h">
+          <div className="home-band-bg" aria-hidden="true">
+            <Image
+              className="home-band-img"
+              src={promoSrc}
+              alt=""
+              fill
+              sizes="100vw"
+              priority={false}
+              unoptimized={promoSrc.startsWith("http")}
+            />
+          </div>
+          <div className="wrap home-band-inner">
+            <h3 id="home-band-h" className="home-band-title">{promo.heading}</h3>
+            <p>{promo.body}</p>
+            <Link className="btn" href={promo.button_href} target="_blank" rel="noopener noreferrer">
+              {promo.button_label}
+            </Link>
+          </div>
         </div>
       </section>
 
       {rotd && (
-        <section className="block" aria-labelledby="rotd-h" style={{ paddingTop: 0 }}>
+        <section className="block rotd-section" aria-labelledby="rotd-h">
           <div className="wrap">
             <article className="rotd">
               <div className="emo" aria-hidden="true">

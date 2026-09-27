@@ -1,7 +1,17 @@
 import { cache } from "react";
 import { createClient } from "@/lib/supabase/server";
 import { pointsFromCounts, standingsFor } from "@/lib/standings";
-import type { Category, Post, PostWithAuthor, Profile, Rating, Recipe, RecipeWithExtras } from "@/lib/types";
+import type { Category, HomepagePromo, Post, PostWithAuthor, Profile, Rating, Recipe, RecipeWithExtras } from "@/lib/types";
+
+export const DEFAULT_HOMEPAGE_PROMO: HomepagePromo = {
+  id: "default",
+  heading: "Got ripe bananas? We have ideas.",
+  body: "Placeholder copy for a full-width homepage band. Swap this text for a seasonal promo, community callout, or whatever you want to spotlight next.",
+  button_label: "See what's cooking",
+  button_href: "/recipes",
+  image_path: "/featured-home.webp",
+  updated_at: new Date(0).toISOString(),
+};
 
 const CARD_FIELDS =
   "id, slug, title, description, category_id, emoji, total_minutes, time_note, servings, difficulty, tags, cover_path, status, published_at, created_at";
@@ -70,6 +80,7 @@ export interface RecipeFilters {
   maxMinutes?: number;
   sort?: "new" | "quick" | "easy" | "az";
   limit?: number;
+  offset?: number;
 }
 
 export async function listRecipes(f: RecipeFilters = {}): Promise<RecipeCardData[]> {
@@ -85,8 +96,21 @@ export async function listRecipes(f: RecipeFilters = {}): Promise<RecipeCardData
     case "az": query = query.order("title"); break;
     default: query = query.order("published_at", { ascending: false, nullsFirst: false });
   }
-  const { data } = await query.limit(f.limit ?? 60);
+  const limit = f.limit ?? 60;
+  const offset = f.offset ?? 0;
+  const { data } = await query.range(offset, offset + limit - 1);
   return (data as RecipeCardData[]) ?? [];
+}
+
+export async function countRecipes(f: RecipeFilters = {}): Promise<number> {
+  const supabase = await createClient();
+  let query = supabase.from("recipes").select("id", { count: "exact", head: true }).eq("status", "published");
+  if (f.category) query = query.eq("category_id", f.category);
+  if (f.tag) query = query.contains("tags", [f.tag]);
+  if (f.maxMinutes) query = query.lte("total_minutes", f.maxMinutes);
+  if (f.q) query = query.textSearch("search", f.q, { type: "websearch", config: "english" });
+  const { count } = await query;
+  return count ?? 0;
 }
 
 export async function getRatings(ids: string[]): Promise<Map<string, Rating>> {
@@ -167,6 +191,12 @@ export async function listProfiles(): Promise<Profile[]> {
   const { data } = await supabase.from("profiles").select("*").order("created_at", { ascending: false });
   return (data as Profile[]) ?? [];
 }
+
+export const getHomepagePromo = cache(async (): Promise<HomepagePromo> => {
+  const supabase = await createClient();
+  const { data } = await supabase.from("homepage_promo").select("*").eq("id", "default").maybeSingle();
+  return (data as HomepagePromo | null) ?? DEFAULT_HOMEPAGE_PROMO;
+});
 
 export async function adminCounts() {
   const supabase = await createClient();

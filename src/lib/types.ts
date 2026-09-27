@@ -24,6 +24,16 @@ export interface Category {
   sort_order: number;
 }
 
+export interface HomepagePromo {
+  id: string;
+  heading: string;
+  body: string;
+  button_label: string;
+  button_href: string;
+  image_path: string;
+  updated_at: string;
+}
+
 export interface MediaRef {
   kind: MediaKind;
   path: string;
