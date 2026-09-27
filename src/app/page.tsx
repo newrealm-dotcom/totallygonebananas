@@ -6,9 +6,25 @@ import { CategoryStickers } from "@/components/CategoryStickers";
 import { RecipeGrid } from "@/components/RecipeGrid";
 import { HeroSlide } from "@/components/HeroSlide";
 import { MediaView } from "@/components/MediaView";
-import { timeLabel } from "@/lib/format";
+import { titleCase } from "@/lib/format";
 import { promoImageSrc } from "@/lib/media";
 import { getDarkMainSliderImages, getMainSliderImages, pickRandomSlide } from "@/lib/main-slider";
+
+/** Temporary homepage blog placeholders — replace with real posts when ready. */
+const HOME_BLOG_PLACEHOLDERS = [
+  {
+    title: "Placeholder post one",
+    excerpt: "Swap this for a real blog title and short teaser when the first story is ready to publish.",
+  },
+  {
+    title: "Placeholder post two",
+    excerpt: "Use this card for tips, product roundups, or banana news you want to feature on the homepage.",
+  },
+  {
+    title: "Placeholder post three",
+    excerpt: "Third slot for another story. Link each card to /blog/[slug] once the real posts exist.",
+  },
+] as const;
 
 /** Recipe of the day: the same pick for everyone for 24 hours (UTC). */
 function recipeOfTheDay<T>(list: T[]): T | null {
@@ -117,18 +133,41 @@ export default async function HomePage({ searchParams }: PageProps<"/">) {
                 {rotd.cover_path ? <MediaView path={rotd.cover_path} alt="" sizes="160px" /> : rotd.emoji || "🍌"}
               </div>
               <div>
-                <p className="kicker">Recipe of the day</p>
-                <h2 id="rotd-h">{rotd.title}</h2>
+                <p className="kicker">Recipe Of The Day</p>
+                <h2 id="rotd-h">{titleCase(rotd.title)}</h2>
                 {rotd.description && <p>{rotd.description}</p>}
                 <div className="actions">
-                  <Link className="btn dark" href={`/recipes/${rotd.slug}`}>See the recipe</Link>
-                  {timeLabel(rotd.total_minutes, rotd.time_note) && <span className="pill">{timeLabel(rotd.total_minutes, rotd.time_note)}</span>}
+                  <Link className="btn dark" href={`/recipes/${rotd.slug}`}>See The Recipe</Link>
                 </div>
               </div>
             </article>
           </div>
         </section>
       )}
+
+      <section className="block home-blog" aria-labelledby="home-blog-h">
+        <div className="wrap">
+          <div className="sec-head">
+            <div>
+              <h2 id="home-blog-h">From the Blog</h2>
+              <p>Temporary header — replace these three placeholders with real posts when you&apos;re ready.</p>
+            </div>
+            <Link className="btn ghost small" href="/blog">View all posts</Link>
+          </div>
+          <ul className="blog-grid home-blog-grid">
+            {HOME_BLOG_PLACEHOLDERS.map((post) => (
+              <li key={post.title} className="blog-card">
+                <div className="blog-card-media blog-card-media-ph" aria-hidden="true" />
+                <div className="blog-card-body">
+                  <h3>{post.title}</h3>
+                  <p>{post.excerpt}</p>
+                  <p className="muted">Coming soon</p>
+                </div>
+              </li>
+            ))}
+          </ul>
+        </div>
+      </section>
     </>
   );
 }
