@@ -28,6 +28,11 @@ export function shortDate(iso: string) {
   return new Date(iso).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
 }
 
+/** Capitalize the first letter of each word (preserves the rest of each word). */
+export function titleCase(s: string) {
+  return s.replace(/\b\p{L}/gu, (c) => c.toUpperCase());
+}
+
 const TINTS = ["#F9E798", "#F4BC9C", "#C7E7D7", "#F9D3DA", "#CEE1F3", "#DBD0F0", "#CEDFA2", "#F1D8BC"];
 export function tintFor(categoryId: string | null, categories: { id: string }[]) {
   const i = Math.max(0, categories.findIndex((c) => c.id === categoryId));

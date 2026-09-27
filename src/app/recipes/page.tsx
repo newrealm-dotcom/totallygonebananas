@@ -4,7 +4,7 @@ import { getCategories, listRecipes, type RecipeFilters } from "@/lib/queries";
 import { CategoryStickers } from "@/components/CategoryStickers";
 import { RecipeGrid } from "@/components/RecipeGrid";
 import { TAGS } from "@/lib/types";
-import { plural } from "@/lib/format";
+import { plural, titleCase } from "@/lib/format";
 
 export const metadata: Metadata = { title: "Recipes" };
 
@@ -33,7 +33,7 @@ export default async function RecipesPage({ searchParams }: PageProps<"/recipes"
   return (
     <div className="wrap">
       <div className="page-head">
-        <h1>{cat ? cat.name : "Every banana recipe"}</h1>
+        <h1>{titleCase(cat ? cat.name : "Every banana recipe")}</h1>
         <p className="lede">{cat?.tagline ?? "Filter by category, time, and diet, or search for whatever's already in your kitchen."}</p>
       </div>
 

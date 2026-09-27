@@ -4,11 +4,10 @@ import { notFound } from "next/navigation";
 import { canEdit, getCategories, getRatings, getRecipeBySlug, getSavedIds, getViewer, isEditorRole } from "@/lib/queries";
 import { createClient } from "@/lib/supabase/server";
 import { publicUrl } from "@/lib/media";
-import { shortDate, timeLabel, tintFor } from "@/lib/format";
+import { shortDate, timeLabel, tintFor, titleCase } from "@/lib/format";
 import { timersIn } from "@/lib/scale";
 import { MediaView } from "@/components/MediaView";
 import { SaveButton } from "@/components/SaveButton";
-import { Difficulty } from "@/components/Difficulty";
 import { IngredientPanel } from "@/components/IngredientPanel";
 import { MadeItForm } from "@/components/MadeItForm";
 import { DeleteRecipeButton, RemoveLogButton, ReviewButtons } from "@/components/OwnerTools";
@@ -19,7 +18,8 @@ export async function generateMetadata({ params }: PageProps<"/recipes/[slug]">)
   const r = await getRecipeBySlug(slug);
   if (!r) return { title: "Recipe not found" };
   const img = publicUrl(r.cover_path);
-  return { title: r.title, description: r.description ?? undefined, openGraph: { title: r.title, description: r.description ?? undefined, images: img ? [img] : undefined } };
+  const title = titleCase(r.title);
+  return { title, description: r.description ?? undefined, openGraph: { title, description: r.description ?? undefined, images: img ? [img] : undefined } };
 }
 
 const SAVED_MSG: Record<string, string> = {
@@ -68,9 +68,21 @@ export default async function RecipePage({ params, searchParams }: PageProps<"/r
       </nav>
 
       <section className="d-hero">
-        <div>
+        <div className="d-media">
           <div className="d-art" style={{ background: tintFor(r.category_id, categories) }}>
             {hero ? <MediaView path={hero.path} kind={hero.kind} alt={hero.caption || r.title} priority sizes="(max-width: 900px) 100vw, 520px" /> : <span aria-hidden="true">{r.emoji || cat?.emoji || "🍌"}</span>}
+          </div>
+          <div className="meta">
+            {timeLabel(r.total_minutes, r.time_note) && <span className="pill time">{timeLabel(r.total_minutes, r.time_note)}</span>}
+            {r.servings ? <span className="pill">Serves {r.servings}</span> : null}
+            {rating && <span className="pill rate">★ {rating.avg_rating} ({rating.ratings_count})</span>}
+            {r.tags.map((t) => <Link key={t} className="pill" href={`/recipes?tag=${encodeURIComponent(t)}`}>{t}</Link>)}
+          </div>
+          <div className="d-actions">
+            <a className="btn" href="#made">I made it!</a>
+            <SaveButton recipeId={r.id} title={r.title} initialSaved={saved} signedIn={!!userId} className="inline" />
+            {editable && <Link className="btn ghost small" href={`/recipes/${r.slug}/edit`}>Edit recipe</Link>}
+            {editable && <DeleteRecipeButton recipeId={r.id} />}
           </div>
           {gallery.length > 1 && (
             <ul className="thumbs" aria-label="More photos and videos">
@@ -83,44 +95,29 @@ export default async function RecipePage({ params, searchParams }: PageProps<"/r
             </ul>
           )}
         </div>
-        <div>
-          <h1 className="h1">{r.title}</h1>
+        <div className="d-intro">
+          <h1 className="h1">{titleCase(r.title)}</h1>
           {r.description && <p className="lede">{r.description}</p>}
-          <div className="meta">
-            {timeLabel(r.total_minutes, r.time_note) && <span className="pill time">{timeLabel(r.total_minutes, r.time_note)}</span>}
-            {r.difficulty ? <Difficulty value={r.difficulty} /> : null}
-            {r.servings ? <span className="pill">Serves {r.servings}</span> : null}
-            {rating && <span className="pill rate">★ {rating.avg_rating} ({rating.ratings_count})</span>}
-            {r.tags.map((t) => <Link key={t} className="pill" href={`/recipes?tag=${encodeURIComponent(t)}`}>{t}</Link>)}
-          </div>
           {r.author && <p className="byline">Shared by {r.author.display_name || "a banana fan"}{r.published_at ? ` on ${shortDate(r.published_at)}` : ""}</p>}
-          <div className="d-actions">
-            <a className="btn" href="#made">I made it!</a>
-            <SaveButton recipeId={r.id} title={r.title} initialSaved={saved} signedIn={!!userId} className="inline" />
-            {editable && <Link className="btn ghost small" href={`/recipes/${r.slug}/edit`}>Edit recipe</Link>}
-            {editable && <DeleteRecipeButton recipeId={r.id} />}
-          </div>
           {r.status === "pending" && isEditorRole(profile) && <div className="panel" style={{ marginTop: "1.2rem" }}><h2>Review</h2><ReviewButtons recipeId={r.id} /></div>}
+          <IngredientPanel ingredients={r.ingredients} servings={r.servings} />
         </div>
       </section>
 
-      <div className="d-body">
-        <IngredientPanel ingredients={r.ingredients} servings={r.servings} />
-        <section aria-labelledby="steps-h">
-          <h2 id="steps-h" style={{ marginBottom: "1rem" }}>Steps</h2>
-          <ol className="steps">
-            {r.steps.map((s, i) => (
-              <li key={i}>
-                <div>
-                  <p>{s.text}</p>
-                  {timersIn(s.text).length > 0 && <p className="timer-hint">⏲️ {timersIn(s.text).map((t) => t.label).join(", ")}</p>}
-                  {s.media && <div className="step-media-view"><MediaView path={s.media.path} kind={s.media.kind} alt={`Step ${i + 1}`} sizes="(max-width: 900px) 100vw, 560px" /></div>}
-                </div>
-              </li>
-            ))}
-          </ol>
-        </section>
-      </div>
+      <section className="d-steps" aria-labelledby="steps-h">
+        <h2 id="steps-h">Steps</h2>
+        <ol className="steps">
+          {r.steps.map((s, i) => (
+            <li key={i}>
+              <div>
+                <p>{s.text}</p>
+                {timersIn(s.text).length > 0 && <p className="timer-hint">⏲️ {timersIn(s.text).map((t) => t.label).join(", ")}</p>}
+                {s.media && <div className="step-media-view"><MediaView path={s.media.path} kind={s.media.kind} alt={`Step ${i + 1}`} sizes="(max-width: 900px) 100vw, 560px" /></div>}
+              </div>
+            </li>
+          ))}
+        </ol>
+      </section>
 
       <section className="block made-grid" id="made" aria-label="Ratings and tips">
         <MadeItForm recipeId={r.id} signedIn={!!userId} slug={r.slug} />

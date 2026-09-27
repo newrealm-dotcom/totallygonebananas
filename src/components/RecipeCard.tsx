@@ -1,7 +1,7 @@
 import Link from "next/link";
 import type { RecipeCardData } from "@/lib/queries";
 import type { Category, Rating } from "@/lib/types";
-import { timeLabel, tintFor } from "@/lib/format";
+import { timeLabel, tintFor, titleCase } from "@/lib/format";
 import { MediaView } from "@/components/MediaView";
 import { SaveButton } from "@/components/SaveButton";
 import { Difficulty } from "@/components/Difficulty";
@@ -22,7 +22,7 @@ export function RecipeCard({ recipe, categories, rating, saved, signedIn, showCa
       </div>
       <SaveButton recipeId={recipe.id} title={recipe.title} initialSaved={saved} signedIn={signedIn} className="heart-corner" />
       <div className="inner">
-        <h3><Link href={`/recipes/${recipe.slug}`}>{recipe.title}</Link></h3>
+        <h3><Link href={`/recipes/${recipe.slug}`}>{titleCase(recipe.title)}</Link></h3>
         {recipe.description && <p>{recipe.description}</p>}
         <div className="meta">
           {timeLabel(recipe.total_minutes, recipe.time_note) && <span className="pill time">{timeLabel(recipe.total_minutes, recipe.time_note)}</span>}
