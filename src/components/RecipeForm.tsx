@@ -6,6 +6,7 @@ import { createClient } from "@/lib/supabase/client";
 import { checkFile, kindOf, publicUrl, RECIPE_BUCKET } from "@/lib/media";
 import { saveRecipe } from "@/actions/recipes";
 import { TAGS, type Category, type MediaKind } from "@/lib/types";
+import { MAX_TAGS, normalizeTag, tagIssue } from "@/lib/tags";
 import {
   blankValues,
   mergeRecipeDraft,
@@ -52,6 +53,8 @@ export function RecipeForm({ userId, isEditor, categories, recipeId, initial }: 
   const [dragging, setDragging] = useState(false);
   const [pending, start] = useTransition();
   const [submitted, setSubmitted] = useState(false);
+  const [customTag, setCustomTag] = useState("");
+  const [tagError, setTagError] = useState("");
   const inputs = useRef(new Map<string, HTMLInputElement | HTMLTextAreaElement>());
 
   const set = useCallback(<K extends keyof RecipeFormValues>(key: K, value: RecipeFormValues[K]) => setV((s) => ({ ...s, [key]: value })), []);
@@ -187,6 +190,27 @@ export function RecipeForm({ userId, isEditor, categories, recipeId, initial }: 
     setPasteFor(null);
   }
 
+  /* ---- tags */
+  function addCustomTag() {
+    const next = normalizeTag(customTag);
+    const issue = tagIssue(next);
+    if (issue) {
+      setTagError(issue);
+      return;
+    }
+    if (v.tags.includes(next)) {
+      setTagError("That tag is already on this recipe");
+      return;
+    }
+    if (v.tags.length >= MAX_TAGS) {
+      setTagError(`Up to ${MAX_TAGS} tags`);
+      return;
+    }
+    set("tags", [...v.tags, next]);
+    setCustomTag("");
+    setTagError("");
+  }
+
   /* ---- submit */
   const uploading = v.gallery.some((u) => u.status === "uploading") || v.steps.some((s) => s.media?.status === "uploading");
 
@@ -200,6 +224,11 @@ export function RecipeForm({ userId, isEditor, categories, recipeId, initial }: 
       if (!v.steps.some((r) => r.text.trim())) local.steps = "Add at least one step";
     }
     if (v.gallery.some((u) => u.status === "error") || v.steps.some((s) => s.media?.status === "error")) local.gallery = "Remove the files that failed to upload first.";
+    if (v.tags.length > MAX_TAGS) local.tags = `Up to ${MAX_TAGS} tags`;
+    else {
+      const bad = v.tags.map(tagIssue).find(Boolean);
+      if (bad) local.tags = bad;
+    }
     if (Object.keys(local).length) {
       setErrors({ ...local, form: "A few things need attention before saving." });
       document.getElementById(`${formId}-${Object.keys(local)[0].split(".")[0]}`)?.scrollIntoView({ behavior: "smooth", block: "center" });
@@ -424,15 +453,63 @@ export function RecipeForm({ userId, isEditor, categories, recipeId, initial }: 
           </div>
         </div>
         <div className="f"><label htmlFor={fid("tn")}>Time note <small>(replaces the time label, e.g. &ldquo;10 min + freezing&rdquo;)</small></label><input id={fid("tn")} className="field" maxLength={40} value={v.timeNote} onChange={(e) => set("timeNote", e.target.value)} /></div>
-        <fieldset className="f">
+        <fieldset className="f" id={fid("tags")}>
           <legend>Tags</legend>
           <div className="tagbox">
             {TAGS.map((t) => (
               <label key={t}>
-                <input type="checkbox" checked={v.tags.includes(t)} onChange={(e) => set("tags", e.target.checked ? [...v.tags, t] : v.tags.filter((x) => x !== t))} /> {t}
+                <input
+                  type="checkbox"
+                  checked={v.tags.includes(t)}
+                  onChange={(e) => {
+                    setTagError("");
+                    set("tags", e.target.checked ? [...v.tags, t] : v.tags.filter((x) => x !== t));
+                  }}
+                />{" "}
+                {t}
+              </label>
+            ))}
+            {v.tags.filter((t) => !(TAGS as readonly string[]).includes(t)).map((t) => (
+              <label key={t} className="tag-custom">
+                <input
+                  type="checkbox"
+                  checked
+                  onChange={() => {
+                    setTagError("");
+                    set("tags", v.tags.filter((x) => x !== t));
+                  }}
+                />{" "}
+                {t}
               </label>
             ))}
           </div>
+          <div className="tag-add">
+            <label className="sr" htmlFor={fid("tag-in")}>Add a custom tag</label>
+            <input
+              id={fid("tag-in")}
+              className="field"
+              maxLength={24}
+              value={customTag}
+              placeholder="Add your own tag…"
+              aria-invalid={!!(tagError || err("tags"))}
+              aria-describedby={tagError || err("tags") ? fid("tag-err") : undefined}
+              onChange={(e) => {
+                setCustomTag(e.target.value);
+                if (tagError) setTagError("");
+              }}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  e.preventDefault();
+                  addCustomTag();
+                }
+              }}
+            />
+            <button type="button" className="btn ghost small" onClick={addCustomTag} disabled={!customTag.trim()}>
+              Add tag
+            </button>
+          </div>
+          <p className="hint">Letters, numbers, spaces, or hyphens. No profanity or nonsense.</p>
+          {(tagError || err("tags")) && <p className="f-err" id={fid("tag-err")} role="alert">{tagError || err("tags")}</p>}
         </fieldset>
       </section>
 

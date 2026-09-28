@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { MEDIA_PATH_RE } from "@/lib/media";
-import { TAGS } from "@/lib/types";
+import { MAX_TAGS, normalizeTag, tagIssue } from "@/lib/tags";
 
 const mediaRef = z.object({
   kind: z.enum(["image", "video"]),
@@ -28,7 +28,20 @@ export const recipeInput = z.object({
   timeNote: z.string().trim().max(40).default(""),
   servings: optionalInt(1, 200, "Servings"),
   difficulty: z.number().int().min(1).max(5).default(2),
-  tags: z.array(z.enum(TAGS)).max(TAGS.length).default([]),
+  tags: z
+    .array(
+      z
+        .string()
+        .trim()
+        .transform(normalizeTag)
+        .superRefine((val, ctx) => {
+          const issue = tagIssue(val);
+          if (issue) ctx.addIssue({ code: "custom", message: issue });
+        }),
+    )
+    .max(MAX_TAGS, `Up to ${MAX_TAGS} tags`)
+    .default([])
+    .transform((tags) => [...new Set(tags)]),
   ingredients: z
     .array(z.string().trim().min(1).max(200, "Each ingredient must be under 200 characters"))
     .min(1, "Add at least one ingredient")

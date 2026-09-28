@@ -245,7 +245,10 @@ textarea.field { resize: vertical; line-height: 1.45; }
 .emoji-in { max-width: 6rem; text-align: center; font-size: 1.3rem; }
 .tagbox { display: flex; flex-wrap: wrap; gap: .45rem; }
 .tagbox label { display: inline-flex; gap: .4rem; align-items: center; border: 2.5px solid var(--line); border-radius: 999px; padding: .3rem .8rem; font-weight: 800; font-size: .88rem; cursor: pointer; min-height: 40px; }
+.tagbox label.tag-custom { background: color-mix(in srgb, var(--yellow) 35%, var(--panel)); }
 .tagbox input { accent-color: #462018; width: 18px; height: 18px; }
+.tag-add { display: flex; flex-wrap: wrap; gap: .5rem; align-items: center; margin-top: .75rem; }
+.tag-add .field { flex: 1 1 12rem; min-width: 0; margin: 0; }
 .row-actions { display: flex; flex-wrap: wrap; gap: .7rem; align-items: center; }
 .notice-inline { display: flex; gap: 1rem; align-items: center; flex-wrap: wrap; background: #C7E7D7; color: var(--brown); border: 3px solid var(--brown); border-radius: 18px; padding: .7rem 1rem; font-weight: 800; margin: 1.2rem 0 0; }
 .notice-inline.warn { background: var(--yellow); }

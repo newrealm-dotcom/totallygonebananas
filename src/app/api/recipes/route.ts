@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { countRecipes, getRatings, getSavedIds, getViewer, listRecipes, type RecipeFilters } from "@/lib/queries";
-import { TAGS } from "@/lib/types";
+import { isValidTag, normalizeTag } from "@/lib/tags";
 
 export const PAGE_SIZE = 40;
 
@@ -10,11 +10,11 @@ export async function GET(req: Request) {
   const url = new URL(req.url);
   const offset = Math.max(0, Number(url.searchParams.get("offset")) || 0);
   const limit = Math.min(PAGE_SIZE, Math.max(1, Number(url.searchParams.get("limit")) || PAGE_SIZE));
-  const tag = str(url.searchParams.get("tag"));
+  const tagRaw = str(url.searchParams.get("tag"));
   const f: RecipeFilters = {
     q: str(url.searchParams.get("q"))?.slice(0, 100),
     category: str(url.searchParams.get("category")),
-    tag: TAGS.includes(tag as (typeof TAGS)[number]) ? tag : undefined,
+    tag: tagRaw && isValidTag(tagRaw) ? normalizeTag(tagRaw) : undefined,
     maxMinutes: Number(str(url.searchParams.get("time"))) || undefined,
     sort: (["new", "quick", "easy", "az"] as const).find((s) => s === str(url.searchParams.get("sort"))) ?? "new",
     limit,

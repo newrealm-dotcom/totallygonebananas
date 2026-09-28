@@ -4,6 +4,7 @@ import { countRecipes, getCategories, getRatings, getSavedIds, getViewer, listRe
 import { CategoryStickers } from "@/components/CategoryStickers";
 import { RecipesInfiniteGrid } from "@/components/RecipesInfiniteGrid";
 import { TAGS } from "@/lib/types";
+import { isValidTag, normalizeTag } from "@/lib/tags";
 import { plural, titleCase } from "@/lib/format";
 
 export const metadata: Metadata = { title: "Recipes" };
@@ -16,7 +17,10 @@ export default async function RecipesPage({ searchParams }: PageProps<"/recipes"
   const f: RecipeFilters = {
     q: str(sp.q)?.trim().slice(0, 100) || undefined,
     category: str(sp.category),
-    tag: TAGS.includes(str(sp.tag) as (typeof TAGS)[number]) ? str(sp.tag) : undefined,
+    tag: (() => {
+      const t = str(sp.tag);
+      return t && isValidTag(t) ? normalizeTag(t) : undefined;
+    })(),
     sort: (["new", "quick", "easy", "az"] as const).find((s) => s === str(sp.sort)) ?? "new",
     limit: PAGE_SIZE,
     offset: 0,
