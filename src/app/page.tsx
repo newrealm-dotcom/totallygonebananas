@@ -1,30 +1,15 @@
 import Image from "next/image";
 import Link from "next/link";
-import { getCategories, getHomepagePromo, listRecipes } from "@/lib/queries";
+import { getCategories, getHomepagePromo, listPosts, listRecipes } from "@/lib/queries";
 import { createClient } from "@/lib/supabase/server";
 import { CategoryStickers } from "@/components/CategoryStickers";
 import { RecipeGrid } from "@/components/RecipeGrid";
 import { HeroSlide } from "@/components/HeroSlide";
 import { MediaView } from "@/components/MediaView";
-import { titleCase } from "@/lib/format";
-import { promoImageSrc } from "@/lib/media";
+import { shortDate, titleCase } from "@/lib/format";
+import { mediaSrc, promoImageSrc } from "@/lib/media";
+import { stripInlineMarkdown } from "@/lib/render-post-markdown";
 import { getDarkMainSliderImages, getMainSliderImages, pickRandomSlide } from "@/lib/main-slider";
-
-/** Temporary homepage blog placeholders — replace with real posts when ready. */
-const HOME_BLOG_PLACEHOLDERS = [
-  {
-    title: "Placeholder post one",
-    excerpt: "Swap this for a real blog title and short teaser when the first story is ready to publish.",
-  },
-  {
-    title: "Placeholder post two",
-    excerpt: "Use this card for tips, product roundups, or banana news you want to feature on the homepage.",
-  },
-  {
-    title: "Placeholder post three",
-    excerpt: "Third slot for another story. Link each card to /blog/[slug] once the real posts exist.",
-  },
-] as const;
 
 /** Recipe of the day: the same pick for everyone for 24 hours (UTC). */
 function recipeOfTheDay<T>(list: T[]): T | null {
@@ -44,7 +29,7 @@ async function categoryCounts() {
 export default async function HomePage({ searchParams }: PageProps<"/">) {
   const sp = await searchParams;
   const active = typeof sp.category === "string" ? sp.category : undefined;
-  const [categories, counts, latest, all, lightSlides, darkSlides, promo] = await Promise.all([
+  const [categories, counts, latest, all, lightSlides, darkSlides, promo, homePosts] = await Promise.all([
     getCategories(),
     categoryCounts(),
     listRecipes({ category: active, limit: 8 }),
@@ -52,6 +37,7 @@ export default async function HomePage({ searchParams }: PageProps<"/">) {
     getMainSliderImages(),
     getDarkMainSliderImages(),
     getHomepagePromo(),
+    listPosts({ publishedOnly: true, limit: 6, offset: 0 }),
   ]);
   const promoSrc = promoImageSrc(promo.image_path);
   const cat = categories.find((c) => c.id === active);
@@ -149,23 +135,38 @@ export default async function HomePage({ searchParams }: PageProps<"/">) {
         <div className="wrap">
           <div className="sec-head">
             <div>
-              <h2 id="home-blog-h">From the Blog</h2>
-              <p>Temporary header — replace these three placeholders with real posts when you&apos;re ready.</p>
+              <h2 id="home-blog-h">Bananas in the Wild</h2>
+              <p>
+                Welcome to the archive, where every post we&apos;ve ever written about bananas lives in one place.
+              </p>
             </div>
             <Link className="btn ghost small" href="/blog">View all posts</Link>
           </div>
-          <ul className="blog-grid home-blog-grid">
-            {HOME_BLOG_PLACEHOLDERS.map((post) => (
-              <li key={post.title} className="blog-card">
-                <div className="blog-card-media blog-card-media-ph" aria-hidden="true" />
-                <div className="blog-card-body">
-                  <h3>{post.title}</h3>
-                  <p>{post.excerpt}</p>
-                  <p className="muted">Coming soon</p>
-                </div>
-              </li>
-            ))}
-          </ul>
+          {homePosts.length === 0 ? (
+            <div className="empty"><p>No posts yet. Check back soon.</p></div>
+          ) : (
+            <ul className="blog-grid home-blog-grid">
+              {homePosts.map((p) => {
+                const cover = mediaSrc(p.cover_path);
+                return (
+                  <li key={p.id} className="blog-card">
+                    {cover ? (
+                      <Link href={`/blog/${p.slug}`} className="blog-card-media" tabIndex={-1} aria-hidden>
+                        <Image src={cover} alt="" width={640} height={360} unoptimized />
+                      </Link>
+                    ) : (
+                      <Link href={`/blog/${p.slug}`} className="blog-card-media blog-card-media-ph" tabIndex={-1} aria-hidden />
+                    )}
+                    <div className="blog-card-body">
+                      <h3><Link href={`/blog/${p.slug}`}>{stripInlineMarkdown(p.title)}</Link></h3>
+                      {p.excerpt ? <p>{stripInlineMarkdown(p.excerpt)}</p> : null}
+                      {p.published_at ? <p className="muted">{shortDate(p.published_at)}</p> : null}
+                    </div>
+                  </li>
+                );
+              })}
+            </ul>
+          )}
         </div>
       </section>
     </>
