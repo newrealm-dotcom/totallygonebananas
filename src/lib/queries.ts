@@ -136,6 +136,9 @@ export const getRecipeBySlug = cache(async (slug: string): Promise<RecipeWithExt
     .maybeSingle();
   if (!data) return null;
   const recipe = data as RecipeWithExtras;
+  recipe.tags = recipe.tags ?? [];
+  recipe.ingredients = recipe.ingredients ?? [];
+  recipe.steps = recipe.steps ?? [];
   recipe.recipe_media = [...(recipe.recipe_media ?? [])].sort((a, b) => a.position - b.position);
   return recipe;
 });

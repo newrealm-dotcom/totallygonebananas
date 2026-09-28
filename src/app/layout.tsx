@@ -5,7 +5,6 @@ import "@fontsource-variable/nunito/index.css";
 import "./globals.css";
 import { SiteHeader } from "@/components/SiteHeader";
 import { SiteFooter } from "@/components/SiteFooter";
-import { ThemeToggle } from "@/components/ThemeToggle";
 import { siteUrl } from "@/lib/env";
 
 export const metadata: Metadata = {
@@ -30,7 +29,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body>
         <Script id="theme-init" strategy="beforeInteractive" dangerouslySetInnerHTML={{ __html: themeInit }} />
         <a className="skip" href="#main">Skip to content</a>
-        <ThemeToggle />
         <SiteHeader />
         <main id="main">{children}</main>
         <SiteFooter />

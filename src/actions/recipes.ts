@@ -45,7 +45,8 @@ export async function saveRecipe(raw: unknown, recipeId?: string): Promise<SaveR
     }
     const known = new Set<string>();
     (data.recipe_media as { path: string }[] | null)?.forEach((m) => known.add(m.path));
-    (data.steps as { media?: { path: string } | null }[]).forEach((s) => s.media?.path && known.add(s.media.path));
+    const existingSteps = (data.steps as { media?: { path: string } | null }[] | null) ?? [];
+    existingSteps.forEach((s) => s.media?.path && known.add(s.media.path));
     if (data.cover_path) known.add(data.cover_path);
     existing = { id: data.id, slug: data.slug, status: data.status, author_id: data.author_id, knownPaths: known };
   }

@@ -37,7 +37,12 @@ export function LoginForm({ next, googleEnabled }: { next: string; googleEnabled
     });
     if (error) {
       setState("error");
-      setError(error.message);
+      const msg = error.message.toLowerCase();
+      setError(
+        msg.includes("sending magic link") || msg.includes("error sending")
+          ? "We couldn't send the sign-in email right now. Please try again in a minute."
+          : error.message,
+      );
     } else {
       setState("sent");
       setCode("");

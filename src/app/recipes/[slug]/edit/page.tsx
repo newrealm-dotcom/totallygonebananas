@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
 import { notFound, redirect } from "next/navigation";
 import { canEdit, getCategories, getRecipeBySlug, getViewer, isEditorRole } from "@/lib/queries";
-import { RecipeForm, valuesFromRecipe } from "@/components/RecipeForm";
+import { RecipeForm } from "@/components/RecipeForm";
+import { valuesFromRecipe } from "@/lib/recipe-form-values";
 import { titleCase } from "@/lib/format";
 
 export const metadata: Metadata = { title: "Edit recipe" };

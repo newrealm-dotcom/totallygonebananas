@@ -3,6 +3,8 @@ import Link from "next/link";
 import { getViewer, getViewerStandings } from "@/lib/queries";
 import { publicUrl, AVATAR_BUCKET } from "@/lib/media";
 import { NavLinks } from "@/components/NavLinks";
+import { BrandLogo } from "@/components/BrandLogo";
+import { ThemeToggle } from "@/components/ThemeToggle";
 
 export async function SiteHeader() {
   const [{ userId, profile }, standings] = await Promise.all([getViewer(), getViewerStandings()]);
@@ -12,9 +14,7 @@ export async function SiteHeader() {
     <header className="top">
       <div className="wrap">
         <NavLinks side="left" />
-        <Link className="brand" href="/" aria-label="Totally Gone Bananas home">
-          <Image src="/logo.png" alt="" width={186} height={201} priority />
-        </Link>
+        <BrandLogo />
         <div className="top-end">
           <NavLinks side="right" />
           <div className="top-actions">
@@ -48,6 +48,7 @@ export async function SiteHeader() {
           </div>
         </div>
       </div>
+      <ThemeToggle />
     </header>
   );
 }

@@ -6,69 +6,21 @@ import { createClient } from "@/lib/supabase/client";
 import { checkFile, kindOf, publicUrl, RECIPE_BUCKET } from "@/lib/media";
 import { saveRecipe } from "@/actions/recipes";
 import { TAGS, type Category, type MediaKind } from "@/lib/types";
+import {
+  blankValues,
+  mergeRecipeDraft,
+  type RecipeFormValues,
+  type Row,
+  type StepRow,
+  type Upload,
+} from "@/lib/recipe-form-values";
 
-/* ------------------------------------------------------------------ types */
-
-export interface Upload {
-  id: string;
-  kind: MediaKind;
-  path: string | null;
-  preview: string;
-  status: "uploading" | "done" | "error";
-  error?: string;
-  caption: string;
-  /** Uploaded during this session (safe to delete from Storage if removed). */
-  fresh: boolean;
-}
-interface Row { id: string; text: string }
-interface StepRow { id: string; text: string; media: Upload | null }
-
-export interface RecipeFormValues {
-  title: string;
-  description: string;
-  categoryId: string;
-  newCatName: string;
-  newCatEmoji: string;
-  emoji: string;
-  totalMinutes: string;
-  timeNote: string;
-  servings: string;
-  difficulty: number;
-  tags: string[];
-  ingredients: Row[];
-  steps: StepRow[];
-  gallery: Upload[];
-}
+export type { RecipeFormValues, Upload };
+export { blankValues, valuesFromRecipe } from "@/lib/recipe-form-values";
 
 const uid = () => (typeof crypto !== "undefined" && "randomUUID" in crypto ? crypto.randomUUID() : Math.random().toString(36).slice(2));
 const emptyRow = (): Row => ({ id: uid(), text: "" });
 const emptyStep = (): StepRow => ({ id: uid(), text: "", media: null });
-
-export function blankValues(categoryId = ""): RecipeFormValues {
-  return {
-    title: "", description: "", categoryId, newCatName: "", newCatEmoji: "", emoji: "",
-    totalMinutes: "", timeNote: "", servings: "", difficulty: 2, tags: [],
-    ingredients: [emptyRow(), emptyRow(), emptyRow()], steps: [emptyStep(), emptyStep()], gallery: [],
-  };
-}
-
-/** Builds form values for editing an existing recipe. */
-export function valuesFromRecipe(r: {
-  title: string; description: string | null; category_id: string | null; emoji: string | null; total_minutes: number | null; time_note: string | null;
-  servings: number | null; difficulty: number | null; tags: string[]; ingredients: string[];
-  steps: { text: string; media?: { kind: MediaKind; path: string } | null }[];
-  recipe_media: { kind: MediaKind; path: string; caption: string | null }[];
-}): RecipeFormValues {
-  const existing = (kind: MediaKind, path: string, caption = ""): Upload => ({ id: uid(), kind, path, preview: publicUrl(path) ?? "", status: "done", caption, fresh: false });
-  return {
-    title: r.title, description: r.description ?? "", categoryId: r.category_id ?? "", newCatName: "", newCatEmoji: "", emoji: r.emoji ?? "",
-    totalMinutes: r.total_minutes ? String(r.total_minutes) : "", timeNote: r.time_note ?? "", servings: r.servings ? String(r.servings) : "",
-    difficulty: r.difficulty ?? 2, tags: r.tags,
-    ingredients: r.ingredients.length ? r.ingredients.map((text) => ({ id: uid(), text })) : [emptyRow()],
-    steps: r.steps.length ? r.steps.map((s) => ({ id: uid(), text: s.text, media: s.media ? existing(s.media.kind, s.media.path) : null })) : [emptyStep()],
-    gallery: r.recipe_media.map((m) => existing(m.kind, m.path, m.caption ?? "")),
-  };
-}
 
 /** Splits pasted text into clean lines, dropping bullets and numbering. */
 function splitList(text: string) {
@@ -109,12 +61,13 @@ export function RecipeForm({ userId, isEditor, categories, recipeId, initial }: 
     try {
       const raw = localStorage.getItem(draftKey);
       if (!raw) return;
-      const draft = JSON.parse(raw) as { at: number; values: RecipeFormValues };
+      const draft = JSON.parse(raw) as { at: number; values: Partial<RecipeFormValues> };
+      const base = initial ?? blankValues(categories[0]?.id ?? "");
       // eslint-disable-next-line react-hooks/set-state-in-effect -- one-time restore from localStorage after mount
-      setV(draft.values);
+      setV(mergeRecipeDraft(base, draft.values));
       setRestoredAt(draft.at);
     } catch { /* ignore a corrupt draft */ }
-  }, [draftKey]);
+  }, [draftKey, initial, categories]);
 
   useEffect(() => {
     if (submitted) return;
