@@ -347,7 +347,13 @@ html[data-theme="dark"] .hero-slide-stack .hero-slide-dark { display: block; }
 }
 
 .rotd-section {
-  background: var(--yellow);
+  background-color: var(--yellow);
+  background-image:
+    linear-gradient(color-mix(in srgb, var(--yellow) 75%, transparent), color-mix(in srgb, var(--yellow) 75%, transparent)),
+    url("/bg-bananas.webp");
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
 }
 @media (min-width: 901px) {
   section.block.rotd-section { padding-block: 100px; }
