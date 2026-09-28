@@ -9,8 +9,12 @@ import type { PostStatus } from "@/lib/types";
 
 export type SavePostResult = { ok: true; id: string; slug: string; status: PostStatus } | { ok: false; errors: Record<string, string> };
 
-async function uniquePostSlug(title: string, supabase: Awaited<ReturnType<typeof createClient>>, excludeId?: string) {
-  const base = slugify(title) || "post";
+async function uniquePostSlug(
+  preferred: string,
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  excludeId?: string,
+) {
+  const base = slugify(preferred) || "post";
   for (let i = 0; i < 6; i++) {
     const candidate = i === 0 ? base : `${base}-${Math.random().toString(36).slice(2, 6)}`;
     let query = supabase.from("posts").select("id").eq("slug", candidate);
@@ -37,36 +41,60 @@ export async function savePost(raw: unknown, postId?: string): Promise<SavePostR
     existing = data;
   }
 
-  if (input.coverPath && !input.coverPath.startsWith(`${userId}/`) && input.coverPath !== existing?.cover_path) {
-    return { ok: false, errors: { coverPath: "Cover image couldn't be verified. Upload it again." } };
+  if (
+    input.coverPath &&
+    input.coverPath !== existing?.cover_path &&
+    !input.coverPath.startsWith(`${userId}/`) &&
+    !input.coverPath.startsWith("/") &&
+    !input.coverPath.startsWith("http://") &&
+    !input.coverPath.startsWith("https://")
+  ) {
+    return { ok: false, errors: { coverPath: "Cover image couldn't be verified. Upload it again or paste a URL." } };
   }
 
   const status: PostStatus = input.intent === "publish" ? "published" : "draft";
+  const slug =
+    existing && !input.slug
+      ? existing.slug
+      : existing && input.slug === existing.slug
+        ? existing.slug
+        : await uniquePostSlug(input.slug || input.title, supabase, existing?.id);
+
   const row = {
     title: input.title,
     excerpt: input.excerpt || null,
     body: input.body,
     cover_path: input.coverPath,
+    head_json: input.headJson,
+    seo_title: input.seoTitle || null,
+    meta_description: input.metaDescription || null,
+    slug,
     status,
   };
 
   if (existing) {
     const { error } = await supabase.from("posts").update(row).eq("id", existing.id);
-    if (error) return { ok: false, errors: { form: error.message } };
+    if (error) {
+      if (error.code === "23505") return { ok: false, errors: { slug: "That URL slug is already taken." } };
+      return { ok: false, errors: { form: error.message } };
+    }
     revalidatePath("/admin");
     revalidatePath("/admin/posts");
     revalidatePath("/blog");
     revalidatePath(`/blog/${existing.slug}`);
-    return { ok: true, id: existing.id, slug: existing.slug, status };
+    if (slug !== existing.slug) revalidatePath(`/blog/${slug}`);
+    return { ok: true, id: existing.id, slug, status };
   }
 
-  const slug = await uniquePostSlug(input.title, supabase);
   const { data, error } = await supabase
     .from("posts")
-    .insert({ ...row, slug, author_id: userId })
+    .insert({ ...row, author_id: userId })
     .select("id, slug")
     .single();
-  if (error || !data) return { ok: false, errors: { form: error?.message || "Couldn't save the post." } };
+  if (error || !data) {
+    if (error?.code === "23505") return { ok: false, errors: { slug: "That URL slug is already taken." } };
+    return { ok: false, errors: { form: error?.message || "Couldn't save the post." } };
+  }
 
   revalidatePath("/admin");
   revalidatePath("/admin/posts");

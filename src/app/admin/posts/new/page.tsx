@@ -9,7 +9,7 @@ export default function NewPostPage() {
       <div className="sec-head">
         <div>
           <h2>New blog post</h2>
-          <p>Draft privately or publish straight to the blog.</p>
+          <p>Fill in the post details, then optionally upload JSON for the document head.</p>
         </div>
       </div>
       <PostForm />

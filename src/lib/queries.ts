@@ -165,12 +165,74 @@ export async function listAdminRecipes(limit = 100): Promise<AdminRecipeRow[]> {
   return (data as AdminRecipeRow[]) ?? [];
 }
 
-export async function listPosts(opts: { publishedOnly?: boolean; limit?: number } = {}): Promise<Post[]> {
+export async function listPosts(
+  opts: { publishedOnly?: boolean; limit?: number; offset?: number } = {},
+): Promise<Post[]> {
   const supabase = await createClient();
-  let query = supabase.from("posts").select("*").order("published_at", { ascending: false, nullsFirst: false }).order("updated_at", { ascending: false });
+  let query = supabase
+    .from("posts")
+    .select("*")
+    .order("published_at", { ascending: false, nullsFirst: false })
+    .order("updated_at", { ascending: false });
   if (opts.publishedOnly) query = query.eq("status", "published");
-  const { data } = await query.limit(opts.limit ?? 60);
+  const from = opts.offset ?? 0;
+  const to = from + (opts.limit ?? 60) - 1;
+  const { data } = await query.range(from, to);
   return (data as Post[]) ?? [];
+}
+
+export async function countPosts(opts: { publishedOnly?: boolean } = {}): Promise<number> {
+  const supabase = await createClient();
+  let query = supabase.from("posts").select("id", { count: "exact", head: true });
+  if (opts.publishedOnly) query = query.eq("status", "published");
+  const { count } = await query;
+  return count ?? 0;
+}
+
+/** Other published posts for a related row — same author first, then recent fill. */
+export async function listRelatedPosts(opts: {
+  excludeId: string;
+  authorId?: string | null;
+  limit?: number;
+}): Promise<Post[]> {
+  const limit = opts.limit ?? 3;
+  const supabase = await createClient();
+  const out: Post[] = [];
+  const seen = new Set<string>([opts.excludeId]);
+
+  if (opts.authorId) {
+    const { data } = await supabase
+      .from("posts")
+      .select("*")
+      .eq("status", "published")
+      .eq("author_id", opts.authorId)
+      .neq("id", opts.excludeId)
+      .order("published_at", { ascending: false, nullsFirst: false })
+      .order("updated_at", { ascending: false })
+      .limit(limit);
+    for (const row of (data as Post[]) ?? []) {
+      if (seen.has(row.id)) continue;
+      seen.add(row.id);
+      out.push(row);
+      if (out.length >= limit) return out;
+    }
+  }
+
+  const { data } = await supabase
+    .from("posts")
+    .select("*")
+    .eq("status", "published")
+    .neq("id", opts.excludeId)
+    .order("published_at", { ascending: false, nullsFirst: false })
+    .order("updated_at", { ascending: false })
+    .limit(limit + out.length);
+  for (const row of (data as Post[]) ?? []) {
+    if (seen.has(row.id)) continue;
+    seen.add(row.id);
+    out.push(row);
+    if (out.length >= limit) break;
+  }
+  return out;
 }
 
 export const getPostBySlug = cache(async (slug: string): Promise<PostWithAuthor | null> => {

@@ -27,8 +27,10 @@ export function SiteFooter() {
   return (
     <footer>
       <div className="wrap">
-        <Image src="/logo.png" alt="" width={84} height={90} />
-        <p>Totally Gone Bananas. Recipes for every banana, from green to gone.</p>
+        <div className="footer-brand">
+          <Image src="/logo.png" alt="" width={140} height={151} sizes="140px" />
+          <p>Totally Gone Bananas. Recipes for every banana, from green to gone.</p>
+        </div>
         <nav aria-label="Footer">
           <Link href="/">Home</Link>
           <Link href="/recipes">Recipes</Link>

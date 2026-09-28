@@ -17,11 +17,21 @@ export function publicUrl(path: string | null | undefined, bucket = RECIPE_BUCKE
   return base ? `${base}/storage/v1/object/public/${bucket}/${path}` : null;
 }
 
+/** Storage path, site path (`/foo.webp`), or absolute http(s) URL → browser URL. */
+export function mediaSrc(path: string | null | undefined, bucket = RECIPE_BUCKET): string | null {
+  if (!path) return null;
+  if (path.startsWith("/") || path.startsWith("http://") || path.startsWith("https://")) return path;
+  return publicUrl(path, bucket);
+}
+
+export function isRemoteMediaPath(path: string | null | undefined): boolean {
+  return !!path && (path.startsWith("http://") || path.startsWith("https://") || path.startsWith("/"));
+}
+
 /** Public site path (`/foo.webp`) or Supabase Storage path → browser URL. */
 export function promoImageSrc(path: string | null | undefined): string {
   if (!path) return "/featured-home.webp";
-  if (path.startsWith("/") || path.startsWith("http://") || path.startsWith("https://")) return path;
-  return publicUrl(path, RECIPE_BUCKET) ?? "/featured-home.webp";
+  return mediaSrc(path) ?? "/featured-home.webp";
 }
 
 export function kindOf(file: File): MediaKind | null {

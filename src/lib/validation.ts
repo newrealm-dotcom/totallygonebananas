@@ -71,10 +71,38 @@ export const profileInput = z.object({
 export type ProfileInput = z.input<typeof profileInput>;
 
 export const postInput = z.object({
+  seoTitle: z.string().trim().max(70, "Keep the SEO title under 70 characters").default(""),
+  metaDescription: z.string().trim().max(160, "Keep the meta description under 160 characters").default(""),
+  slug: z
+    .string()
+    .trim()
+    .max(80, "Keep the slug under 80 characters")
+    .default("")
+    .transform((v) => v.toLowerCase())
+    .refine((v) => !v || /^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(v), "Use lowercase letters, numbers, and hyphens only"),
   title: z.string().trim().min(2, "Give your post a title").max(120, "Keep the title under 120 characters"),
   excerpt: z.string().trim().max(300, "Keep the excerpt under 300 characters").default(""),
   body: z.string().trim().min(1, "Write something").max(50000, "That's a bit long — keep it under 50,000 characters"),
-  coverPath: z.string().regex(MEDIA_PATH_RE).nullable().default(null),
+  coverPath: z
+    .string()
+    .trim()
+    .nullable()
+    .default(null)
+    .transform((v) => (v === "" ? null : v))
+    .refine(
+      (v) =>
+        v === null ||
+        MEDIA_PATH_RE.test(v) ||
+        v.startsWith("/") ||
+        v.startsWith("http://") ||
+        v.startsWith("https://"),
+      "Use an image URL or upload a file",
+    ),
+  headJson: z
+    .union([z.record(z.string(), z.unknown()), z.array(z.unknown())])
+    .nullable()
+    .default(null)
+    .refine((v) => v === null || JSON.stringify(v).length <= 100_000, "Keep the JSON under 100 KB"),
   intent: z.enum(["draft", "publish"]),
 });
 

@@ -104,6 +104,9 @@ export interface Post {
   excerpt: string | null;
   body: string;
   cover_path: string | null;
+  head_json: Record<string, unknown> | unknown[] | null;
+  seo_title: string | null;
+  meta_description: string | null;
   status: PostStatus;
   author_id: string | null;
   created_at: string;
