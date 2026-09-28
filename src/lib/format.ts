@@ -25,7 +25,72 @@ export function slugify(s: string) {
 }
 
 export function shortDate(iso: string) {
-  return new Date(iso).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
+  return new Date(iso).toLocaleDateString("en-US", {
+    timeZone: "America/New_York",
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  });
+}
+
+const EASTERN_TZ = "America/New_York";
+
+function easternParts(date: Date) {
+  const parts = new Intl.DateTimeFormat("en-US", {
+    timeZone: EASTERN_TZ,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    hourCycle: "h23",
+  }).formatToParts(date);
+  const get = (type: Intl.DateTimeFormatPartTypes) => parts.find((p) => p.type === type)?.value ?? "";
+  return {
+    year: get("year"),
+    month: get("month"),
+    day: get("day"),
+    hour: get("hour") === "24" ? "00" : get("hour"),
+    minute: get("minute"),
+  };
+}
+
+/** `datetime-local` value (YYYY-MM-DDTHH:mm) in Eastern Time. */
+export function toEasternDatetimeLocal(iso?: string | null): string {
+  const parts = easternParts(iso ? new Date(iso) : new Date());
+  return `${parts.year}-${parts.month}-${parts.day}T${parts.hour}:${parts.minute}`;
+}
+
+function easternOffsetMs(at: Date): number {
+  const tz = new Intl.DateTimeFormat("en-US", {
+    timeZone: EASTERN_TZ,
+    timeZoneName: "longOffset",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+    hourCycle: "h23",
+  })
+    .formatToParts(at)
+    .find((p) => p.type === "timeZoneName")?.value;
+  const m = tz?.match(/GMT([+-])(\d{1,2})(?::?(\d{2}))?/);
+  if (!m) return -5 * 60 * 60 * 1000;
+  const sign = m[1] === "-" ? -1 : 1;
+  return sign * (Number(m[2]) * 60 + Number(m[3] ?? 0)) * 60 * 1000;
+}
+
+/** Interpret a `datetime-local` string as Eastern Time and return UTC ISO. */
+export function easternDatetimeLocalToIso(local: string): string | null {
+  if (!/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/.test(local)) return null;
+  const [datePart, timePart] = local.split("T");
+  const [y, month, d] = datePart.split("-").map(Number);
+  const [h, minute] = timePart.split(":").map(Number);
+  let utc = Date.UTC(y, month - 1, d, h, minute, 0);
+  utc = Date.UTC(y, month - 1, d, h, minute, 0) - easternOffsetMs(new Date(utc));
+  utc = Date.UTC(y, month - 1, d, h, minute, 0) - easternOffsetMs(new Date(utc));
+  return new Date(utc).toISOString();
 }
 
 /** Capitalize the first letter of each word (preserves the rest of each word). */

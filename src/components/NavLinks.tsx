@@ -7,6 +7,7 @@ const LEFT = [
   { href: "/", label: "Home", match: (p: string) => p === "/" },
   { href: "/recipes", label: "Recipes", match: (p: string) => p.startsWith("/recipes") && p !== "/recipes/new" },
   { href: "/blog", label: "Blog", match: (p: string) => p.startsWith("/blog") },
+  { href: "/our-faves", label: "Our Faves", match: (p: string) => p.startsWith("/our-faves") },
 ];
 
 const RIGHT = [

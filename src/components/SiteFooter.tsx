@@ -35,6 +35,7 @@ export function SiteFooter() {
           <Link href="/">Home</Link>
           <Link href="/recipes">Recipes</Link>
           <Link href="/blog">Blog</Link>
+          <Link href="/our-faves">Our Faves</Link>
           <Link href="/recipes/new">Share a recipe</Link>
           <Link href="/profile">My Banana Stand</Link>
           <Link href="/about">About</Link>

@@ -103,6 +103,13 @@ export const postInput = z.object({
     .nullable()
     .default(null)
     .refine((v) => v === null || JSON.stringify(v).length <= 100_000, "Keep the JSON under 100 KB"),
+  publishedAt: z
+    .string()
+    .trim()
+    .datetime({ offset: true, message: "Pick a valid publish date" })
+    .nullable()
+    .optional()
+    .default(null),
   intent: z.enum(["draft", "publish"]),
 });
 

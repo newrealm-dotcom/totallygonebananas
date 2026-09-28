@@ -8,6 +8,7 @@ const LINKS = [
   { href: "/", label: "Home", match: (p: string) => p === "/" },
   { href: "/recipes", label: "Recipes", match: (p: string) => p.startsWith("/recipes") && p !== "/recipes/new" },
   { href: "/blog", label: "Blog", match: (p: string) => p.startsWith("/blog") },
+  { href: "/our-faves", label: "Our Faves", match: (p: string) => p.startsWith("/our-faves") },
   { href: "/profile", label: "My Banana Stand", match: (p: string) => p.startsWith("/profile") },
   { href: "/about", label: "About", match: (p: string) => p === "/about" },
 ] as const;

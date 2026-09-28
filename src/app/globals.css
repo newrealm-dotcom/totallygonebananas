@@ -55,7 +55,8 @@ button, input, select, textarea { font: inherit; color: inherit; }
   .about-page .wrap.narrow {
     padding-inline: 0;
   }
-  .blog-post {
+  .blog-post,
+  .blog-index {
     width: 100%;
     max-width: none;
     padding-inline: 150px;
@@ -70,7 +71,7 @@ button, input, select, textarea { font: inherit; color: inherit; }
 .ok-msg { color: var(--ok); font-weight: 800; margin: .5rem 0 0; }
 .stack { display: grid; gap: .9rem; }
 
-/* ---------- theme toggle: fixed top-right, then centered in sticky header ---------- */
+/* ---------- theme toggle: fixed top-left on desktop, then in the mobile header stack ---------- */
 .top-right {
   display: flex;
   align-items: center;
@@ -80,7 +81,8 @@ button, input, select, textarea { font: inherit; color: inherit; }
 .theme-toggle {
   position: fixed;
   top: max(.75rem, env(safe-area-inset-top, 0px));
-  right: max(.75rem, env(safe-area-inset-right, 0px));
+  left: max(.75rem, env(safe-area-inset-left, 0px));
+  right: auto;
   z-index: 50;
   display: inline-flex;
   align-items: center;
@@ -96,11 +98,13 @@ button, input, select, textarea { font: inherit; color: inherit; }
   box-shadow: 3px 3px 0 var(--line);
 }
 html.header-scrolled .theme-toggle {
-  position: absolute;
-  top: 0;
-  bottom: 0;
-  height: fit-content;
-  margin-block: auto;
+  position: fixed;
+  top: max(.75rem, env(safe-area-inset-top, 0px));
+  left: max(.75rem, env(safe-area-inset-left, 0px));
+  right: auto;
+  bottom: auto;
+  height: auto;
+  margin-block: 0;
 }
 .theme-toggle:hover { transform: translate(-1px, -1px); box-shadow: 4px 4px 0 var(--line); }
 .theme-toggle:active { transform: translate(2px, 2px); box-shadow: 1px 1px 0 var(--line); }
@@ -263,15 +267,15 @@ footer { border-top: 3px solid var(--line); padding: 2rem 0 2.5rem; margin-top: 
 html[data-theme="dark"] footer { background: var(--bg); }
 footer .wrap {
   display: flex;
-  flex-wrap: nowrap;
+  flex-wrap: wrap;
   align-items: center;
-  gap: 1.25rem 1.75rem;
+  gap: 25px;
 }
 .footer-brand {
   display: flex;
   align-items: center;
-  gap: 1rem;
-  flex: 0 1 auto;
+  gap: 25px;
+  flex: 1 1 16rem;
   min-width: 0;
 }
 footer img { width: 140px; height: auto; flex-shrink: 0; }
@@ -281,22 +285,28 @@ footer p {
   color: var(--muted);
   max-width: 18rem;
   line-height: 1.35;
+  min-width: 0;
 }
 footer nav {
   display: flex;
-  flex-wrap: nowrap;
+  flex-wrap: wrap;
   align-items: center;
-  gap: .3rem 0;
+  gap: .35rem 0;
   font-weight: 800;
   text-transform: uppercase;
-  flex: 1 1 auto;
+  flex: 1 1 18rem;
   justify-content: center;
   min-width: 0;
 }
 footer nav a { text-decoration: none; white-space: nowrap; }
 footer nav a:hover { text-decoration: underline; text-underline-offset: 3px; }
 footer nav a + a::before { content: "|"; margin: 0 .75rem; color: var(--muted); font-weight: 700; pointer-events: none; text-decoration: none; }
-.footer-social { display: flex; align-items: center; gap: .55rem; flex-shrink: 0; }
+.footer-social {
+  display: flex;
+  align-items: center;
+  gap: .55rem;
+  flex: 0 0 auto;
+}
 .footer-social a {
   display: grid;
   place-items: center;
@@ -316,6 +326,7 @@ footer nav a + a::before { content: "|"; margin: 0 .75rem; color: var(--muted); 
 .h1, .page-head h1, .hero h1 { font-family: var(--display); font-weight: 400; font-size: clamp(2.3rem, 5.2vw, 4rem); line-height: 1; margin: 0 0 .7rem; letter-spacing: -.01em; text-wrap: balance; }
 .lede { font-size: 1.12rem; max-width: 56ch; margin: 0; color: var(--muted); font-weight: 600; }
 .blog-index .lede { max-width: none; width: 100%; }
+.our-faves-page .lede { max-width: none; width: 100%; }
 h2 { font-family: var(--display); font-weight: 400; font-size: clamp(1.6rem, 3.2vw, 2.3rem); line-height: 1.05; margin: 0; text-wrap: balance; }
 section.block { padding: clamp(2rem, 5vw, 3.5rem) 0; }
 .sec-head { display: flex; flex-wrap: wrap; align-items: end; justify-content: space-between; gap: 1rem; margin-bottom: 1.5rem; }
@@ -1104,6 +1115,7 @@ html[data-theme="dark"] .login-hero-stack .login-hero-dark { display: block; }
     position: static;
     top: auto;
     bottom: auto;
+    left: auto;
     right: auto;
     margin: 0;
   }
@@ -1115,15 +1127,18 @@ html[data-theme="dark"] .login-hero-stack .login-hero-dark { display: block; }
     align-items: center;
     text-align: center;
     justify-content: center;
+    gap: 25px;
   }
   .footer-brand {
     flex-direction: column;
     text-align: center;
+    gap: 25px;
   }
   footer p { max-width: none; }
   footer nav {
     flex-wrap: wrap;
     justify-content: center;
+    gap: .35rem 0;
   }
   .footer-social { justify-content: center; }
   .grid, .home-latest .grid { grid-template-columns: 1fr; }

@@ -60,6 +60,9 @@ export async function savePost(raw: unknown, postId?: string): Promise<SavePostR
         ? existing.slug
         : await uniquePostSlug(input.slug || input.title, supabase, existing?.id);
 
+  const publishedAt =
+    status === "published" ? input.publishedAt || new Date().toISOString() : null;
+
   const row = {
     title: input.title,
     excerpt: input.excerpt || null,
@@ -70,6 +73,7 @@ export async function savePost(raw: unknown, postId?: string): Promise<SavePostR
     meta_description: input.metaDescription || null,
     slug,
     status,
+    published_at: publishedAt,
   };
 
   if (existing) {

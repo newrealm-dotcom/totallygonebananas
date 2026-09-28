@@ -7,7 +7,7 @@ import { createClient } from "@/lib/supabase/client";
 import { checkFile, isRemoteMediaPath, kindOf, mediaSrc, RECIPE_BUCKET } from "@/lib/media";
 import { savePost, deletePost } from "@/actions/posts";
 import { PostBodyEditor } from "@/components/PostBodyEditor";
-import { slugify } from "@/lib/format";
+import { slugify, toEasternDatetimeLocal, easternDatetimeLocalToIso } from "@/lib/format";
 import type { Post } from "@/lib/types";
 
 const MAX_HEAD_JSON_BYTES = 100_000;
@@ -38,6 +38,9 @@ export function PostForm({ post }: { post?: Post }) {
   const [title, setTitle] = useState(post?.title ?? "");
   const [excerpt, setExcerpt] = useState(post?.excerpt ?? "");
   const [body, setBody] = useState(post?.body ?? "");
+  const [publishedAtLocal, setPublishedAtLocal] = useState(() =>
+    toEasternDatetimeLocal(post?.published_at),
+  );
   const [coverMode, setCoverMode] = useState<CoverMode>(() => initialCoverMode(post?.cover_path));
   const [coverPath, setCoverPath] = useState<string | null>(
     isRemoteMediaPath(post?.cover_path) ? null : (post?.cover_path ?? null),
@@ -171,9 +174,25 @@ export function PostForm({ post }: { post?: Post }) {
       setErrors({ coverPath: "URL must start with https://, http://, or /" });
       return;
     }
+    const publishedAt = easternDatetimeLocalToIso(publishedAtLocal);
+    if (!publishedAt) {
+      setErrors({ publishedAt: "Pick a valid publish date and time." });
+      return;
+    }
     startTransition(async () => {
       const result = await savePost(
-        { seoTitle, metaDescription, slug, title, excerpt, body, coverPath: nextCover, headJson, intent },
+        {
+          seoTitle,
+          metaDescription,
+          slug,
+          title,
+          excerpt,
+          body,
+          coverPath: nextCover,
+          headJson,
+          publishedAt,
+          intent,
+        },
         post?.id,
       );
       if (!result.ok) {
@@ -314,6 +333,19 @@ export function PostForm({ post }: { post?: Post }) {
           </div>
         )}
         {errors.coverPath && <p className="f-err">{errors.coverPath}</p>}
+      </div>
+      <div className="f">
+        <label htmlFor="post-published-at">Publish date</label>
+        <input
+          id="post-published-at"
+          className="field"
+          type="datetime-local"
+          value={publishedAtLocal}
+          onChange={(e) => setPublishedAtLocal(e.target.value)}
+          aria-invalid={!!errors.publishedAt}
+        />
+        <p className="hint">Eastern Time (ET). Shown as the article date on the blog.</p>
+        {errors.publishedAt && <p className="f-err">{errors.publishedAt}</p>}
       </div>
       <div className="f">
         <label htmlFor="post-head-json">Head JSON (optional)</label>
