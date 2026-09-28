@@ -15,14 +15,24 @@ export default async function LoginPage({ searchParams }: PageProps<"/login">) {
   if (userId && !failed) redirect(next);
   return (
     <div className="wrap narrow login">
-      <Image
-        className="login-hero"
-        src="/img-login.webp"
-        alt=""
-        width={1200}
-        height={800}
-        priority
-      />
+      <div className="login-hero-stack">
+        <Image
+          className="login-hero login-hero-light"
+          src="/img-login.webp"
+          alt=""
+          width={1200}
+          height={800}
+          priority
+        />
+        <Image
+          className="login-hero login-hero-dark"
+          src="/img-login-dark.webp"
+          alt=""
+          width={1200}
+          height={800}
+          priority
+        />
+      </div>
       <div className="page-head" style={{ textAlign: "center" }}>
         <h1>Come on in</h1>
         <p className="lede" style={{ marginInline: "auto" }}>Sign in to save recipes, rate what you cook, and share your own.</p>

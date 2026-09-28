@@ -527,10 +527,10 @@ video.media-fill { background: #000; }
 .thumb-media { position: relative; aspect-ratio: 4 / 3; border: 2.5px solid var(--line); border-radius: 14px; overflow: hidden; }
 .d-intro { display: grid; gap: 0; align-content: start; min-width: 0; }
 .d-hero .lede { margin-bottom: .4rem; }
-.byline { font-weight: 700; color: var(--muted); margin: .6rem 0 0; }
+.byline { font-weight: 700; color: var(--muted); margin: calc(.6rem + 10px) 0 0; }
 .d-actions { display: flex; flex-wrap: wrap; gap: .8rem; align-items: center; }
 .d-intro .ing-panel { margin-top: .9rem; }
-.d-intro .ing-panel > h2 { margin-top: 0; }
+.d-intro .ing-panel > h2 { margin-top: 0; font-size: clamp(1.6rem, 3.2vw, 2.3rem); }
 .d-cook { padding: .4rem 0 2.2rem; }
 .d-steps h2 { margin: 0 0 1rem; }
 .d-made-col { display: grid; gap: 1.5rem; align-content: start; min-width: 0; }
@@ -687,7 +687,11 @@ ol.steps > li > div > p:first-child { margin-top: 0; }
 .about-slide { position: sticky; top: 5rem; justify-self: center; width: 100%; }
 .about-slide .mascot, .about-slide .hero-slide-stack { max-width: min(520px, 100%); margin-inline: auto; }
 .login { max-width: 600px; padding-bottom: 3rem; }
-.login-hero { width: min(100%, 600px); height: auto; display: block; margin: 0 auto; }
+.login-hero-stack { width: min(100%, 600px); margin: 0 auto; }
+.login-hero { width: 100%; height: auto; display: block; margin: 0 auto; }
+.login-hero-stack .login-hero-dark { display: none; }
+html[data-theme="dark"] .login-hero-stack .login-hero-light { display: none; }
+html[data-theme="dark"] .login-hero-stack .login-hero-dark { display: block; }
 .login .page-head { padding-top: 0; }
 
 /* Desktop: at least 50px between the header and page content. */

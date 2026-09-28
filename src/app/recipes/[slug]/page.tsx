@@ -98,9 +98,9 @@ export default async function RecipePage({ params, searchParams }: PageProps<"/r
         <div className="d-intro">
           <h1 className="h1">{titleCase(r.title)}</h1>
           {r.description && <p className="lede">{r.description}</p>}
+          <IngredientPanel ingredients={r.ingredients} servings={r.servings} />
           {r.author && <p className="byline">Shared by {r.author.display_name || "a banana fan"}{r.published_at ? ` on ${shortDate(r.published_at)}` : ""}</p>}
           {r.status === "pending" && isEditorRole(profile) && <div className="panel" style={{ marginTop: "1.2rem" }}><h2>Review</h2><ReviewButtons recipeId={r.id} /></div>}
-          <IngredientPanel ingredients={r.ingredients} servings={r.servings} />
         </div>
       </section>
 
