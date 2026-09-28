@@ -3,6 +3,8 @@ import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { ReviewButtons } from "@/components/OwnerTools";
 import { shortDate } from "@/lib/format";
+import { countIngredients, normalizeIngredientGroups } from "@/lib/ingredients";
+import { countSteps, normalizeStepGroups } from "@/lib/steps";
 
 export const metadata: Metadata = { title: "Admin · Review queue" };
 
@@ -19,7 +21,7 @@ export default async function ReviewPage() {
     title: string;
     description: string | null;
     created_at: string;
-    ingredients: string[];
+    ingredients: unknown;
     steps: unknown[];
     author: { display_name: string | null } | null;
   }[];
@@ -41,7 +43,7 @@ export default async function ReviewPage() {
           <li key={r.id} className="row review-row">
             <div>
               <h3><Link href={`/recipes/${r.slug}`}>{r.title}</Link></h3>
-              <p>From {r.author?.display_name || "a member"} on {shortDate(r.created_at)}. {r.ingredients.length} ingredients, {r.steps.length} steps.</p>
+              <p>From {r.author?.display_name || "a member"} on {shortDate(r.created_at)}. {countIngredients(normalizeIngredientGroups(r.ingredients))} ingredients, {countSteps(normalizeStepGroups(r.steps))} steps.</p>
               {r.description && <p>{r.description}</p>}
             </div>
             <ReviewButtons recipeId={r.id} />

@@ -1,6 +1,9 @@
 // Row shapes for the tables in supabase/migrations.
 // Tip: once your project is linked, `npm run db:types` generates exact types.
 
+import type { IngredientGroup } from "@/lib/ingredients";
+import type { StepGroup } from "@/lib/steps";
+
 export type Role = "member" | "editor" | "admin";
 export type RecipeStatus = "draft" | "pending" | "published" | "rejected";
 export type PostStatus = "draft" | "published";
@@ -73,8 +76,10 @@ export interface Recipe {
   difficulty: number | null;
   tags: string[];
   equipment: string[];
-  ingredients: string[];
-  steps: Step[];
+  /** Titled ingredient lists; first group title may be empty. */
+  ingredients: IngredientGroup[];
+  /** Titled step lists; first group title may be empty. */
+  steps: StepGroup[];
   cover_path: string | null;
   status: RecipeStatus;
   author_id: string | null;

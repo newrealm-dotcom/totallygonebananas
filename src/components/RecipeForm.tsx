@@ -9,9 +9,13 @@ import { TAGS, type Category, type MediaKind } from "@/lib/types";
 import { MAX_TAGS, normalizeTag, tagIssue } from "@/lib/tags";
 import {
   blankValues,
+  emptyIngredientGroup,
+  emptyStepGroup,
   mergeRecipeDraft,
+  type IngredientGroupRow,
   type RecipeFormValues,
   type Row,
+  type StepGroupRow,
   type StepRow,
   type Upload,
 } from "@/lib/recipe-form-values";
@@ -54,7 +58,7 @@ export function RecipeForm({ userId, isEditor, categories, recipeId, initial }: 
   const [v, setV] = useState<RecipeFormValues>(() => initial ?? blankValues(categories[0]?.id ?? ""));
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [restoredAt, setRestoredAt] = useState<number | null>(null);
-  const [pasteFor, setPasteFor] = useState<null | "equipment" | "ingredients" | "steps">(null);
+  const [pasteFor, setPasteFor] = useState<null | "equipment" | { ingredientGroupId: string } | { stepGroupId: string }>(null);
   const [pasteText, setPasteText] = useState("");
   const [focusId, setFocusId] = useState<string | null>(null);
   const [dragging, setDragging] = useState(false);
@@ -86,7 +90,10 @@ export function RecipeForm({ userId, isEditor, categories, recipeId, initial }: 
       const values: RecipeFormValues = {
         ...v,
         gallery: v.gallery.map(keepDone).filter((u): u is Upload => !!u),
-        steps: v.steps.map((s) => ({ ...s, media: keepDone(s.media) })),
+        stepGroups: v.stepGroups.map((g) => ({
+          ...g,
+          steps: g.steps.map((s) => ({ ...s, media: keepDone(s.media) })),
+        })),
       };
       try { localStorage.setItem(draftKey, JSON.stringify({ at: Date.now(), values })); } catch { /* storage full or blocked */ }
     }, 600);
@@ -112,7 +119,10 @@ export function RecipeForm({ userId, isEditor, categories, recipeId, initial }: 
     setV((s) => ({
       ...s,
       gallery: s.gallery.map((u) => (u.id === id ? { ...u, ...patch } : u)),
-      steps: s.steps.map((st) => (st.media?.id === id ? { ...st, media: { ...st.media, ...patch } } : st)),
+      stepGroups: s.stepGroups.map((g) => ({
+        ...g,
+        steps: g.steps.map((st) => (st.media?.id === id ? { ...st, media: { ...st.media, ...patch } } : st)),
+      })),
     }));
   }, []);
 
@@ -162,38 +172,197 @@ export function RecipeForm({ userId, isEditor, categories, recipeId, initial }: 
     return copy;
   }
 
-  /* ---- equipment, ingredient and step rows */
-  function addRowAfter(kind: "equipment" | "ingredients" | "steps", index: number) {
-    const row = kind === "steps" ? emptyStep() : emptyRow();
+  /* ---- equipment rows */
+  function addEquipmentAfter(index: number) {
+    const row = emptyRow();
     setV((s) => {
-      const list = (s[kind] as (Row | StepRow)[]).slice();
+      const list = s.equipment.slice();
       list.splice(index + 1, 0, row);
-      return { ...s, [kind]: list };
+      return { ...s, equipment: list };
     });
     setFocusId(row.id);
   }
 
-  function removeRow(kind: "equipment" | "ingredients" | "steps", id: string) {
-    const list = v[kind] as (Row | StepRow)[];
+  function removeEquipment(id: string) {
+    const list = v.equipment;
     const i = list.findIndex((r) => r.id === id);
-    if (kind === "steps") discard((list[i] as StepRow).media);
     const next = list.filter((r) => r.id !== id);
-    if (!next.length) next.push(kind === "steps" ? emptyStep() : emptyRow());
-    setV((s) => ({ ...s, [kind]: next }));
+    if (!next.length) next.push(emptyRow());
+    setV((s) => ({ ...s, equipment: next }));
     setFocusId(next[Math.max(0, i - 1)].id);
+  }
+
+  function updateIngredientGroups(updater: (groups: IngredientGroupRow[]) => IngredientGroupRow[]) {
+    setV((s) => ({ ...s, ingredientGroups: updater(s.ingredientGroups) }));
+  }
+
+  function updateStepGroups(updater: (groups: StepGroupRow[]) => StepGroupRow[]) {
+    setV((s) => ({ ...s, stepGroups: updater(s.stepGroups) }));
+  }
+
+  function addIngredientAfter(groupId: string, index: number) {
+    const row = emptyRow();
+    updateIngredientGroups((groups) =>
+      groups.map((g) => {
+        if (g.id !== groupId) return g;
+        const items = g.items.slice();
+        items.splice(index + 1, 0, row);
+        return { ...g, items };
+      }),
+    );
+    setFocusId(row.id);
+  }
+
+  function removeIngredient(groupId: string, rowId: string) {
+    let focus = rowId;
+    updateIngredientGroups((groups) =>
+      groups.map((g) => {
+        if (g.id !== groupId) return g;
+        const i = g.items.findIndex((r) => r.id === rowId);
+        const items = g.items.filter((r) => r.id !== rowId);
+        if (!items.length) items.push(emptyRow());
+        focus = items[Math.max(0, i - 1)]?.id ?? items[0].id;
+        return { ...g, items };
+      }),
+    );
+    setFocusId(focus);
+  }
+
+  function setIngredientText(groupId: string, rowId: string, text: string) {
+    updateIngredientGroups((groups) =>
+      groups.map((g) =>
+        g.id !== groupId
+          ? g
+          : { ...g, items: g.items.map((r) => (r.id === rowId ? { ...r, text } : r)) },
+      ),
+    );
+  }
+
+  function setIngredientGroupTitle(groupId: string, title: string) {
+    updateIngredientGroups((groups) => groups.map((g) => (g.id === groupId ? { ...g, title } : g)));
+  }
+
+  function addIngredientGroup() {
+    const group = emptyIngredientGroup();
+    group.items = [emptyRow()];
+    updateIngredientGroups((groups) => [...groups, group]);
+    setFocusId(group.items[0].id);
+  }
+
+  function removeIngredientGroup(groupId: string) {
+    updateIngredientGroups((groups) => {
+      if (groups.length <= 1) return groups;
+      return groups.filter((g) => g.id !== groupId);
+    });
+  }
+
+  function addStepAfter(groupId: string, index: number) {
+    const row = emptyStep();
+    updateStepGroups((groups) =>
+      groups.map((g) => {
+        if (g.id !== groupId) return g;
+        const steps = g.steps.slice();
+        steps.splice(index + 1, 0, row);
+        return { ...g, steps };
+      }),
+    );
+    setFocusId(row.id);
+  }
+
+  function removeStep(groupId: string, stepId: string) {
+    let focus = stepId;
+    updateStepGroups((groups) =>
+      groups.map((g) => {
+        if (g.id !== groupId) return g;
+        const i = g.steps.findIndex((s) => s.id === stepId);
+        const doomed = g.steps[i];
+        if (doomed?.media) discard(doomed.media);
+        const steps = g.steps.filter((s) => s.id !== stepId);
+        if (!steps.length) steps.push(emptyStep());
+        focus = steps[Math.max(0, i - 1)]?.id ?? steps[0].id;
+        return { ...g, steps };
+      }),
+    );
+    setFocusId(focus);
+  }
+
+  function setStepText(groupId: string, stepId: string, text: string) {
+    updateStepGroups((groups) =>
+      groups.map((g) =>
+        g.id !== groupId
+          ? g
+          : { ...g, steps: g.steps.map((s) => (s.id === stepId ? { ...s, text } : s)) },
+      ),
+    );
+  }
+
+  function setStepMedia(groupId: string, stepId: string, media: Upload | null) {
+    updateStepGroups((groups) =>
+      groups.map((g) =>
+        g.id !== groupId
+          ? g
+          : { ...g, steps: g.steps.map((s) => (s.id === stepId ? { ...s, media } : s)) },
+      ),
+    );
+  }
+
+  function setStepGroupTitle(groupId: string, title: string) {
+    updateStepGroups((groups) => groups.map((g) => (g.id === groupId ? { ...g, title } : g)));
+  }
+
+  function moveStep(groupId: string, index: number, delta: number) {
+    updateStepGroups((groups) =>
+      groups.map((g) => (g.id !== groupId ? g : { ...g, steps: moveItem(g.steps, index, delta) })),
+    );
+  }
+
+  function addStepGroup() {
+    const group = emptyStepGroup();
+    group.steps = [emptyStep()];
+    updateStepGroups((groups) => [...groups, group]);
+    setFocusId(group.steps[0].id);
+  }
+
+  function removeStepGroup(groupId: string) {
+    updateStepGroups((groups) => {
+      if (groups.length <= 1) return groups;
+      const doomed = groups.find((g) => g.id === groupId);
+      doomed?.steps.forEach((s) => discard(s.media));
+      return groups.filter((g) => g.id !== groupId);
+    });
   }
 
   function applyPaste() {
     if (!pasteFor) return;
     const lines = splitList(pasteText);
     if (lines.length) {
-      setV((s) => {
-        const existing = (s[pasteFor] as (Row | StepRow)[]).filter((r) => r.text.trim() || (r as StepRow).media);
-        const added = lines.map((text) =>
-          pasteFor === "steps" ? { id: uid(), text, media: null } : { id: uid(), text },
+      if (typeof pasteFor === "object" && "ingredientGroupId" in pasteFor) {
+        const groupId = pasteFor.ingredientGroupId;
+        updateIngredientGroups((groups) =>
+          groups.map((g) => {
+            if (g.id !== groupId) return g;
+            const existing = g.items.filter((r) => r.text.trim());
+            const added = lines.map((text) => ({ id: uid(), text }));
+            return { ...g, items: [...existing, ...added] };
+          }),
         );
-        return { ...s, [pasteFor]: [...existing, ...added] };
-      });
+      } else if (typeof pasteFor === "object" && "stepGroupId" in pasteFor) {
+        const groupId = pasteFor.stepGroupId;
+        updateStepGroups((groups) =>
+          groups.map((g) => {
+            if (g.id !== groupId) return g;
+            const existing = g.steps.filter((s) => s.text.trim() || s.media);
+            const added = lines.map((text) => ({ id: uid(), text, media: null }));
+            return { ...g, steps: [...existing, ...added] };
+          }),
+        );
+      } else if (pasteFor === "equipment") {
+        setV((s) => {
+          const existing = s.equipment.filter((r) => r.text.trim());
+          const added = lines.map((text) => ({ id: uid(), text }));
+          return { ...s, equipment: [...existing, ...added] };
+        });
+      }
     }
     setPasteText("");
     setPasteFor(null);
@@ -221,18 +390,27 @@ export function RecipeForm({ userId, isEditor, categories, recipeId, initial }: 
   }
 
   /* ---- submit */
-  const uploading = v.gallery.some((u) => u.status === "uploading") || v.steps.some((s) => s.media?.status === "uploading");
+  const uploading =
+    v.gallery.some((u) => u.status === "uploading") ||
+    v.stepGroups.some((g) => g.steps.some((s) => s.media?.status === "uploading"));
 
   function submit(intent: "draft" | "submit" | "publish") {
     const local: Record<string, string> = {};
     if (v.title.trim().length < 2) local.title = "Give your recipe a name";
     if (!v.categoryId) local.categoryId = "Pick a category";
     if (v.categoryId === "__new" && v.newCatName.trim().length < 2) local.categoryId = "Name the new category";
+    const hasIngredient = v.ingredientGroups.some((g) => g.items.some((r) => r.text.trim()));
+    const hasStep = v.stepGroups.some((g) => g.steps.some((s) => s.text.trim()));
     if (intent !== "draft") {
-      if (!v.ingredients.some((r) => r.text.trim())) local.ingredients = "Add at least one ingredient";
-      if (!v.steps.some((r) => r.text.trim())) local.steps = "Add at least one step";
+      if (!hasIngredient) local.ingredients = "Add at least one ingredient";
+      if (!hasStep) local.steps = "Add at least one step";
     }
-    if (v.gallery.some((u) => u.status === "error") || v.steps.some((s) => s.media?.status === "error")) local.gallery = "Remove the files that failed to upload first.";
+    if (
+      v.gallery.some((u) => u.status === "error") ||
+      v.stepGroups.some((g) => g.steps.some((s) => s.media?.status === "error"))
+    ) {
+      local.gallery = "Remove the files that failed to upload first.";
+    }
     if (v.tags.length > MAX_TAGS) local.tags = `Up to ${MAX_TAGS} tags`;
     else {
       const bad = v.tags.map(tagIssue).find(Boolean);
@@ -244,20 +422,41 @@ export function RecipeForm({ userId, isEditor, categories, recipeId, initial }: 
       return;
     }
     const num = (s: string) => (s.trim() ? Math.round(Number(s)) : null);
+    const ingredientGroups = v.ingredientGroups
+      .map((g) => ({
+        title: g.title.trim(),
+        items: g.items.map((r) => r.text.trim()).filter(Boolean),
+      }))
+      .filter((g) => g.items.length > 0 || g.title);
+    const stepGroups = v.stepGroups
+      .map((g) => ({
+        title: g.title.trim(),
+        steps: g.steps
+          .filter((s) => s.text.trim())
+          .map((s) => ({
+            text: s.text.trim(),
+            media: s.media?.status === "done" && s.media.path ? { kind: s.media.kind, path: s.media.path } : null,
+          })),
+      }))
+      .filter((g) => g.steps.length > 0 || g.title);
     const payload = {
       title: v.title, description: v.description, categoryId: v.categoryId,
       newCategory: v.categoryId === "__new" ? { name: v.newCatName, emoji: "" } : null,
       emoji: v.emoji, totalMinutes: num(v.totalMinutes), timeNote: v.timeNote, servings: num(v.servings), difficulty: v.difficulty, tags: v.tags,
-      ingredients: v.ingredients.map((r) => r.text.trim()).filter(Boolean),
+      ingredients: ingredientGroups.length ? ingredientGroups : [{ title: "", items: [] as string[] }],
       equipment: v.equipment.map((r) => r.text.trim()).filter(Boolean),
-      steps: v.steps.filter((s) => s.text.trim()).map((s) => ({ text: s.text.trim(), media: s.media?.status === "done" && s.media.path ? { kind: s.media.kind, path: s.media.path } : null })),
+      steps: stepGroups.length ? stepGroups : [{ title: "", steps: [] as { text: string; media: null }[] }],
       gallery: v.gallery.filter((u) => u.status === "done" && u.path).map((u) => ({ kind: u.kind, path: u.path!, caption: u.caption })),
       intent,
     };
     // Drafts may be incomplete; give the server something valid to hold on to.
     if (intent === "draft") {
-      if (!payload.ingredients.length) payload.ingredients = ["(ingredients to come)"];
-      if (!payload.steps.length) payload.steps = [{ text: "(steps to come)", media: null }];
+      if (!payload.ingredients.some((g) => g.items.length)) {
+        payload.ingredients = [{ title: "", items: ["(ingredients to come)"] }];
+      }
+      if (!payload.steps.some((g) => g.steps.length)) {
+        payload.steps = [{ title: "", steps: [{ text: "(steps to come)", media: null }] }];
+      }
     }
     setErrors({});
     start(async () => {
@@ -376,21 +575,21 @@ export function RecipeForm({ userId, isEditor, categories, recipeId, initial }: 
                 aria-label={`Equipment ${i + 1}`} aria-invalid={!!errors[`equipment.${i}`]}
                 onChange={(e) => set("equipment", v.equipment.map((x) => (x.id === r.id ? { ...x, text: e.target.value } : x)))}
                 onKeyDown={(e) => {
-                  if (e.key === "Enter") { e.preventDefault(); addRowAfter("equipment", i); }
-                  if (e.key === "Backspace" && !r.text && v.equipment.length > 1) { e.preventDefault(); removeRow("equipment", r.id); }
+                  if (e.key === "Enter") { e.preventDefault(); addEquipmentAfter(i); }
+                  if (e.key === "Backspace" && !r.text && v.equipment.length > 1) { e.preventDefault(); removeEquipment(r.id); }
                 }}
                 onPaste={(e) => {
                   const text = e.clipboardData.getData("text");
                   if (text.includes("\n")) { e.preventDefault(); setPasteFor("equipment"); setPasteText(text); }
                 }}
               />
-              <button type="button" className="icon-btn danger" aria-label={`Remove equipment ${i + 1}`} onClick={() => removeRow("equipment", r.id)}>×</button>
+              <button type="button" className="icon-btn danger" aria-label={`Remove equipment ${i + 1}`} onClick={() => removeEquipment(r.id)}>×</button>
             </li>
           ))}
         </ol>
         {err("equipment") && <p className="f-err" role="alert">{err("equipment")}</p>}
         <div className="row-actions">
-          <button type="button" className="btn ghost small" onClick={() => addRowAfter("equipment", v.equipment.length - 1)}>Add equipment</button>
+          <button type="button" className="btn ghost small" onClick={() => addEquipmentAfter(v.equipment.length - 1)}>Add equipment</button>
           <button type="button" className="btn ghost small" onClick={() => setPasteFor(pasteFor === "equipment" ? null : "equipment")}>Paste a whole list</button>
         </div>
         {pasteFor === "equipment" && <PasteBox label="Paste your equipment list, one per line" value={pasteText} onChange={setPasteText} onApply={applyPaste} onCancel={() => setPasteFor(null)} />}
@@ -399,88 +598,237 @@ export function RecipeForm({ userId, isEditor, categories, recipeId, initial }: 
       {/* 4. Ingredients */}
       <section className="rf-sec" id={fid("ingredients")} aria-labelledby={fid("ing-h")}>
         <h2 id={fid("ing-h")}><span className="num" aria-hidden="true">4</span>Ingredients</h2>
-        <p className="hint">One per line, amount first (&ldquo;1 1/2 cups flour&rdquo;) so the servings scaler can adjust it. Press Enter for a new line.</p>
-        <ol className="rows-edit">
-          {v.ingredients.map((r, i) => (
-            <li key={r.id}>
-              <input
-                ref={(el) => { if (el) inputs.current.set(r.id, el); else inputs.current.delete(r.id); }}
-                className="field" value={r.text} maxLength={200} placeholder={i === 0 ? "3 very ripe bananas" : i === 1 ? "1 1/2 cups flour" : "Another ingredient"}
-                aria-label={`Ingredient ${i + 1}`} aria-invalid={!!errors[`ingredients.${i}`]}
-                onChange={(e) => set("ingredients", v.ingredients.map((x) => (x.id === r.id ? { ...x, text: e.target.value } : x)))}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter") { e.preventDefault(); addRowAfter("ingredients", i); }
-                  if (e.key === "Backspace" && !r.text && v.ingredients.length > 1) { e.preventDefault(); removeRow("ingredients", r.id); }
-                }}
-                onPaste={(e) => {
-                  const text = e.clipboardData.getData("text");
-                  if (text.includes("\n")) { e.preventDefault(); setPasteFor("ingredients"); setPasteText(text); }
-                }}
-              />
-              <button type="button" className="icon-btn danger" aria-label={`Remove ingredient ${i + 1}`} onClick={() => removeRow("ingredients", r.id)}>×</button>
-            </li>
-          ))}
-        </ol>
+        <p className="hint">
+          One per line, amount first (&ldquo;1 1/2 cups flour&rdquo;) so the servings scaler can adjust it.
+          Add another titled list for frostings, sauces, or mix-ins.
+        </p>
+        {v.ingredientGroups.map((group, gi) => {
+          const pasteOpen = !!pasteFor && typeof pasteFor === "object" && "ingredientGroupId" in pasteFor && pasteFor.ingredientGroupId === group.id;
+          return (
+            <div key={group.id} className="ing-edit-group">
+              <div className="f" style={{ marginBottom: ".6rem" }}>
+                <label htmlFor={fid(`ing-title-${group.id}`)}>
+                  List title {gi === 0 ? <small>(optional)</small> : null}
+                </label>
+                <div className="ing-edit-title-row">
+                  <input
+                    id={fid(`ing-title-${group.id}`)}
+                    className="field"
+                    value={group.title}
+                    maxLength={80}
+                    placeholder={gi === 0 ? "Banana bread batter" : "Blueberry cream cheese frosting"}
+                    onChange={(e) => setIngredientGroupTitle(group.id, e.target.value)}
+                  />
+                  {v.ingredientGroups.length > 1 && (
+                    <button
+                      type="button"
+                      className="btn ghost small"
+                      onClick={() => removeIngredientGroup(group.id)}
+                    >
+                      Remove list
+                    </button>
+                  )}
+                </div>
+              </div>
+              <ol className="rows-edit">
+                {group.items.map((r, i) => (
+                  <li key={r.id}>
+                    <input
+                      ref={(el) => { if (el) inputs.current.set(r.id, el); else inputs.current.delete(r.id); }}
+                      className="field"
+                      value={r.text}
+                      maxLength={200}
+                      placeholder={i === 0 ? "3 very ripe bananas" : i === 1 ? "1 1/2 cups flour" : "Another ingredient"}
+                      aria-label={`${group.title || "Ingredients"} item ${i + 1}`}
+                      aria-invalid={!!errors[`ingredients.${gi}.items.${i}`]}
+                      onChange={(e) => setIngredientText(group.id, r.id, e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter") { e.preventDefault(); addIngredientAfter(group.id, i); }
+                        if (e.key === "Backspace" && !r.text && group.items.length > 1) {
+                          e.preventDefault();
+                          removeIngredient(group.id, r.id);
+                        }
+                      }}
+                      onPaste={(e) => {
+                        const text = e.clipboardData.getData("text");
+                        if (text.includes("\n")) {
+                          e.preventDefault();
+                          setPasteFor({ ingredientGroupId: group.id });
+                          setPasteText(text);
+                        }
+                      }}
+                    />
+                    <button
+                      type="button"
+                      className="icon-btn danger"
+                      aria-label={`Remove ingredient ${i + 1}`}
+                      onClick={() => removeIngredient(group.id, r.id)}
+                    >
+                      ×
+                    </button>
+                  </li>
+                ))}
+              </ol>
+              <div className="row-actions">
+                <button
+                  type="button"
+                  className="btn ghost small"
+                  onClick={() => addIngredientAfter(group.id, group.items.length - 1)}
+                >
+                  Add ingredient
+                </button>
+                <button
+                  type="button"
+                  className="btn ghost small"
+                  onClick={() => setPasteFor(pasteOpen ? null : { ingredientGroupId: group.id })}
+                >
+                  Paste a whole list
+                </button>
+              </div>
+              {pasteOpen && (
+                <PasteBox
+                  label="Paste your ingredient list, one per line"
+                  value={pasteText}
+                  onChange={setPasteText}
+                  onApply={applyPaste}
+                  onCancel={() => setPasteFor(null)}
+                />
+              )}
+            </div>
+          );
+        })}
         {err("ingredients") && <p className="f-err" role="alert">{err("ingredients")}</p>}
-        <div className="row-actions">
-          <button type="button" className="btn ghost small" onClick={() => addRowAfter("ingredients", v.ingredients.length - 1)}>Add ingredient</button>
-          <button type="button" className="btn ghost small" onClick={() => setPasteFor(pasteFor === "ingredients" ? null : "ingredients")}>Paste a whole list</button>
+        <div className="row-actions" style={{ marginTop: ".8rem" }}>
+          <button type="button" className="btn ghost small" onClick={addIngredientGroup}>
+            Add another ingredient list
+          </button>
         </div>
-        {pasteFor === "ingredients" && <PasteBox label="Paste your ingredient list, one per line" value={pasteText} onChange={setPasteText} onApply={applyPaste} onCancel={() => setPasteFor(null)} />}
       </section>
 
       {/* 5. Steps */}
       <section className="rf-sec" id={fid("steps")} aria-labelledby={fid("steps-h")}>
         <h2 id={fid("steps-h")}><span className="num" aria-hidden="true">5</span>Steps</h2>
-        <p className="hint">One step per box, in order. Mention times like &ldquo;bake 25 minutes&rdquo; and they&apos;ll be highlighted for the cook. Add a photo or short clip to any step that&apos;s easier to show than tell.</p>
-        <ol className="steps-edit">
-          {v.steps.map((s, i) => (
-            <li key={s.id}>
-              <span className="step-num" aria-hidden="true">{i + 1}</span>
-              <div className="step-body">
-                <textarea
-                  ref={(el) => { if (el) inputs.current.set(s.id, el); else inputs.current.delete(s.id); }}
-                  className="field" rows={2} maxLength={1500} value={s.text} placeholder={i === 0 ? "Heat oven to 350°F (175°C) and grease a loaf pan." : "What happens next?"}
-                  aria-label={`Step ${i + 1}`} aria-invalid={!!errors[`steps.${i}.text`]}
-                  onChange={(e) => set("steps", v.steps.map((x) => (x.id === s.id ? { ...x, text: e.target.value } : x)))}
-                  onPaste={(e) => {
-                    const text = e.clipboardData.getData("text");
-                    if (!s.text && text.split("\n").filter((l) => l.trim()).length > 1) { e.preventDefault(); setPasteFor("steps"); setPasteText(text); }
-                  }}
+        <p className="hint">
+          One step per box, in order. Mention times like &ldquo;bake 25 minutes&rdquo; and they&apos;ll be highlighted for the cook.
+          Add another titled list for frostings, sauces, or mix-ins.
+        </p>
+        {v.stepGroups.map((group, gi) => {
+          const pasteOpen = !!pasteFor && typeof pasteFor === "object" && "stepGroupId" in pasteFor && pasteFor.stepGroupId === group.id;
+          return (
+            <div key={group.id} className="ing-edit-group">
+              <div className="f" style={{ marginBottom: ".6rem" }}>
+                <label htmlFor={fid(`step-title-${group.id}`)}>
+                  List title {gi === 0 ? <small>(optional)</small> : null}
+                </label>
+                <div className="ing-edit-title-row">
+                  <input
+                    id={fid(`step-title-${group.id}`)}
+                    className="field"
+                    value={group.title}
+                    maxLength={80}
+                    placeholder={gi === 0 ? "Banana bread" : "Blueberry cream cheese frosting"}
+                    onChange={(e) => setStepGroupTitle(group.id, e.target.value)}
+                  />
+                  {v.stepGroups.length > 1 && (
+                    <button type="button" className="btn ghost small" onClick={() => removeStepGroup(group.id)}>
+                      Remove list
+                    </button>
+                  )}
+                </div>
+              </div>
+              <ol className="steps-edit">
+                {group.steps.map((s, i) => (
+                  <li key={s.id}>
+                    <span className="step-num" aria-hidden="true">{i + 1}</span>
+                    <div className="step-body">
+                      <textarea
+                        ref={(el) => { if (el) inputs.current.set(s.id, el); else inputs.current.delete(s.id); }}
+                        className="field"
+                        rows={2}
+                        maxLength={1500}
+                        value={s.text}
+                        placeholder={i === 0 ? "Heat oven to 350°F (175°C) and grease a loaf pan." : "What happens next?"}
+                        aria-label={`${group.title || "Steps"} step ${i + 1}`}
+                        aria-invalid={!!errors[`steps.${gi}.steps.${i}.text`]}
+                        onChange={(e) => setStepText(group.id, s.id, e.target.value)}
+                        onPaste={(e) => {
+                          const text = e.clipboardData.getData("text");
+                          if (!s.text && text.split("\n").filter((l) => l.trim()).length > 1) {
+                            e.preventDefault();
+                            setPasteFor({ stepGroupId: group.id });
+                            setPasteText(text);
+                          }
+                        }}
+                      />
+                      {s.media ? (
+                        <div className={`step-media ${s.media.status}`}>
+                          <Preview kind={s.media.kind} src={s.media.preview} />
+                          <span>
+                            {s.media.status === "uploading"
+                              ? "Uploading…"
+                              : s.media.status === "error"
+                                ? s.media.error
+                                : s.media.kind === "video"
+                                  ? "Video attached"
+                                  : "Photo attached"}
+                          </span>
+                          <button
+                            type="button"
+                            className="linkbtn"
+                            onClick={() => { discard(s.media); setStepMedia(group.id, s.id, null); }}
+                          >
+                            Remove
+                          </button>
+                        </div>
+                      ) : (
+                        <label className="linkbtn attach">
+                          + Add a photo or video to this step
+                          <input
+                            type="file"
+                            className="sr"
+                            accept="image/jpeg,image/png,image/webp,image/gif,video/mp4,video/webm,video/quicktime"
+                            onChange={(e) => {
+                              const f = e.target.files?.[0];
+                              e.target.value = "";
+                              if (!f) return;
+                              const r = beginUpload(f);
+                              if (typeof r === "string") setErrors((x) => ({ ...x, steps: r }));
+                              else setStepMedia(group.id, s.id, r);
+                            }}
+                          />
+                        </label>
+                      )}
+                    </div>
+                    <div className="step-tools">
+                      <button type="button" className="icon-btn" aria-label={`Move step ${i + 1} up`} disabled={i === 0} onClick={() => moveStep(group.id, i, -1)}>↑</button>
+                      <button type="button" className="icon-btn" aria-label={`Move step ${i + 1} down`} disabled={i === group.steps.length - 1} onClick={() => moveStep(group.id, i, 1)}>↓</button>
+                      <button type="button" className="icon-btn danger" aria-label={`Remove step ${i + 1}`} onClick={() => removeStep(group.id, s.id)}>×</button>
+                    </div>
+                  </li>
+                ))}
+              </ol>
+              <div className="row-actions">
+                <button type="button" className="btn ghost small" onClick={() => addStepAfter(group.id, group.steps.length - 1)}>Add step</button>
+                <button type="button" className="btn ghost small" onClick={() => setPasteFor(pasteOpen ? null : { stepGroupId: group.id })}>Paste all steps</button>
+              </div>
+              {pasteOpen && (
+                <PasteBox
+                  label="Paste your steps, one per line (numbers are removed for you)"
+                  value={pasteText}
+                  onChange={setPasteText}
+                  onApply={applyPaste}
+                  onCancel={() => setPasteFor(null)}
                 />
-                {s.media ? (
-                  <div className={`step-media ${s.media.status}`}>
-                    <Preview kind={s.media.kind} src={s.media.preview} />
-                    <span>{s.media.status === "uploading" ? "Uploading…" : s.media.status === "error" ? s.media.error : s.media.kind === "video" ? "Video attached" : "Photo attached"}</span>
-                    <button type="button" className="linkbtn" onClick={() => { discard(s.media); set("steps", v.steps.map((x) => (x.id === s.id ? { ...x, media: null } : x))); }}>Remove</button>
-                  </div>
-                ) : (
-                  <label className="linkbtn attach">
-                    + Add a photo or video to this step
-                    <input type="file" className="sr" accept="image/jpeg,image/png,image/webp,image/gif,video/mp4,video/webm,video/quicktime" onChange={(e) => {
-                      const f = e.target.files?.[0]; e.target.value = "";
-                      if (!f) return;
-                      const r = beginUpload(f);
-                      if (typeof r === "string") setErrors((x) => ({ ...x, steps: r }));
-                      else set("steps", v.steps.map((x) => (x.id === s.id ? { ...x, media: r } : x)));
-                    }} />
-                  </label>
-                )}
-              </div>
-              <div className="step-tools">
-                <button type="button" className="icon-btn" aria-label={`Move step ${i + 1} up`} disabled={i === 0} onClick={() => set("steps", moveItem(v.steps, i, -1))}>↑</button>
-                <button type="button" className="icon-btn" aria-label={`Move step ${i + 1} down`} disabled={i === v.steps.length - 1} onClick={() => set("steps", moveItem(v.steps, i, 1))}>↓</button>
-                <button type="button" className="icon-btn danger" aria-label={`Remove step ${i + 1}`} onClick={() => removeRow("steps", s.id)}>×</button>
-              </div>
-            </li>
-          ))}
-        </ol>
+              )}
+            </div>
+          );
+        })}
         {err("steps") && <p className="f-err" role="alert">{err("steps")}</p>}
-        <div className="row-actions">
-          <button type="button" className="btn ghost small" onClick={() => addRowAfter("steps", v.steps.length - 1)}>Add step</button>
-          <button type="button" className="btn ghost small" onClick={() => setPasteFor(pasteFor === "steps" ? null : "steps")}>Paste all steps</button>
+        <div className="row-actions" style={{ marginTop: ".8rem" }}>
+          <button type="button" className="btn ghost small" onClick={addStepGroup}>
+            Add another step list
+          </button>
         </div>
-        {pasteFor === "steps" && <PasteBox label="Paste your steps, one per line (numbers are removed for you)" value={pasteText} onChange={setPasteText} onApply={applyPaste} onCancel={() => setPasteFor(null)} />}
       </section>
 
       {/* 6. Details */}

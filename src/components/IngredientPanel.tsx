@@ -2,14 +2,28 @@
 
 import { useState } from "react";
 import { scaleLine } from "@/lib/scale";
+import type { IngredientGroup } from "@/lib/ingredients";
 
-export function IngredientPanel({ ingredients, servings }: { ingredients: string[]; servings: number | null }) {
+export function IngredientPanel({
+  ingredients,
+  servings,
+}: {
+  ingredients: IngredientGroup[];
+  servings: number | null;
+}) {
   const [serv, setServ] = useState(servings ?? 0);
   const [mult, setMult] = useState(1);
-  const [checked, setChecked] = useState<Set<number>>(new Set());
+  const [checked, setChecked] = useState<Set<string>>(new Set());
   const k = servings ? serv / servings : mult;
+  const groups = ingredients.length ? ingredients : [{ title: "", items: [] as string[] }];
 
-  const toggle = (i: number) => setChecked((c) => { const n = new Set(c); if (n.has(i)) n.delete(i); else n.add(i); return n; });
+  const toggle = (key: string) =>
+    setChecked((c) => {
+      const n = new Set(c);
+      if (n.has(key)) n.delete(key);
+      else n.add(key);
+      return n;
+    });
 
   return (
     <aside className="panel ing-panel" aria-labelledby="ing-title">
@@ -34,19 +48,25 @@ export function IngredientPanel({ ingredients, servings }: { ingredients: string
           </>
         )}
       </div>
-      <ul className="checks">
-        {ingredients.map((line, i) => {
-          const [q, rest] = scaleLine(line, k);
-          return (
-            <li key={i}>
-              <label>
-                <input type="checkbox" checked={checked.has(i)} onChange={() => toggle(i)} />
-                <span>{q && <b className="scaled">{q}</b>}{rest}</span>
-              </label>
-            </li>
-          );
-        })}
-      </ul>
+      {groups.map((group, gi) => (
+        <div key={gi} className="ing-group">
+          {group.title ? <h3 className="ing-group-title">{group.title}</h3> : null}
+          <ol className="checks">
+            {group.items.map((line, i) => {
+              const key = `${gi}-${i}`;
+              const [q, rest] = scaleLine(line, k);
+              return (
+                <li key={key}>
+                  <label>
+                    <input type="checkbox" checked={checked.has(key)} onChange={() => toggle(key)} />
+                    <span>{q && <b className="scaled">{q}</b>}{rest}</span>
+                  </label>
+                </li>
+              );
+            })}
+          </ol>
+        </div>
+      ))}
       {checked.size > 0 && <button type="button" className="btn ghost small" onClick={() => setChecked(new Set())}>Uncheck all</button>}
     </aside>
   );

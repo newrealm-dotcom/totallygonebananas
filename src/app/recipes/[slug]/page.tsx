@@ -117,25 +117,39 @@ export default async function RecipePage({ params, searchParams }: PageProps<"/r
       <section className="made-grid d-cook" id="made" aria-label="Steps, ratings and tips">
         <div className="d-steps" aria-labelledby="steps-h">
           <h2 id="steps-h">Steps</h2>
-          <ol className="steps">
-            {r.steps.map((s, i) => {
-              const timers = timersIn(s.text);
-              return (
-                <li key={i}>
-                  <div>
-                    <p>{s.text}</p>
-                    {s.media && <div className="step-media-view"><MediaView path={s.media.path} kind={s.media.kind} alt={`Step ${i + 1}`} sizes="(max-width: 900px) 100vw, 560px" /></div>}
-                  </div>
-                  {timers.length > 0 && (
-                    <p className="timer-hint">
-                      <span className="timer-hint-icon" aria-hidden="true">⏲️</span>
-                      <span className="timer-hint-label">{timers.map((t) => t.label).join(", ")}</span>
-                    </p>
-                  )}
-                </li>
-              );
-            })}
-          </ol>
+          {r.steps.map((group, gi) => (
+            <div key={gi} className="step-group">
+              {group.title ? <h3 className="step-group-title">{group.title}</h3> : null}
+              <ol className="steps">
+                {group.steps.map((s, i) => {
+                  const timers = timersIn(s.text);
+                  return (
+                    <li key={i}>
+                      <div>
+                        <p>{s.text}</p>
+                        {s.media && (
+                          <div className="step-media-view">
+                            <MediaView
+                              path={s.media.path}
+                              kind={s.media.kind}
+                              alt={`${group.title || "Step"} ${i + 1}`}
+                              sizes="(max-width: 900px) 100vw, 560px"
+                            />
+                          </div>
+                        )}
+                      </div>
+                      {timers.length > 0 && (
+                        <p className="timer-hint">
+                          <span className="timer-hint-icon" aria-hidden="true">⏲️</span>
+                          <span className="timer-hint-label">{timers.map((t) => t.label).join(", ")}</span>
+                        </p>
+                      )}
+                    </li>
+                  );
+                })}
+              </ol>
+            </div>
+          ))}
         </div>
         <div className="d-made-col">
           <MadeItForm recipeId={r.id} signedIn={!!userId} slug={r.slug} />

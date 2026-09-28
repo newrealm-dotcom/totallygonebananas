@@ -1,4 +1,6 @@
 import { publicUrl } from "@/lib/media";
+import { normalizeIngredientGroups, type IngredientGroup } from "@/lib/ingredients";
+import { normalizeStepGroups, type StepGroup } from "@/lib/steps";
 import type { MediaKind } from "@/lib/types";
 
 export interface Upload {
@@ -24,6 +26,18 @@ export interface StepRow {
   media: Upload | null;
 }
 
+export interface IngredientGroupRow {
+  id: string;
+  title: string;
+  items: Row[];
+}
+
+export interface StepGroupRow {
+  id: string;
+  title: string;
+  steps: StepRow[];
+}
+
 export interface RecipeFormValues {
   title: string;
   description: string;
@@ -37,15 +51,26 @@ export interface RecipeFormValues {
   difficulty: number;
   tags: string[];
   equipment: Row[];
-  ingredients: Row[];
-  steps: StepRow[];
+  ingredientGroups: IngredientGroupRow[];
+  stepGroups: StepGroupRow[];
   gallery: Upload[];
 }
 
 const uid = () => (typeof crypto !== "undefined" && "randomUUID" in crypto ? crypto.randomUUID() : Math.random().toString(36).slice(2));
 const emptyRow = (): Row => ({ id: uid(), text: "" });
 const emptyStep = (): StepRow => ({ id: uid(), text: "", media: null });
+const emptyIngredientGroup = (title = ""): IngredientGroupRow => ({
+  id: uid(),
+  title,
+  items: [emptyRow(), emptyRow(), emptyRow()],
+});
+const emptyStepGroup = (title = ""): StepGroupRow => ({
+  id: uid(),
+  title,
+  steps: [emptyStep(), emptyStep()],
+});
 
+/** Stable IDs for the blank form so SSR HTML matches client hydration. */
 export function blankValues(categoryId = ""): RecipeFormValues {
   return {
     title: "",
@@ -59,11 +84,48 @@ export function blankValues(categoryId = ""): RecipeFormValues {
     servings: "",
     difficulty: 2,
     tags: [],
-    equipment: [emptyRow()],
-    ingredients: [emptyRow(), emptyRow(), emptyRow()],
-    steps: [emptyStep(), emptyStep()],
+    equipment: [{ id: "equip-0", text: "" }],
+    ingredientGroups: [{
+      id: "ing-group-0",
+      title: "",
+      items: [
+        { id: "ing-0-0", text: "" },
+        { id: "ing-0-1", text: "" },
+        { id: "ing-0-2", text: "" },
+      ],
+    }],
+    stepGroups: [{
+      id: "step-group-0",
+      title: "",
+      steps: [
+        { id: "step-0-0", text: "", media: null },
+        { id: "step-0-1", text: "", media: null },
+      ],
+    }],
     gallery: [],
   };
+}
+
+function groupsToFormRows(groups: IngredientGroup[]): IngredientGroupRow[] {
+  return groups.map((g) => ({
+    id: uid(),
+    title: g.title,
+    items: g.items.length ? g.items.map((text) => ({ id: uid(), text })) : [emptyRow()],
+  }));
+}
+
+function stepGroupsToFormRows(groups: StepGroup[], existing: (kind: MediaKind, path: string, caption?: string) => Upload): StepGroupRow[] {
+  return groups.map((g) => ({
+    id: uid(),
+    title: g.title,
+    steps: g.steps.length
+      ? g.steps.map((s) => ({
+          id: uid(),
+          text: s.text,
+          media: s.media ? existing(s.media.kind, s.media.path) : null,
+        }))
+      : [emptyStep()],
+  }));
 }
 
 /** Builds form values for editing an existing recipe. Safe to call from Server Components. */
@@ -78,8 +140,8 @@ export function valuesFromRecipe(r: {
   difficulty: number | null;
   tags: string[] | null;
   equipment?: string[] | null;
-  ingredients: string[] | null;
-  steps: { text: string; media?: { kind: MediaKind; path: string } | null }[] | null;
+  ingredients: unknown;
+  steps: unknown;
   recipe_media: { kind: MediaKind; path: string; caption: string | null }[] | null;
 }): RecipeFormValues {
   const existing = (kind: MediaKind, path: string, caption = ""): Upload => ({
@@ -92,9 +154,9 @@ export function valuesFromRecipe(r: {
     fresh: false,
   });
   const equipment = r.equipment ?? [];
-  const ingredients = r.ingredients ?? [];
-  const steps = r.steps ?? [];
   const media = r.recipe_media ?? [];
+  const ingredientGroups = normalizeIngredientGroups(r.ingredients);
+  const stepGroups = normalizeStepGroups(r.steps);
   return {
     title: r.title,
     description: r.description ?? "",
@@ -108,25 +170,40 @@ export function valuesFromRecipe(r: {
     difficulty: r.difficulty ?? 2,
     tags: r.tags ?? [],
     equipment: equipment.length ? equipment.map((text) => ({ id: uid(), text })) : [emptyRow()],
-    ingredients: ingredients.length ? ingredients.map((text) => ({ id: uid(), text })) : [emptyRow()],
-    steps: steps.length
-      ? steps.map((s) => ({ id: uid(), text: s.text, media: s.media ? existing(s.media.kind, s.media.path) : null }))
-      : [emptyStep()],
+    ingredientGroups: groupsToFormRows(ingredientGroups.length ? ingredientGroups : [{ title: "", items: [] }]),
+    stepGroups: stepGroupsToFormRows(stepGroups.length ? stepGroups : [{ title: "", steps: [] }], existing),
     gallery: media.map((m) => existing(m.kind, m.path, m.caption ?? "")),
   };
 }
 
 /** Merge a local draft onto defaults so a partial/stale draft can't crash the form. */
-export function mergeRecipeDraft(base: RecipeFormValues, draft: Partial<RecipeFormValues> | null | undefined): RecipeFormValues {
+export function mergeRecipeDraft(
+  base: RecipeFormValues,
+  draft: (Partial<RecipeFormValues> & { ingredients?: Row[]; steps?: StepRow[] }) | null | undefined,
+): RecipeFormValues {
   if (!draft) return base;
+  let ingredientGroups = base.ingredientGroups;
+  if (Array.isArray(draft.ingredientGroups) && draft.ingredientGroups.length) {
+    ingredientGroups = draft.ingredientGroups;
+  } else if (Array.isArray(draft.ingredients) && draft.ingredients.length) {
+    ingredientGroups = [{ id: uid(), title: "", items: draft.ingredients }];
+  }
+  let stepGroups = base.stepGroups;
+  if (Array.isArray(draft.stepGroups) && draft.stepGroups.length) {
+    stepGroups = draft.stepGroups;
+  } else if (Array.isArray(draft.steps) && draft.steps.length) {
+    stepGroups = [{ id: uid(), title: "", steps: draft.steps }];
+  }
   return {
     ...base,
     ...draft,
     description: draft.description ?? base.description,
     tags: Array.isArray(draft.tags) ? draft.tags : base.tags,
     equipment: Array.isArray(draft.equipment) && draft.equipment.length ? draft.equipment : base.equipment,
-    ingredients: Array.isArray(draft.ingredients) && draft.ingredients.length ? draft.ingredients : base.ingredients,
-    steps: Array.isArray(draft.steps) && draft.steps.length ? draft.steps : base.steps,
+    ingredientGroups,
+    stepGroups,
     gallery: Array.isArray(draft.gallery) ? draft.gallery : base.gallery,
   };
 }
+
+export { emptyIngredientGroup, emptyRow, emptyStep, emptyStepGroup, uid };

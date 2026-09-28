@@ -6,9 +6,9 @@ import { createClient } from "@/lib/supabase/server";
 import { getViewer, isEditorRole } from "@/lib/queries";
 import { fieldErrors, recipeInput } from "@/lib/validation";
 import { slugify } from "@/lib/format";
+import { flattenSteps, normalizeStepGroups } from "@/lib/steps";
 import { REFERRAL_COOKIE, sanitizeReferral } from "@/lib/referral";
 import type { RecipeStatus } from "@/lib/types";
-
 export type SaveRecipeResult = { ok: true; slug: string; status: RecipeStatus } | { ok: false; errors: Record<string, string> };
 
 async function uniqueSlug(title: string, supabase: Awaited<ReturnType<typeof createClient>>) {
@@ -45,14 +45,18 @@ export async function saveRecipe(raw: unknown, recipeId?: string): Promise<SaveR
     }
     const known = new Set<string>();
     (data.recipe_media as { path: string }[] | null)?.forEach((m) => known.add(m.path));
-    const existingSteps = (data.steps as { media?: { path: string } | null }[] | null) ?? [];
-    existingSteps.forEach((s) => s.media?.path && known.add(s.media.path));
+    for (const step of flattenSteps(normalizeStepGroups(data.steps))) {
+      if (step.media?.path) known.add(step.media.path);
+    }
     if (data.cover_path) known.add(data.cover_path);
     existing = { id: data.id, slug: data.slug, status: data.status, author_id: data.author_id, knownPaths: known };
   }
 
   // Every media path must be in the caller's own folder, or already belong to this recipe.
-  const allPaths = [...input.gallery.map((g) => g.path), ...input.steps.flatMap((s) => (s.media ? [s.media.path] : []))];
+  const allPaths = [
+    ...input.gallery.map((g) => g.path),
+    ...input.steps.flatMap((g) => g.steps.flatMap((s) => (s.media ? [s.media.path] : []))),
+  ];
   const foreign = allPaths.find((p) => !p.startsWith(`${userId}/`) && !existing?.knownPaths.has(p));
   if (foreign) return { ok: false, errors: { gallery: "One of the files couldn't be verified. Remove it and upload it again." } };
 
@@ -88,7 +92,10 @@ export async function saveRecipe(raw: unknown, recipeId?: string): Promise<SaveR
     tags: input.tags,
     equipment: input.equipment,
     ingredients: input.ingredients,
-    steps: input.steps.map((s) => (s.media ? { text: s.text, media: s.media } : { text: s.text })),
+    steps: input.steps.map((g) => ({
+      title: g.title,
+      steps: g.steps.map((s) => (s.media ? { text: s.text, media: s.media } : { text: s.text })),
+    })),
     cover_path: cover,
     status,
   };

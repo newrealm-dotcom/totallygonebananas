@@ -700,7 +700,11 @@ video.media-fill { background: #000; }
 .d-actions { display: flex; flex-wrap: wrap; gap: .8rem; align-items: center; }
 .d-intro .ing-panel { margin-top: .9rem; }
 .d-intro .ing-panel > h2 { margin-top: 0; font-size: clamp(1.6rem, 3.2vw, 2.3rem); }
-.equip-panel { margin-top: .9rem; }
+/* Match .panel content inset (3px border + 1.4rem padding) so Equipment lines up with Ingredients. */
+.d-intro .equip-panel {
+  margin-top: .9rem;
+  padding-inline: calc(3px + 1.4rem);
+}
 .equip-panel > h2 {
   margin: 0 0 .55rem;
   font-family: var(--display);
@@ -710,23 +714,67 @@ video.media-fill { background: #000; }
 }
 .equip-list {
   margin: 0;
-  padding-left: 1.35rem;
-  font-weight: 600;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: .45rem;
+  counter-reset: equip-n;
+  font-weight: 700;
   line-height: 1.45;
 }
-.equip-list li { margin: 0 0 .35rem; }
-.equip-list li:last-child { margin-bottom: 0; }
+.equip-list li {
+  margin: 0;
+  display: flex;
+  gap: .6rem;
+  align-items: flex-start;
+  counter-increment: equip-n;
+}
+.equip-list li::before {
+  content: counter(equip-n) ".";
+  min-width: 1.4rem;
+  font-weight: 900;
+  color: var(--muted);
+  flex-shrink: 0;
+}
 .d-cook { padding: .4rem 0 2.2rem; }
 .d-steps h2 { margin: 0 0 1rem; }
 .d-made-col { display: grid; gap: 1.5rem; align-content: start; min-width: 0; }
 .d-made-col .panel h2 { margin: 0 0 .5rem; font-size: clamp(1.6rem, 3.2vw, 2.3rem); }
 .ing-panel { position: static; }
+.ing-group + .ing-group { margin-top: 1rem; }
+.ing-group-title,
+.step-group-title {
+  margin: 0 0 .55rem;
+  font-family: var(--display);
+  font-weight: 400;
+  font-size: 1.2rem;
+  line-height: 1.2;
+}
+.step-group + .step-group { margin-top: 1.4rem; }
+.ing-edit-group {
+  margin: 0 0 1.1rem;
+  padding: .9rem 1rem 1rem;
+  border: 2.5px solid var(--line);
+  border-radius: 18px;
+  background: color-mix(in srgb, var(--panel) 55%, var(--paper));
+}
+.ing-edit-group:last-of-type { margin-bottom: .4rem; }
+.ing-edit-title-row { display: flex; gap: .5rem; align-items: center; }
+.ing-edit-title-row .field { flex: 1 1 auto; min-width: 0; }
 .scale { display: flex; align-items: center; gap: .6rem; flex-wrap: wrap; margin: .2rem 0 1rem; font-weight: 900; }
 .stepper { display: inline-flex; align-items: center; gap: .4rem; }
 .stepper button { width: 40px; height: 40px; border-radius: 50%; border: 2.5px solid var(--line); background: var(--paper); font-weight: 900; font-size: 1.25rem; cursor: pointer; line-height: 1; }
 .stepper output { min-width: 2.2ch; text-align: center; font-size: 1.25rem; }
-.checks { margin: 0 0 1rem; padding: 0; list-style: none; display: grid; gap: .45rem; }
+.checks { margin: 0 0 1rem; padding: 0; list-style: none; display: grid; gap: .45rem; counter-reset: ing-check; }
+.checks > li { counter-increment: ing-check; }
 .checks label { display: flex; gap: .6rem; align-items: flex-start; font-weight: 700; cursor: pointer; }
+.checks label::before {
+  content: counter(ing-check) ".";
+  min-width: 1.4rem;
+  font-weight: 900;
+  color: var(--muted);
+  flex-shrink: 0;
+}
 .checks input { width: 22px; height: 22px; accent-color: #462018; margin-top: .12rem; flex-shrink: 0; }
 .checks input:checked + span { text-decoration: line-through; opacity: .55; }
 b.scaled { background: var(--yellow); color: var(--on-yellow); border-radius: 6px; padding: 0 .25rem; margin-right: .1rem; }

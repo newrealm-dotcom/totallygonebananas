@@ -47,13 +47,50 @@ export const recipeInput = z.object({
     .max(40, "That's a lot of equipment! Keep it to 40")
     .default([]),
   ingredients: z
-    .array(z.string().trim().min(1).max(200, "Each ingredient must be under 200 characters"))
-    .min(1, "Add at least one ingredient")
-    .max(80, "That's a lot of ingredients! Keep it to 80"),
+    .array(
+      z.object({
+        title: z.string().trim().max(80, "Keep the list title under 80 characters").default(""),
+        items: z
+          .array(z.string().trim().min(1).max(200, "Each ingredient must be under 200 characters"))
+          .max(80, "That's a lot of ingredients in one list! Keep it to 80"),
+      }),
+    )
+    .min(1, "Add at least one ingredient list")
+    .max(12, "Up to 12 ingredient lists")
+    .superRefine((groups, ctx) => {
+      const total = groups.reduce((n, g) => n + g.items.length, 0);
+      if (total < 1) {
+        ctx.addIssue({ code: "custom", message: "Add at least one ingredient", path: [] });
+      }
+      if (total > 120) {
+        ctx.addIssue({ code: "custom", message: "That's a lot of ingredients! Keep it to 120 total", path: [] });
+      }
+    }),
   steps: z
-    .array(z.object({ text: z.string().trim().min(1, "Steps can't be empty").max(1500), media: mediaRef.nullable().default(null) }))
-    .min(1, "Add at least one step")
-    .max(60),
+    .array(
+      z.object({
+        title: z.string().trim().max(80, "Keep the list title under 80 characters").default(""),
+        steps: z
+          .array(
+            z.object({
+              text: z.string().trim().min(1, "Steps can't be empty").max(1500),
+              media: mediaRef.nullable().default(null),
+            }),
+          )
+          .max(60, "That's a lot of steps in one list! Keep it to 60"),
+      }),
+    )
+    .min(1, "Add at least one step list")
+    .max(12, "Up to 12 step lists")
+    .superRefine((groups, ctx) => {
+      const total = groups.reduce((n, g) => n + g.steps.length, 0);
+      if (total < 1) {
+        ctx.addIssue({ code: "custom", message: "Add at least one step", path: [] });
+      }
+      if (total > 120) {
+        ctx.addIssue({ code: "custom", message: "That's a lot of steps! Keep it to 120 total", path: [] });
+      }
+    }),
   gallery: z.array(mediaRef.extend({ caption: z.string().trim().max(140).default("") })).max(12, "Up to 12 photos and videos"),
   intent: z.enum(["draft", "submit", "publish"]),
 });

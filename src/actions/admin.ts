@@ -4,7 +4,8 @@ import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { getViewer, isAdminRole } from "@/lib/queries";
 import { slugify } from "@/lib/format";
-import type { RecipeStatus, Step } from "@/lib/types";
+import type { RecipeStatus } from "@/lib/types";
+import type { StepGroup } from "@/lib/steps";
 
 type Ok = { ok: true; id?: string; slug?: string };
 type Fail = { ok: false; error: string };
@@ -84,7 +85,7 @@ export async function adminCloneRecipe(recipeId: string): Promise<Result> {
       tags: recipe.tags ?? [],
       equipment: recipe.equipment ?? [],
       ingredients: recipe.ingredients ?? [],
-      steps: (recipe.steps ?? []) as Step[],
+      steps: (recipe.steps ?? []) as StepGroup[],
       cover_path: recipe.cover_path,
       status: "draft" satisfies RecipeStatus,
       author_id: gate.userId,
