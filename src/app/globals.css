@@ -139,13 +139,28 @@ nav.main a:not([aria-current]):hover { background: var(--panel); }
 }
 .avatar-link { width: 44px; height: 44px; border-radius: 50%; border: 2.5px solid var(--line); display: grid; place-items: center; overflow: hidden; background: var(--yellow); color: var(--on-yellow); font-weight: 900; text-decoration: none; flex-shrink: 0; }
 .avatar-link img { width: 100%; height: 100%; object-fit: cover; }
-footer { border-top: 3px solid var(--line); padding: 2rem 0 2.5rem; margin-top: 2rem; }
+footer { border-top: 3px solid var(--line); padding: 2rem 0 2.5rem; margin-top: 2rem; background: #fff; }
+html[data-theme="dark"] footer { background: var(--bg); }
 footer .wrap { display: flex; flex-wrap: wrap; align-items: center; gap: 1.2rem 2rem; }
 footer p { margin: 0; font-weight: 700; color: var(--muted); max-width: 40ch; }
 footer nav { display: flex; flex-wrap: wrap; align-items: center; gap: .3rem 0; font-weight: 800; text-transform: uppercase; }
 footer nav a { text-decoration: none; }
 footer nav a:hover { text-decoration: underline; text-underline-offset: 3px; }
 footer nav a + a::before { content: "|"; margin: 0 .75rem; color: var(--muted); font-weight: 700; pointer-events: none; text-decoration: none; }
+.footer-social { display: flex; align-items: center; gap: .55rem; margin-left: auto; }
+.footer-social a {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border: 2.5px solid var(--line);
+  border-radius: 50%;
+  background: var(--paper);
+  color: var(--ink);
+  text-decoration: none;
+  transition: transform .12s, background .12s;
+}
+.footer-social a:hover { background: var(--yellow); color: var(--on-yellow); transform: translate(-1px, -1px); }
 
 /* ---------- type ---------- */
 .page-head { padding: clamp(1.8rem, 4vw, 3rem) 0 1.2rem; }
