@@ -37,8 +37,16 @@ export function BrandLogo() {
         priority
       />
       <Image
-        className="brand-logo brand-logo-scroll"
+        className="brand-logo brand-logo-scroll brand-logo-scroll-light"
         src="/img-login.webp"
+        alt=""
+        width={186}
+        height={124}
+        priority
+      />
+      <Image
+        className="brand-logo brand-logo-scroll brand-logo-scroll-dark"
+        src="/img-login-dark.webp"
         alt=""
         width={186}
         height={124}

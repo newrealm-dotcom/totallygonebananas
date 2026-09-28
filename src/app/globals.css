@@ -139,6 +139,9 @@ html[data-theme="dark"] header.top { background: var(--bg); }
   width: 186px;
   height: fit-content;
 }
+.brand .brand-logo-scroll-dark { display: none; }
+html[data-theme="dark"] .brand .brand-logo-scroll-light { display: none; }
+html[data-theme="dark"] .brand .brand-logo-scroll-dark { display: block; }
 .brand.brand-scrolled .brand-logo-default {
   opacity: 0;
   position: absolute;
@@ -148,10 +151,21 @@ html[data-theme="dark"] header.top { background: var(--bg); }
   width: 186px;
   height: fit-content;
 }
-.brand.brand-scrolled .brand-logo-scroll {
+.brand.brand-scrolled .brand-logo-scroll-light {
   opacity: 1;
   position: relative;
   inset: auto;
+}
+html[data-theme="dark"] .brand.brand-scrolled .brand-logo-scroll-dark {
+  opacity: 1;
+  position: relative;
+  inset: auto;
+}
+html[data-theme="dark"] .brand.brand-scrolled .brand-logo-scroll-light {
+  opacity: 0;
+  position: absolute;
+  inset: 0;
+  margin: auto;
 }
 nav.main { display: flex; gap: .25rem; overflow-x: auto; scrollbar-width: none; min-width: 0; }
 nav.main.left { grid-column: 1; justify-self: end; justify-content: flex-end; }
