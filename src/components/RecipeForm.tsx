@@ -19,6 +19,9 @@ import {
   type StepRow,
   type Upload,
 } from "@/lib/recipe-form-values";
+import { estimateRecipeNutrition } from "@/lib/nutrition";
+import { PostBodyEditor } from "@/components/PostBodyEditor";
+import { NutritionFactsPanel } from "@/components/NutritionFacts";
 
 export type { RecipeFormValues, Upload };
 export { blankValues, valuesFromRecipe } from "@/lib/recipe-form-values";
@@ -389,6 +392,15 @@ export function RecipeForm({ userId, isEditor, categories, recipeId, initial }: 
     setTagError("");
   }
 
+  const nutritionPreview = useMemo(() => {
+    const groups = v.ingredientGroups.map((g) => ({
+      title: g.title.trim(),
+      items: g.items.map((r) => r.text.trim()).filter(Boolean),
+    })).filter((g) => g.items.length || g.title);
+    const servings = Number(v.servings);
+    return estimateRecipeNutrition(groups, Number.isFinite(servings) && servings > 0 ? servings : null);
+  }, [v.ingredientGroups, v.servings]);
+
   /* ---- submit */
   const uploading =
     v.gallery.some((u) => u.status === "uploading") ||
@@ -442,7 +454,7 @@ export function RecipeForm({ userId, isEditor, categories, recipeId, initial }: 
     const payload = {
       title: v.title, description: v.description, categoryId: v.categoryId,
       newCategory: v.categoryId === "__new" ? { name: v.newCatName, emoji: "" } : null,
-      emoji: v.emoji, totalMinutes: num(v.totalMinutes), timeNote: v.timeNote, servings: num(v.servings), difficulty: v.difficulty, tags: v.tags,
+      emoji: v.emoji, totalMinutes: num(v.totalMinutes), notes: v.notes, servings: num(v.servings), difficulty: v.difficulty, tags: v.tags,
       ingredients: ingredientGroups.length ? ingredientGroups : [{ title: "", items: [] as string[] }],
       equipment: v.equipment.map((r) => r.text.trim()).filter(Boolean),
       steps: stepGroups.length ? stepGroups : [{ title: "", steps: [] as { text: string; media: null }[] }],
@@ -843,7 +855,19 @@ export function RecipeForm({ userId, isEditor, categories, recipeId, initial }: 
             </select>
           </div>
         </div>
-        <div className="f"><label htmlFor={fid("tn")}>Time note <small>(replaces the time label, e.g. &ldquo;10 min + freezing&rdquo;)</small></label><input id={fid("tn")} className="field" maxLength={40} value={v.timeNote} onChange={(e) => set("timeNote", e.target.value)} /></div>
+        <div className="f">
+          <label htmlFor={fid("notes")}>Notes</label>
+          <PostBodyEditor
+            id={fid("notes")}
+            value={v.notes}
+            onChange={(html) => set("notes", html)}
+            invalid={!!err("notes")}
+            placeholder="Tips, swaps, make-ahead notes…"
+            ariaLabel="Recipe notes"
+            compact
+          />
+          {err("notes") && <p className="f-err">{err("notes")}</p>}
+        </div>
         <fieldset className="f" id={fid("tags")}>
           <legend>Tags</legend>
           <div className="tagbox">
@@ -902,6 +926,11 @@ export function RecipeForm({ userId, isEditor, categories, recipeId, initial }: 
           <p className="hint">Letters, numbers, spaces, or hyphens. No profanity or nonsense.</p>
           {(tagError || err("tags")) && <p className="f-err" id={fid("tag-err")} role="alert">{tagError || err("tags")}</p>}
         </fieldset>
+        {nutritionPreview && (
+          <div className="rf-nutrition">
+            <NutritionFactsPanel nutrition={nutritionPreview} />
+          </div>
+        )}
       </section>
 
       {/* Submit */}

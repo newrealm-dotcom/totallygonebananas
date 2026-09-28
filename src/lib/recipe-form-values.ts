@@ -46,7 +46,7 @@ export interface RecipeFormValues {
   newCatEmoji: string;
   emoji: string;
   totalMinutes: string;
-  timeNote: string;
+  notes: string;
   servings: string;
   difficulty: number;
   tags: string[];
@@ -80,7 +80,7 @@ export function blankValues(categoryId = ""): RecipeFormValues {
     newCatEmoji: "",
     emoji: "",
     totalMinutes: "",
-    timeNote: "",
+    notes: "",
     servings: "",
     difficulty: 2,
     tags: [],
@@ -135,7 +135,8 @@ export function valuesFromRecipe(r: {
   category_id: string | null;
   emoji: string | null;
   total_minutes: number | null;
-  time_note: string | null;
+  time_note?: string | null;
+  notes?: string | null;
   servings: number | null;
   difficulty: number | null;
   tags: string[] | null;
@@ -157,6 +158,9 @@ export function valuesFromRecipe(r: {
   const media = r.recipe_media ?? [];
   const ingredientGroups = normalizeIngredientGroups(r.ingredients);
   const stepGroups = normalizeStepGroups(r.steps);
+  const notes =
+    (r.notes && r.notes.trim()) ||
+    (r.time_note && r.time_note.trim() ? `<p>${r.time_note.replace(/&/g, "&amp;").replace(/</g, "&lt;")}</p>` : "");
   return {
     title: r.title,
     description: r.description ?? "",
@@ -165,7 +169,7 @@ export function valuesFromRecipe(r: {
     newCatEmoji: "",
     emoji: r.emoji ?? "",
     totalMinutes: r.total_minutes ? String(r.total_minutes) : "",
-    timeNote: r.time_note ?? "",
+    notes,
     servings: r.servings ? String(r.servings) : "",
     difficulty: r.difficulty ?? 2,
     tags: r.tags ?? [],
@@ -194,9 +198,17 @@ export function mergeRecipeDraft(
   } else if (Array.isArray(draft.steps) && draft.steps.length) {
     stepGroups = [{ id: uid(), title: "", steps: draft.steps }];
   }
+  const legacy = draft as Partial<RecipeFormValues> & { timeNote?: string };
+  const notes =
+    typeof draft.notes === "string"
+      ? draft.notes
+      : typeof legacy.timeNote === "string" && legacy.timeNote.trim()
+        ? `<p>${legacy.timeNote.replace(/&/g, "&amp;").replace(/</g, "&lt;")}</p>`
+        : base.notes;
   return {
     ...base,
     ...draft,
+    notes,
     description: draft.description ?? base.description,
     tags: Array.isArray(draft.tags) ? draft.tags : base.tags,
     equipment: Array.isArray(draft.equipment) && draft.equipment.length ? draft.equipment : base.equipment,

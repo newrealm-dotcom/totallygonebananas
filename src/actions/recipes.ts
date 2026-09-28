@@ -7,6 +7,8 @@ import { getViewer, isEditorRole } from "@/lib/queries";
 import { fieldErrors, recipeInput } from "@/lib/validation";
 import { slugify } from "@/lib/format";
 import { flattenSteps, normalizeStepGroups } from "@/lib/steps";
+import { estimateRecipeNutrition } from "@/lib/nutrition";
+import { renderPostMarkdown } from "@/lib/render-post-markdown";
 import { REFERRAL_COOKIE, sanitizeReferral } from "@/lib/referral";
 import type { RecipeStatus } from "@/lib/types";
 export type SaveRecipeResult = { ok: true; slug: string; status: RecipeStatus } | { ok: false; errors: Record<string, string> };
@@ -80,13 +82,16 @@ export async function saveRecipe(raw: unknown, recipeId?: string): Promise<SaveR
   } else status = editor ? "published" : "pending";
 
   const cover = input.gallery.find((g) => g.kind === "image")?.path ?? null;
+  const notesHtml = input.notes ? renderPostMarkdown(input.notes) : "";
+  const nutrition = estimateRecipeNutrition(input.ingredients, input.servings);
   const row = {
     title: input.title,
     description: input.description || null,
     category_id: categoryId,
     emoji: input.emoji || null,
     total_minutes: input.totalMinutes,
-    time_note: input.timeNote || null,
+    notes: notesHtml || null,
+    nutrition,
     servings: input.servings,
     difficulty: input.difficulty,
     tags: input.tags,

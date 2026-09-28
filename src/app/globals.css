@@ -761,6 +761,59 @@ video.media-fill { background: #000; }
 .ing-edit-group:last-of-type { margin-bottom: .4rem; }
 .ing-edit-title-row { display: flex; gap: .5rem; align-items: center; }
 .ing-edit-title-row .field { flex: 1 1 auto; min-width: 0; }
+.rf-nutrition { margin-top: 1.2rem; max-width: 22rem; }
+.recipe-notes {
+  margin: 1.2rem 0 0;
+  padding: 1rem 1.1rem 1.1rem;
+  border: 2.5px solid var(--line);
+  border-radius: 18px;
+  background: color-mix(in srgb, var(--panel) 55%, var(--paper));
+}
+.recipe-notes h2 { margin: 0 0 .55rem; font-size: clamp(1.35rem, 2.6vw, 1.7rem); }
+.recipe-notes-body { font-weight: 600; line-height: 1.5; }
+.recipe-notes-body > *:first-child { margin-top: 0; }
+.recipe-notes-body > *:last-child { margin-bottom: 0; }
+.nf-panel {
+  margin: 1.2rem 0 0;
+  max-width: 22rem;
+  padding: .85rem 1rem 1rem;
+  border: 3px solid var(--brown);
+  border-radius: 6px;
+  background: var(--paper);
+  color: var(--ink);
+}
+.nf-title {
+  margin: 0;
+  font-family: var(--display);
+  font-weight: 400;
+  font-size: 1.55rem;
+  line-height: 1.1;
+  border-bottom: 8px solid var(--brown);
+  padding-bottom: .2rem;
+}
+.nf-serving { margin: .45rem 0 .35rem; font-weight: 700; font-size: .92rem; color: var(--muted); }
+.nf-calories {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: .75rem;
+  padding: .35rem 0 .45rem;
+  border-bottom: 4px solid var(--brown);
+  font-weight: 900;
+  font-size: 1.15rem;
+}
+.nf-calories strong { font-size: 1.7rem; line-height: 1; }
+.nf-row {
+  display: flex;
+  justify-content: space-between;
+  gap: .75rem;
+  padding: .28rem 0;
+  border-bottom: 1px solid color-mix(in srgb, var(--muted) 35%, transparent);
+  font-weight: 700;
+  font-size: .95rem;
+}
+.nf-row.is-bold { font-weight: 900; }
+.nf-note { margin: .65rem 0 0; font-size: .82rem; font-weight: 600; color: var(--muted); line-height: 1.35; }
 .scale { display: flex; align-items: center; gap: .6rem; flex-wrap: wrap; margin: .2rem 0 1rem; font-weight: 900; }
 .stepper { display: inline-flex; align-items: center; gap: .4rem; }
 .stepper button { width: 40px; height: 40px; border-radius: 50%; border: 2.5px solid var(--line); background: var(--paper); font-weight: 900; font-size: 1.25rem; cursor: pointer; line-height: 1; }
@@ -938,6 +991,12 @@ ol.steps > li > div > p:first-child { margin-top: 0; }
   line-height: 1.55;
   outline: none;
 }
+.wysiwyg.is-compact .tiptap,
+.wysiwyg.is-compact .wysiwyg-content,
+.wysiwyg-content.is-compact {
+  min-height: 8.5rem;
+}
+.wysiwyg.is-compact .wysiwyg-code { min-height: 8.5rem; }
 .wysiwyg-code {
   display: block;
   width: 100%;

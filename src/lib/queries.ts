@@ -3,6 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import { easternDayRange } from "@/lib/format";
 import { pointsFromCounts, standingsFor } from "@/lib/standings";
 import { normalizeIngredientGroups } from "@/lib/ingredients";
+import { normalizeNutrition } from "@/lib/nutrition";
 import { normalizeStepGroups } from "@/lib/steps";
 import type { BlogCategory, Category, HomepagePromo, Post, PostWithAuthor, Profile, Rating, Recipe, RecipeWithExtras } from "@/lib/types";
 
@@ -151,6 +152,8 @@ export const getRecipeBySlug = cache(async (slug: string): Promise<RecipeWithExt
   recipe.equipment = recipe.equipment ?? [];
   recipe.ingredients = normalizeIngredientGroups(recipe.ingredients);
   recipe.steps = normalizeStepGroups(recipe.steps);
+  recipe.notes = recipe.notes ?? null;
+  recipe.nutrition = normalizeNutrition(recipe.nutrition);
   recipe.recipe_media = [...(recipe.recipe_media ?? [])].sort((a, b) => a.position - b.position);
   return recipe;
 });

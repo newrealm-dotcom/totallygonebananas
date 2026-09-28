@@ -44,7 +44,7 @@ function ToolbarButton({
   );
 }
 
-function Toolbar({ editor }: { editor: Editor }) {
+function Toolbar({ editor, compact }: { editor: Editor; compact?: boolean }) {
   function setLink() {
     const previous = editor.getAttributes("link").href as string | undefined;
     const next = window.prompt("Link URL", previous ?? "https://");
@@ -87,21 +87,25 @@ function Toolbar({ editor }: { editor: Editor }) {
       >
         <span style={{ textDecoration: "line-through" }}>S</span>
       </ToolbarButton>
-      <span className="wysiwyg-sep" aria-hidden="true" />
-      <ToolbarButton
-        label="Heading 2"
-        active={editor.isActive("heading", { level: 2 })}
-        onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()}
-      >
-        H2
-      </ToolbarButton>
-      <ToolbarButton
-        label="Heading 3"
-        active={editor.isActive("heading", { level: 3 })}
-        onClick={() => editor.chain().focus().toggleHeading({ level: 3 }).run()}
-      >
-        H3
-      </ToolbarButton>
+      {!compact && (
+        <>
+          <span className="wysiwyg-sep" aria-hidden="true" />
+          <ToolbarButton
+            label="Heading 2"
+            active={editor.isActive("heading", { level: 2 })}
+            onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()}
+          >
+            H2
+          </ToolbarButton>
+          <ToolbarButton
+            label="Heading 3"
+            active={editor.isActive("heading", { level: 3 })}
+            onClick={() => editor.chain().focus().toggleHeading({ level: 3 }).run()}
+          >
+            H3
+          </ToolbarButton>
+        </>
+      )}
       <span className="wysiwyg-sep" aria-hidden="true" />
       <ToolbarButton
         label="Bullet list"
@@ -117,13 +121,15 @@ function Toolbar({ editor }: { editor: Editor }) {
       >
         1. List
       </ToolbarButton>
-      <ToolbarButton
-        label="Block quote"
-        active={editor.isActive("blockquote")}
-        onClick={() => editor.chain().focus().toggleBlockquote().run()}
-      >
-        “ ”
-      </ToolbarButton>
+      {!compact && (
+        <ToolbarButton
+          label="Block quote"
+          active={editor.isActive("blockquote")}
+          onClick={() => editor.chain().focus().toggleBlockquote().run()}
+        >
+          “ ”
+        </ToolbarButton>
+      )}
       <span className="wysiwyg-sep" aria-hidden="true" />
       <ToolbarButton label="Link" active={editor.isActive("link")} onClick={setLink}>
         Link
@@ -149,10 +155,19 @@ export function PostBodyEditor({
   value,
   onChange,
   invalid,
+  id = "post-body",
+  placeholder = "Write the post…",
+  ariaLabel = "Post body",
+  compact = false,
 }: {
   value: string;
   onChange: (html: string) => void;
   invalid?: boolean;
+  id?: string;
+  placeholder?: string;
+  ariaLabel?: string;
+  /** Smaller editor for recipe notes (no heading buttons). */
+  compact?: boolean;
 }) {
   const [mode, setMode] = useState<EditorMode>("visual");
   const [code, setCode] = useState(() => initialHtml(value));
@@ -161,7 +176,7 @@ export function PostBodyEditor({
     immediatelyRender: false,
     extensions: [
       StarterKit.configure({
-        heading: { levels: [2, 3] },
+        heading: compact ? false : { levels: [2, 3] },
       }),
       Underline,
       Link.configure({
@@ -171,15 +186,15 @@ export function PostBodyEditor({
         HTMLAttributes: { rel: "noopener noreferrer", target: "_blank" },
       }),
       Placeholder.configure({
-        placeholder: "Write the post…",
+        placeholder,
       }),
     ],
     content: initialHtml(value),
     editorProps: {
       attributes: {
-        class: "wysiwyg-content",
+        class: `wysiwyg-content${compact ? " is-compact" : ""}`,
         "aria-invalid": invalid ? "true" : "false",
-        "aria-label": "Post body",
+        "aria-label": ariaLabel,
       },
     },
     onUpdate: ({ editor: ed }) => {
@@ -209,7 +224,7 @@ export function PostBodyEditor({
   }
 
   return (
-    <div id="post-body" className={`wysiwyg${invalid ? " is-invalid" : ""}`}>
+    <div id={id} className={`wysiwyg${compact ? " is-compact" : ""}${invalid ? " is-invalid" : ""}`}>
       <div className="wysiwyg-mode" role="group" aria-label="Editor mode">
         <button
           type="button"
@@ -230,7 +245,7 @@ export function PostBodyEditor({
       </div>
       {mode === "visual" ? (
         <>
-          {editor ? <Toolbar editor={editor} /> : null}
+          {editor ? <Toolbar editor={editor} compact={compact} /> : null}
           <EditorContent editor={editor} />
         </>
       ) : (
@@ -239,7 +254,7 @@ export function PostBodyEditor({
           value={code}
           onChange={(e) => onCodeChange(e.target.value)}
           spellCheck={false}
-          aria-label="Post body HTML"
+          aria-label={`${ariaLabel} HTML`}
           aria-invalid={invalid || undefined}
         />
       )}

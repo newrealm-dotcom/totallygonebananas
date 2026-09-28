@@ -6,9 +6,12 @@ import { createClient } from "@/lib/supabase/server";
 import { publicUrl } from "@/lib/media";
 import { shortDate, tintFor, titleCase } from "@/lib/format";
 import { timersIn } from "@/lib/scale";
+import { estimateRecipeNutrition } from "@/lib/nutrition";
+import { renderPostMarkdown } from "@/lib/render-post-markdown";
 import { MediaView } from "@/components/MediaView";
 import { SaveButton } from "@/components/SaveButton";
 import { IngredientPanel } from "@/components/IngredientPanel";
+import { NutritionFactsPanel } from "@/components/NutritionFacts";
 import { MadeItForm } from "@/components/MadeItForm";
 import { DeleteRecipeButton, RemoveLogButton, ReviewButtons } from "@/components/OwnerTools";
 import type { CookLog } from "@/lib/types";
@@ -50,6 +53,7 @@ export default async function RecipePage({ params, searchParams }: PageProps<"/r
   const savedMsg = typeof sp.saved === "string" ? SAVED_MSG[sp.saved] : undefined;
   const gallery = r.recipe_media;
   const hero = gallery[0];
+  const nutrition = r.nutrition ?? estimateRecipeNutrition(r.ingredients, r.servings);
 
   return (
     <div className="wrap">
@@ -109,6 +113,13 @@ export default async function RecipePage({ params, searchParams }: PageProps<"/r
             </div>
           ) : null}
           <IngredientPanel ingredients={r.ingredients} servings={r.servings} />
+          {r.notes?.trim() ? (
+            <div className="recipe-notes" aria-labelledby="notes-title">
+              <h2 id="notes-title">Notes</h2>
+              <div className="recipe-notes-body" dangerouslySetInnerHTML={{ __html: renderPostMarkdown(r.notes) }} />
+            </div>
+          ) : null}
+          {nutrition ? <NutritionFactsPanel nutrition={nutrition} /> : null}
           {r.author && <p className="byline">Shared by {r.author.display_name || "a banana fan"}{r.published_at ? ` on ${shortDate(r.published_at)}` : ""}</p>}
           {r.status === "pending" && isEditorRole(profile) && <div className="panel" style={{ marginTop: "1.2rem" }}><h2>Review</h2><ReviewButtons recipeId={r.id} /></div>}
         </div>

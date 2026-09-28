@@ -2,6 +2,7 @@
 // Tip: once your project is linked, `npm run db:types` generates exact types.
 
 import type { IngredientGroup } from "@/lib/ingredients";
+import type { RecipeNutrition } from "@/lib/nutrition";
 import type { StepGroup } from "@/lib/steps";
 
 export type Role = "member" | "editor" | "admin";
@@ -71,7 +72,12 @@ export interface Recipe {
   category_id: string | null;
   emoji: string | null;
   total_minutes: number | null;
+  /** @deprecated Prefer `notes`. Kept for older cards that overrode the time label. */
   time_note: string | null;
+  /** Rich-text HTML notes from the recipe form. */
+  notes: string | null;
+  /** Estimated nutrition facts calculated from ingredients. */
+  nutrition: RecipeNutrition | null;
   servings: number | null;
   difficulty: number | null;
   tags: string[];
