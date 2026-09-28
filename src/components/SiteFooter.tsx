@@ -30,6 +30,7 @@ export function SiteFooter() {
         <Image src="/logo.png" alt="" width={84} height={90} />
         <p>Totally Gone Bananas. Recipes for every banana, from green to gone.</p>
         <nav aria-label="Footer">
+          <Link href="/">Home</Link>
           <Link href="/recipes">Recipes</Link>
           <Link href="/blog">Blog</Link>
           <Link href="/recipes/new">Share a recipe</Link>
