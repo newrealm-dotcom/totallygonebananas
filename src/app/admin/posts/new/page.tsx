@@ -1,9 +1,11 @@
 import type { Metadata } from "next";
+import { getBlogCategories } from "@/lib/queries";
 import { PostForm } from "@/components/PostForm";
 
 export const metadata: Metadata = { title: "Admin · New post" };
 
-export default function NewPostPage() {
+export default async function NewPostPage() {
+  const blogCategories = await getBlogCategories();
   return (
     <>
       <div className="sec-head">
@@ -12,7 +14,7 @@ export default function NewPostPage() {
           <p>Fill in the post details, then optionally upload JSON for the document head.</p>
         </div>
       </div>
-      <PostForm />
+      <PostForm blogCategories={blogCategories} />
     </>
   );
 }

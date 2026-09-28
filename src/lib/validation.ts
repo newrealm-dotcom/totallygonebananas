@@ -42,6 +42,10 @@ export const recipeInput = z.object({
     .max(MAX_TAGS, `Up to ${MAX_TAGS} tags`)
     .default([])
     .transform((tags) => [...new Set(tags)]),
+  equipment: z
+    .array(z.string().trim().min(1).max(200, "Each equipment item must be under 200 characters"))
+    .max(40, "That's a lot of equipment! Keep it to 40")
+    .default([]),
   ingredients: z
     .array(z.string().trim().min(1).max(200, "Each ingredient must be under 200 characters"))
     .min(1, "Add at least one ingredient")
@@ -82,6 +86,11 @@ export const postInput = z.object({
     .refine((v) => !v || /^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(v), "Use lowercase letters, numbers, and hyphens only"),
   title: z.string().trim().min(2, "Give your post a title").max(120, "Keep the title under 120 characters"),
   excerpt: z.string().trim().max(300, "Keep the excerpt under 300 characters").default(""),
+  /** Blog category names (resolved to blog_categories ids on save). Not recipe categories. */
+  categories: z
+    .array(z.string().trim().min(1).max(40, "Keep category names under 40 characters"))
+    .max(12, "Up to 12 blog categories")
+    .default([]),
   body: z.string().trim().min(1, "Write something").max(50000, "That's a bit long — keep it under 50,000 characters"),
   coverPath: z
     .string()
@@ -129,6 +138,19 @@ export const categoryInput = z.object({
 });
 
 export type CategoryInput = z.input<typeof categoryInput>;
+
+export const blogCategoryInput = z.object({
+  id: z
+    .string()
+    .trim()
+    .toLowerCase()
+    .regex(/^[a-z0-9-]{2,40}$/, "IDs are 2–40 lowercase letters, numbers, or hyphens")
+    .optional(),
+  name: z.string().trim().min(2, "Name the category").max(40),
+  sortOrder: z.number().int().min(0).max(999).default(0),
+});
+
+export type BlogCategoryInput = z.input<typeof blogCategoryInput>;
 
 export const roleInput = z.object({
   userId: z.string().uuid(),

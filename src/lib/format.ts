@@ -33,6 +33,24 @@ export function shortDate(iso: string) {
   });
 }
 
+/** YYYY-MM-DD for an instant in Eastern Time (for /blog?date= filters). */
+export function easternDateKey(iso: string): string {
+  const parts = easternParts(new Date(iso));
+  return `${parts.year}-${parts.month}-${parts.day}`;
+}
+
+/** UTC start (inclusive) and end (exclusive) for an Eastern calendar day. */
+export function easternDayRange(dateKey: string): { start: string; end: string } | null {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(dateKey)) return null;
+  const [y, month, d] = dateKey.split("-").map(Number);
+  let utc = Date.UTC(y, month - 1, d, 0, 0, 0);
+  utc = Date.UTC(y, month - 1, d, 0, 0, 0) - easternOffsetMs(new Date(utc));
+  utc = Date.UTC(y, month - 1, d, 0, 0, 0) - easternOffsetMs(new Date(utc));
+  const start = new Date(utc);
+  const end = new Date(utc + 24 * 60 * 60 * 1000);
+  return { start: start.toISOString(), end: end.toISOString() };
+}
+
 const EASTERN_TZ = "America/New_York";
 
 function easternParts(date: Date) {

@@ -8,7 +8,7 @@ import { checkFile, isRemoteMediaPath, kindOf, mediaSrc, RECIPE_BUCKET } from "@
 import { savePost, deletePost } from "@/actions/posts";
 import { PostBodyEditor } from "@/components/PostBodyEditor";
 import { slugify, toEasternDatetimeLocal, easternDatetimeLocalToIso } from "@/lib/format";
-import type { Post } from "@/lib/types";
+import type { BlogCategory, Post } from "@/lib/types";
 
 const MAX_HEAD_JSON_BYTES = 100_000;
 
@@ -26,7 +26,23 @@ function initialCoverMode(path: string | null | undefined): CoverMode {
   return isRemoteMediaPath(path) ? "url" : "upload";
 }
 
-export function PostForm({ post }: { post?: Post }) {
+function blogCategoryId(name: string) {
+  return (slugify(name) || "category").slice(0, 40);
+}
+
+function normalizeCategoryIds(value: unknown): string[] {
+  if (!Array.isArray(value)) return [];
+  return [...new Set(value.map((v) => String(v).trim()).filter(Boolean))];
+}
+
+export function PostForm({
+  post,
+  blogCategories = [],
+}: {
+  post?: Post;
+  /** Existing blog categories for checkboxes — never recipe categories. */
+  blogCategories?: BlogCategory[];
+}) {
   const router = useRouter();
   const supabase = useMemo(() => createClient(), []);
   const [pending, startTransition] = useTransition();
@@ -37,6 +53,16 @@ export function PostForm({ post }: { post?: Post }) {
   const [slugTouched, setSlugTouched] = useState(Boolean(post?.slug));
   const [title, setTitle] = useState(post?.title ?? "");
   const [excerpt, setExcerpt] = useState(post?.excerpt ?? "");
+  const [categoryDraft, setCategoryDraft] = useState("");
+  const [knownCategories, setKnownCategories] = useState<BlogCategory[]>(() => {
+    const saved = normalizeCategoryIds(post?.categories);
+    const byId = new Map(blogCategories.map((c) => [c.id, c]));
+    for (const id of saved) {
+      if (!byId.has(id)) byId.set(id, { id, name: id, sort_order: 999 });
+    }
+    return [...byId.values()].sort((a, b) => a.name.localeCompare(b.name));
+  });
+  const [selectedCategories, setSelectedCategories] = useState<string[]>(() => normalizeCategoryIds(post?.categories));
   const [body, setBody] = useState(post?.body ?? "");
   const [publishedAtLocal, setPublishedAtLocal] = useState(() =>
     toEasternDatetimeLocal(post?.published_at),
@@ -63,6 +89,30 @@ export function PostForm({ post }: { post?: Post }) {
   function onSlugChange(next: string) {
     setSlugTouched(true);
     setSlug(next.toLowerCase().replace(/[^a-z0-9-]+/g, "-").replace(/-{2,}/g, "-").replace(/^-+|-+$/g, ""));
+  }
+
+  function toggleCategory(id: string, on: boolean) {
+    setSelectedCategories((prev) => (on ? [...prev, id] : prev.filter((x) => x !== id)));
+  }
+
+  function addCategoryFromDraft() {
+    const name = categoryDraft.trim().replace(/\s+/g, " ");
+    if (name.length < 2) {
+      setErrors((e) => ({ ...e, categories: "Category names need at least 2 characters." }));
+      return;
+    }
+    if (name.length > 40) {
+      setErrors((e) => ({ ...e, categories: "Keep category names under 40 characters." }));
+      return;
+    }
+    const id = blogCategoryId(name);
+    setKnownCategories((prev) => {
+      if (prev.some((c) => c.id === id)) return prev;
+      return [...prev, { id, name, sort_order: 999 }].sort((a, b) => a.name.localeCompare(b.name));
+    });
+    setSelectedCategories((prev) => (prev.includes(id) ? prev : [...prev, id]));
+    setCategoryDraft("");
+    setErrors((e) => ({ ...e, categories: "" }));
   }
 
   function switchCoverMode(mode: CoverMode) {
@@ -179,6 +229,24 @@ export function PostForm({ post }: { post?: Post }) {
       setErrors({ publishedAt: "Pick a valid publish date and time." });
       return;
     }
+    const draftName = categoryDraft.trim().replace(/\s+/g, " ");
+    let selected = selectedCategories;
+    if (draftName.length >= 2) {
+      const draftId = blogCategoryId(draftName);
+      if (!knownCategories.some((c) => c.id === draftId)) {
+        setKnownCategories((prev) =>
+          [...prev, { id: draftId, name: draftName, sort_order: 999 }].sort((a, b) => a.name.localeCompare(b.name)),
+        );
+      }
+      if (!selected.includes(draftId)) selected = [...selected, draftId];
+      setSelectedCategories(selected);
+      setCategoryDraft("");
+    }
+    const categoryPayload = selected.map((id) => {
+      const known = knownCategories.find((c) => c.id === id);
+      if (id === blogCategoryId(draftName) && draftName.length >= 2) return draftName;
+      return known?.name ?? id;
+    });
     startTransition(async () => {
       const result = await savePost(
         {
@@ -187,6 +255,7 @@ export function PostForm({ post }: { post?: Post }) {
           slug,
           title,
           excerpt,
+          categories: categoryPayload,
           body,
           coverPath: nextCover,
           headJson,
@@ -273,6 +342,45 @@ export function PostForm({ post }: { post?: Post }) {
         <textarea id="post-excerpt" className="field" rows={2} value={excerpt} onChange={(e) => setExcerpt(e.target.value)} aria-invalid={!!errors.excerpt} />
         {errors.excerpt && <p className="f-err">{errors.excerpt}</p>}
       </div>
+      <fieldset className="f" id="post-categories">
+        <legend>Category</legend>
+        <p className="hint">Blog categories only — separate from recipe categories. Type a new one or tick an existing one.</p>
+        <div className="tag-add" style={{ marginTop: 0 }}>
+          <input
+            id="post-category"
+            className="field"
+            value={categoryDraft}
+            maxLength={40}
+            placeholder="e.g. Tips, Stories, Behind the peel"
+            aria-invalid={!!errors.categories}
+            onChange={(e) => setCategoryDraft(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") {
+                e.preventDefault();
+                addCategoryFromDraft();
+              }
+            }}
+          />
+          <button type="button" className="btn small ghost" onClick={addCategoryFromDraft}>
+            Add
+          </button>
+        </div>
+        {knownCategories.length > 0 && (
+          <div className="tagbox" style={{ marginTop: ".75rem" }} role="group" aria-label="Existing blog categories">
+            {knownCategories.map((c) => (
+              <label key={c.id}>
+                <input
+                  type="checkbox"
+                  checked={selectedCategories.includes(c.id)}
+                  onChange={(e) => toggleCategory(c.id, e.target.checked)}
+                />{" "}
+                {c.name}
+              </label>
+            ))}
+          </div>
+        )}
+        {errors.categories && <p className="f-err">{errors.categories}</p>}
+      </fieldset>
       <div className="f">
         <label htmlFor="post-body">Body</label>
         <PostBodyEditor value={body} onChange={setBody} invalid={!!errors.body} />

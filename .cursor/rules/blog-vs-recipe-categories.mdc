@@ -1,0 +1,28 @@
+---
+description: Keep blog categories separate from recipe categories
+globs: src/**/*.{ts,tsx},supabase/migrations/*.sql
+alwaysApply: false
+---
+
+# Blog categories ≠ recipe categories
+
+Blog posts and recipes use **different** category systems. Never mix them.
+
+| Domain | Table | TypeScript | Query helper |
+|--------|-------|------------|--------------|
+| Recipes | `public.categories` | `Category` | `getCategories()` |
+| Blog posts | `public.blog_categories` | `BlogCategory` | `getBlogCategories()` |
+
+Posts store selected blog category **ids** on `posts.categories` (`text[]`). That array must only reference `blog_categories.id` — never recipe category ids.
+
+```ts
+// ❌ BAD — recipe categories on a post form / save path
+const cats = await getCategories();
+await supabase.from("posts").update({ category_id: cats[0].id });
+
+// ✅ GOOD
+const cats = await getBlogCategories();
+await supabase.from("posts").update({ categories: selectedBlogCategoryIds });
+```
+
+When adding category UI or admin tools for the blog, use `blog_categories` / `BlogCategory` / `getBlogCategories()`. Recipe category admin (`/admin/categories`) must not manage blog categories. Blog category admin lives at `/admin/blog-categories`.

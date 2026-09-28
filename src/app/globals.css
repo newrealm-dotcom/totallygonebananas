@@ -670,9 +670,22 @@ video.media-fill { background: #000; }
 .result-bar p { margin: 0; font-weight: 800; color: var(--muted); }
 
 /* ---------- recipe detail ---------- */
-.crumbs { display: flex; gap: .5rem; flex-wrap: wrap; font-weight: 600; padding-top: 1.4rem; color: var(--muted); text-transform: uppercase; }
+.crumbs {
+  display: flex;
+  gap: .5rem;
+  flex-wrap: wrap;
+  font-weight: 600;
+  font-size: .75em;
+  padding-top: 1.4rem;
+  color: var(--muted);
+  text-transform: uppercase;
+}
 .crumbs a { font-weight: 600; text-decoration: none; }
 .crumbs a:hover { font-weight: 800; text-decoration: underline; text-underline-offset: 3px; }
+@media (min-width: 901px) {
+  .crumbs + .page-head { padding-top: calc(clamp(1.8rem, 4vw, 3rem) / 2); }
+  .crumbs + .d-hero { padding-top: .5rem; }
+}
 .d-hero { display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 6fr); gap: 1.5rem 2rem; align-items: start; padding: 1rem 0 1.4rem; }
 .d-media { position: sticky; top: 96px; display: flex; flex-direction: column; align-items: center; }
 .d-art { aspect-ratio: 4 / 3; width: 100%; border: 3px solid var(--line); border-radius: 32px; box-shadow: 8px 8px 0 var(--line); display: grid; place-items: center; font-size: clamp(6rem, 14vw, 9rem); position: relative; overflow: hidden; margin-bottom: 25px; }
@@ -687,6 +700,22 @@ video.media-fill { background: #000; }
 .d-actions { display: flex; flex-wrap: wrap; gap: .8rem; align-items: center; }
 .d-intro .ing-panel { margin-top: .9rem; }
 .d-intro .ing-panel > h2 { margin-top: 0; font-size: clamp(1.6rem, 3.2vw, 2.3rem); }
+.equip-panel { margin-top: .9rem; }
+.equip-panel > h2 {
+  margin: 0 0 .55rem;
+  font-family: var(--display);
+  font-weight: 400;
+  font-size: clamp(1.6rem, 3.2vw, 2.3rem);
+  line-height: 1.05;
+}
+.equip-list {
+  margin: 0;
+  padding-left: 1.35rem;
+  font-weight: 600;
+  line-height: 1.45;
+}
+.equip-list li { margin: 0 0 .35rem; }
+.equip-list li:last-child { margin-bottom: 0; }
 .d-cook { padding: .4rem 0 2.2rem; }
 .d-steps h2 { margin: 0 0 1rem; }
 .d-made-col { display: grid; gap: 1.5rem; align-content: start; min-width: 0; }
@@ -944,9 +973,19 @@ ol.steps > li > div > p:first-child { margin-top: 0; }
 .blog-byline {
   display: flex;
   flex-wrap: wrap;
-  gap: .35rem 1.25rem;
+  align-items: baseline;
+  gap: .35rem .55rem;
 }
 .blog-byline span { font-weight: 700; }
+.blog-byline a {
+  font-weight: 700;
+  color: inherit;
+  text-decoration: underline;
+  text-underline-offset: .12em;
+}
+.blog-byline a:hover { color: var(--brown); }
+.blog-byline-sep { font-weight: 700; color: var(--muted); user-select: none; }
+
 .blog-related { padding-top: 2.5rem; padding-bottom: 1rem; }
 .blog-related .sec-head { margin-bottom: 1.4rem; }
 .blog-card-body h3 a { text-decoration: none; }

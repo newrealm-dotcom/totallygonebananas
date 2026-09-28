@@ -36,6 +36,7 @@ export interface RecipeFormValues {
   servings: string;
   difficulty: number;
   tags: string[];
+  equipment: Row[];
   ingredients: Row[];
   steps: StepRow[];
   gallery: Upload[];
@@ -58,6 +59,7 @@ export function blankValues(categoryId = ""): RecipeFormValues {
     servings: "",
     difficulty: 2,
     tags: [],
+    equipment: [emptyRow()],
     ingredients: [emptyRow(), emptyRow(), emptyRow()],
     steps: [emptyStep(), emptyStep()],
     gallery: [],
@@ -75,6 +77,7 @@ export function valuesFromRecipe(r: {
   servings: number | null;
   difficulty: number | null;
   tags: string[] | null;
+  equipment?: string[] | null;
   ingredients: string[] | null;
   steps: { text: string; media?: { kind: MediaKind; path: string } | null }[] | null;
   recipe_media: { kind: MediaKind; path: string; caption: string | null }[] | null;
@@ -88,6 +91,7 @@ export function valuesFromRecipe(r: {
     caption,
     fresh: false,
   });
+  const equipment = r.equipment ?? [];
   const ingredients = r.ingredients ?? [];
   const steps = r.steps ?? [];
   const media = r.recipe_media ?? [];
@@ -103,6 +107,7 @@ export function valuesFromRecipe(r: {
     servings: r.servings ? String(r.servings) : "",
     difficulty: r.difficulty ?? 2,
     tags: r.tags ?? [],
+    equipment: equipment.length ? equipment.map((text) => ({ id: uid(), text })) : [emptyRow()],
     ingredients: ingredients.length ? ingredients.map((text) => ({ id: uid(), text })) : [emptyRow()],
     steps: steps.length
       ? steps.map((s) => ({ id: uid(), text: s.text, media: s.media ? existing(s.media.kind, s.media.path) : null }))
@@ -119,6 +124,7 @@ export function mergeRecipeDraft(base: RecipeFormValues, draft: Partial<RecipeFo
     ...draft,
     description: draft.description ?? base.description,
     tags: Array.isArray(draft.tags) ? draft.tags : base.tags,
+    equipment: Array.isArray(draft.equipment) && draft.equipment.length ? draft.equipment : base.equipment,
     ingredients: Array.isArray(draft.ingredients) && draft.ingredients.length ? draft.ingredients : base.ingredients,
     steps: Array.isArray(draft.steps) && draft.steps.length ? draft.steps : base.steps,
     gallery: Array.isArray(draft.gallery) ? draft.gallery : base.gallery,

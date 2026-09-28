@@ -1,7 +1,9 @@
 import { cache } from "react";
 import { createClient } from "@/lib/supabase/server";
+import { easternDayRange } from "@/lib/format";
 import { pointsFromCounts, standingsFor } from "@/lib/standings";
-import type { Category, HomepagePromo, Post, PostWithAuthor, Profile, Rating, Recipe, RecipeWithExtras } from "@/lib/types";
+import type { BlogCategory, Category, HomepagePromo, Post, PostWithAuthor, Profile, Rating, Recipe, RecipeWithExtras } from "@/lib/types";
+
 
 export const DEFAULT_HOMEPAGE_PROMO: HomepagePromo = {
   id: "default",
@@ -71,6 +73,13 @@ export const getCategories = cache(async (): Promise<Category[]> => {
   const supabase = await createClient();
   const { data } = await supabase.from("categories").select("*").order("sort_order").order("name");
   return data ?? [];
+});
+
+/** Blog categories only — never use `getCategories()` (recipe categories) for posts. */
+export const getBlogCategories = cache(async (): Promise<BlogCategory[]> => {
+  const supabase = await createClient();
+  const { data } = await supabase.from("blog_categories").select("*").order("sort_order").order("name");
+  return (data as BlogCategory[]) ?? [];
 });
 
 export interface RecipeFilters {
@@ -165,29 +174,86 @@ export async function listAdminRecipes(limit = 100): Promise<AdminRecipeRow[]> {
   return (data as AdminRecipeRow[]) ?? [];
 }
 
-export async function listPosts(
-  opts: { publishedOnly?: boolean; limit?: number; offset?: number } = {},
-): Promise<Post[]> {
+export type PostListFilters = {
+  publishedOnly?: boolean;
+  limit?: number;
+  offset?: number;
+  /** Profile username or author uuid. */
+  author?: string;
+  /** Blog category id (not a recipe category). */
+  category?: string;
+  /** Eastern calendar day YYYY-MM-DD. */
+  date?: string;
+};
+
+async function resolveAuthorId(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  author?: string,
+): Promise<string | null> {
+  if (!author) return null;
+  const key = author.trim();
+  if (!key) return null;
+  if (/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(key)) {
+    return key;
+  }
+  const { data } = await supabase.from("profiles").select("id").eq("username", key.toLowerCase()).maybeSingle();
+  return data?.id ?? null;
+}
+
+export async function listPosts(opts: PostListFilters = {}): Promise<Post[]> {
   const supabase = await createClient();
+  const authorId = await resolveAuthorId(supabase, opts.author);
+  if (opts.author && !authorId) return [];
+  const dateRange = opts.date ? easternDayRange(opts.date) : null;
+  if (opts.date && !dateRange) return [];
+
   let query = supabase
     .from("posts")
     .select("*")
     .order("published_at", { ascending: false, nullsFirst: false })
     .order("updated_at", { ascending: false });
   if (opts.publishedOnly) query = query.eq("status", "published");
+  if (authorId) query = query.eq("author_id", authorId);
+  if (opts.category) query = query.contains("categories", [opts.category]);
+  if (dateRange) query = query.gte("published_at", dateRange.start).lt("published_at", dateRange.end);
+
   const from = opts.offset ?? 0;
   const to = from + (opts.limit ?? 60) - 1;
   const { data } = await query.range(from, to);
-  return (data as Post[]) ?? [];
+  return ((data as Post[]) ?? []).map((p) => ({ ...p, categories: p.categories ?? [] }));
 }
 
-export async function countPosts(opts: { publishedOnly?: boolean } = {}): Promise<number> {
+export async function countPosts(opts: Omit<PostListFilters, "limit" | "offset"> = {}): Promise<number> {
   const supabase = await createClient();
+  const authorId = await resolveAuthorId(supabase, opts.author);
+  if (opts.author && !authorId) return 0;
+  const dateRange = opts.date ? easternDayRange(opts.date) : null;
+  if (opts.date && !dateRange) return 0;
+
   let query = supabase.from("posts").select("id", { count: "exact", head: true });
   if (opts.publishedOnly) query = query.eq("status", "published");
+  if (authorId) query = query.eq("author_id", authorId);
+  if (opts.category) query = query.contains("categories", [opts.category]);
+  if (dateRange) query = query.gte("published_at", dateRange.start).lt("published_at", dateRange.end);
+
   const { count } = await query;
   return count ?? 0;
 }
+
+/** Look up a profile for blog author filter headings. */
+export async function getProfileByUsernameOrId(key: string): Promise<Pick<Profile, "id" | "username" | "display_name"> | null> {
+  const supabase = await createClient();
+  const trimmed = key.trim();
+  if (!trimmed) return null;
+  if (/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(trimmed)) {
+    const { data } = await supabase.from("profiles").select("id, username, display_name").eq("id", trimmed).maybeSingle();
+    return data;
+  }
+  const { data } = await supabase.from("profiles").select("id, username, display_name").eq("username", trimmed.toLowerCase()).maybeSingle();
+  return data;
+}
+
+
 
 /** Other published posts for a related row — same author first, then recent fill. */
 export async function listRelatedPosts(opts: {
@@ -242,13 +308,22 @@ export const getPostBySlug = cache(async (slug: string): Promise<PostWithAuthor 
     .select("*, author:profiles!posts_author_id_fkey(username, display_name, avatar_path)")
     .eq("slug", slug)
     .maybeSingle();
-  return (data as PostWithAuthor | null) ?? null;
+  return data ? ({ ...(data as PostWithAuthor), categories: (data as Post).categories ?? [] }) : null;
 });
 
 export const getPostById = cache(async (id: string): Promise<Post | null> => {
   const supabase = await createClient();
-  const { data } = await supabase.from("posts").select("*").eq("id", id).maybeSingle();
-  return (data as Post | null) ?? null;
+  const { data } = await supabase
+    .from("posts")
+    .select("id, slug, title, excerpt, body, cover_path, head_json, seo_title, meta_description, categories, status, author_id, created_at, updated_at, published_at")
+    .eq("id", id)
+    .maybeSingle();
+  if (!data) return null;
+  const post = data as Post;
+  const categories = Array.isArray(post.categories)
+    ? post.categories.map((c) => String(c).trim()).filter(Boolean)
+    : [];
+  return { ...post, categories };
 });
 
 export async function listProfiles(): Promise<Profile[]> {
@@ -265,11 +340,12 @@ export const getHomepagePromo = cache(async (): Promise<HomepagePromo> => {
 
 export async function adminCounts() {
   const supabase = await createClient();
-  const [recipes, pending, posts, categories, profiles] = await Promise.all([
+  const [recipes, pending, posts, categories, blogCategories, profiles] = await Promise.all([
     supabase.from("recipes").select("id", { count: "exact", head: true }),
     supabase.from("recipes").select("id", { count: "exact", head: true }).eq("status", "pending"),
     supabase.from("posts").select("id", { count: "exact", head: true }),
     supabase.from("categories").select("id", { count: "exact", head: true }),
+    supabase.from("blog_categories").select("id", { count: "exact", head: true }),
     supabase.from("profiles").select("id", { count: "exact", head: true }),
   ]);
   return {
@@ -277,6 +353,7 @@ export async function adminCounts() {
     pending: pending.count ?? 0,
     posts: posts.count ?? 0,
     categories: categories.count ?? 0,
+    blogCategories: blogCategories.count ?? 0,
     profiles: profiles.count ?? 0,
   };
 }

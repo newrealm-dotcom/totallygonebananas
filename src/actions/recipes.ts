@@ -86,6 +86,7 @@ export async function saveRecipe(raw: unknown, recipeId?: string): Promise<SaveR
     servings: input.servings,
     difficulty: input.difficulty,
     tags: input.tags,
+    equipment: input.equipment,
     ingredients: input.ingredients,
     steps: input.steps.map((s) => (s.media ? { text: s.text, media: s.media } : { text: s.text })),
     cover_path: cover,

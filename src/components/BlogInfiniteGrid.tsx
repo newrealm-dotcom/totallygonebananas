@@ -13,9 +13,11 @@ const PAGE_SIZE = 12;
 export function BlogInfiniteGrid({
   initialPosts,
   total,
+  filters = {},
 }: {
   initialPosts: Post[];
   total: number;
+  filters?: { author?: string; category?: string; date?: string };
 }) {
   const [posts, setPosts] = useState(initialPosts);
   const [hasMore, setHasMore] = useState(initialPosts.length < total);
@@ -32,6 +34,9 @@ export function BlogInfiniteGrid({
         offset: String(posts.length),
         limit: String(PAGE_SIZE),
       });
+      if (filters.author) q.set("author", filters.author);
+      if (filters.category) q.set("category", filters.category);
+      if (filters.date) q.set("date", filters.date);
       const res = await fetch(`/api/posts?${q}`);
       if (!res.ok) throw new Error("fetch failed");
       const data = (await res.json()) as { posts: Post[]; hasMore: boolean };
@@ -46,7 +51,7 @@ export function BlogInfiniteGrid({
       loadingRef.current = false;
       setLoading(false);
     }
-  }, [hasMore, posts.length]);
+  }, [filters.author, filters.category, filters.date, hasMore, posts.length]);
 
   useEffect(() => {
     const el = sentinelRef.current;

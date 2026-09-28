@@ -16,12 +16,21 @@ export interface Profile {
   created_at: string;
 }
 
+/** Recipe category (`public.categories`). Not for blog posts. */
 export interface Category {
   id: string;
   name: string;
   emoji: string | null;
   tagline: string | null;
   sort_order: number;
+}
+
+/** Blog post category (`public.blog_categories`). Never reuse recipe Category. */
+export interface BlogCategory {
+  id: string;
+  name: string;
+  sort_order: number;
+  created_at?: string;
 }
 
 export interface HomepagePromo {
@@ -63,6 +72,7 @@ export interface Recipe {
   servings: number | null;
   difficulty: number | null;
   tags: string[];
+  equipment: string[];
   ingredients: string[];
   steps: Step[];
   cover_path: string | null;
@@ -107,6 +117,8 @@ export interface Post {
   head_json: Record<string, unknown> | unknown[] | null;
   seo_title: string | null;
   meta_description: string | null;
+  /** Blog category ids from `blog_categories` — not recipe category ids. */
+  categories: string[];
   status: PostStatus;
   author_id: string | null;
   created_at: string;

@@ -5,7 +5,14 @@ import { useRouter } from "next/navigation";
 import { deleteRecipe, reviewRecipe } from "@/actions/recipes";
 import { deleteCookLog } from "@/actions/engagement";
 
-export function DeleteRecipeButton({ recipeId }: { recipeId: string }) {
+export function DeleteRecipeButton({
+  recipeId,
+  afterDelete = "profile",
+}: {
+  recipeId: string;
+  /** After a successful delete: go to My recipes, or refresh the current page. */
+  afterDelete?: "profile" | "refresh";
+}) {
   const [armed, setArmed] = useState(false);
   const [error, setError] = useState("");
   const [pending, start] = useTransition();
@@ -14,7 +21,12 @@ export function DeleteRecipeButton({ recipeId }: { recipeId: string }) {
     <>
       <button type="button" className="btn danger small" disabled={pending} onClick={() => {
         if (!armed) { setArmed(true); setTimeout(() => setArmed(false), 4000); return; }
-        start(async () => { const r = await deleteRecipe(recipeId); if (r.ok) router.push("/profile?tab=recipes"); else setError(r.error ?? ""); });
+        start(async () => {
+          const r = await deleteRecipe(recipeId);
+          if (!r.ok) { setError(r.error ?? ""); return; }
+          if (afterDelete === "refresh") router.refresh();
+          else router.push("/profile?tab=recipes");
+        });
       }}>{pending ? "Deleting…" : armed ? "Tap again to delete" : "Delete"}</button>
       {error && <span className="f-err" role="alert">{error}</span>}
     </>

@@ -2,8 +2,8 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import Image from "next/image";
 import { notFound } from "next/navigation";
-import { getPostBySlug, getViewer, isEditorRole, listRelatedPosts } from "@/lib/queries";
-import { shortDate } from "@/lib/format";
+import { getBlogCategories, getPostBySlug, getViewer, isEditorRole, listRelatedPosts } from "@/lib/queries";
+import { easternDateKey, shortDate } from "@/lib/format";
 import { mediaSrc } from "@/lib/media";
 import { renderPostMarkdown, stripInlineMarkdown } from "@/lib/render-post-markdown";
 
@@ -27,7 +27,7 @@ export default async function BlogPostPage({ params }: PageProps<"/blog/[slug]">
   const post = await getPostBySlug(slug);
   if (!post) notFound();
 
-  const { profile } = await getViewer();
+  const [{ profile }, blogCategories] = await Promise.all([getViewer(), getBlogCategories()]);
   const editor = isEditorRole(profile);
   if (post.status !== "published" && !editor) notFound();
 
@@ -40,6 +40,17 @@ export default async function BlogPostPage({ params }: PageProps<"/blog/[slug]">
   const cover = mediaSrc(post.cover_path);
   const bodyHtml = renderPostMarkdown(post.body);
   const headJson = headJsonScript(post.head_json);
+  const nameById = new Map(blogCategories.map((c) => [c.id, c.name]));
+  const categories = (post.categories ?? [])
+    .map((id) => ({ id, name: nameById.get(id) ?? id }))
+    .filter((c) => c.name);
+  const authorName = post.author?.display_name || "Totally Gone Bananas";
+  const authorHref = post.author_id
+    ? `/blog?author=${encodeURIComponent(post.author?.username || post.author_id)}`
+    : null;
+  const dateHref = post.published_at
+    ? `/blog?date=${encodeURIComponent(easternDateKey(post.published_at))}`
+    : null;
 
   return (
     <>
@@ -59,8 +70,33 @@ export default async function BlogPostPage({ params }: PageProps<"/blog/[slug]">
           {post.status === "draft" && <p className="status s-draft">Draft — only editors can see this</p>}
           <h1>{post.title}</h1>
           <p className="lede blog-byline">
-            <span>Author: {post.author?.display_name || "Totally Gone Bananas"}</span>
-            {post.published_at ? <span>Date: {shortDate(post.published_at)}</span> : null}
+            <span>
+              Author:{" "}
+              {authorHref ? <Link href={authorHref}>{authorName}</Link> : authorName}
+            </span>
+            <span className="blog-byline-sep" aria-hidden="true">|</span>
+            <span>
+              Date:{" "}
+              {dateHref && post.published_at ? (
+                <Link href={dateHref}>{shortDate(post.published_at)}</Link>
+              ) : (
+                "—"
+              )}
+            </span>
+            <span className="blog-byline-sep" aria-hidden="true">|</span>
+            <span>
+              Category:{" "}
+              {categories.length ? (
+                categories.map((c, i) => (
+                  <span key={c.id}>
+                    {i > 0 ? ", " : null}
+                    <Link href={`/blog?category=${encodeURIComponent(c.id)}`}>{c.name}</Link>
+                  </span>
+                ))
+              ) : (
+                "—"
+              )}
+            </span>
           </p>
           {editor && (
             <p><Link className="btn small ghost" href={`/admin/posts/${post.id}/edit`}>Edit in admin</Link></p>

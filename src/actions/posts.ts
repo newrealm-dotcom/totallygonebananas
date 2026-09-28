@@ -25,6 +25,82 @@ async function uniquePostSlug(
   return `${base}-${Date.now().toString(36)}`;
 }
 
+/** Upsert blog categories from ids and/or names; return canonical ids. Never touches recipe `categories`. */
+async function ensureBlogCategoryIds(
+  values: string[],
+  supabase: Awaited<ReturnType<typeof createClient>>,
+): Promise<{ ok: true; ids: string[] } | { ok: false; error: string }> {
+  const { data: existing, error: listError } = await supabase.from("blog_categories").select("id, name");
+  if (listError) return { ok: false, error: listError.message };
+  const byId = new Map((existing ?? []).map((c) => [c.id, c]));
+  const byName = new Map((existing ?? []).map((c) => [c.name.trim().toLowerCase(), c]));
+
+  const ids: string[] = [];
+  const seen = new Set<string>();
+
+  for (const raw of values) {
+    const value = raw.trim().replace(/\s+/g, " ");
+    if (!value) continue;
+
+    const existingById = byId.get(value);
+    if (existingById) {
+      if (!seen.has(existingById.id)) {
+        seen.add(existingById.id);
+        ids.push(existingById.id);
+      }
+      continue;
+    }
+
+    const existingByName = byName.get(value.toLowerCase());
+    if (existingByName) {
+      if (!seen.has(existingByName.id)) {
+        seen.add(existingByName.id);
+        ids.push(existingByName.id);
+      }
+      continue;
+    }
+
+    if (value.length < 2) continue;
+    const id = (slugify(value) || "category").slice(0, 40);
+    if (seen.has(id)) continue;
+    if (byId.has(id)) {
+      seen.add(id);
+      ids.push(id);
+      continue;
+    }
+
+    const name = value.slice(0, 40);
+    const { error } = await supabase.from("blog_categories").insert({ id, name });
+    if (error) {
+      if (error.code === "23505") {
+        const { data: byIdHit } = await supabase.from("blog_categories").select("id").eq("id", id).maybeSingle();
+        if (byIdHit?.id) {
+          seen.add(byIdHit.id);
+          ids.push(byIdHit.id);
+          continue;
+        }
+        const { data: byNameHit } = await supabase
+          .from("blog_categories")
+          .select("id")
+          .ilike("name", name)
+          .maybeSingle();
+        if (byNameHit?.id) {
+          seen.add(byNameHit.id);
+          ids.push(byNameHit.id);
+          continue;
+        }
+      }
+      return { ok: false, error: error.message };
+    }
+    byId.set(id, { id, name });
+    byName.set(name.toLowerCase(), { id, name });
+    seen.add(id);
+    ids.push(id);
+  }
+
+  return { ok: true, ids };
+}
+
 export async function savePost(raw: unknown, postId?: string): Promise<SavePostResult> {
   const parsed = postInput.safeParse(raw);
   if (!parsed.success) return { ok: false, errors: fieldErrors(parsed.error) };
@@ -52,6 +128,9 @@ export async function savePost(raw: unknown, postId?: string): Promise<SavePostR
     return { ok: false, errors: { coverPath: "Cover image couldn't be verified. Upload it again or paste a URL." } };
   }
 
+  const ensured = await ensureBlogCategoryIds(input.categories, supabase);
+  if (!ensured.ok) return { ok: false, errors: { categories: ensured.error } };
+
   const status: PostStatus = input.intent === "publish" ? "published" : "draft";
   const slug =
     existing && !input.slug
@@ -71,6 +150,7 @@ export async function savePost(raw: unknown, postId?: string): Promise<SavePostR
     head_json: input.headJson,
     seo_title: input.seoTitle || null,
     meta_description: input.metaDescription || null,
+    categories: ensured.ids,
     slug,
     status,
     published_at: publishedAt,

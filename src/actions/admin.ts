@@ -59,7 +59,7 @@ export async function adminCloneRecipe(recipeId: string): Promise<Result> {
   const { data: recipe, error } = await supabase
     .from("recipes")
     .select(
-      "title, description, category_id, emoji, total_minutes, time_note, servings, difficulty, tags, ingredients, steps, cover_path, recipe_media(kind, path, caption, position)",
+      "title, description, category_id, emoji, total_minutes, time_note, servings, difficulty, tags, equipment, ingredients, steps, cover_path, recipe_media(kind, path, caption, position)",
     )
     .eq("id", recipeId)
     .maybeSingle();
@@ -82,6 +82,7 @@ export async function adminCloneRecipe(recipeId: string): Promise<Result> {
       servings: recipe.servings,
       difficulty: recipe.difficulty,
       tags: recipe.tags ?? [],
+      equipment: recipe.equipment ?? [],
       ingredients: recipe.ingredients ?? [],
       steps: (recipe.steps ?? []) as Step[],
       cover_path: recipe.cover_path,
@@ -145,6 +146,7 @@ export async function adminClonePost(postId: string): Promise<Result> {
       head_json: post.head_json,
       seo_title: post.seo_title,
       meta_description: post.meta_description,
+      categories: post.categories ?? [],
       status: "draft",
       author_id: gate.userId,
       published_at: null,

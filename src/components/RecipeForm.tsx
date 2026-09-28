@@ -31,7 +31,14 @@ function splitList(text: string) {
     .filter(Boolean);
 }
 
-const SECTIONS = [["basics", "Basics"], ["media", "Photos & video"], ["ingredients", "Ingredients"], ["steps", "Steps"], ["details", "Details"]] as const;
+const SECTIONS = [
+  ["basics", "Basics"],
+  ["media", "Photos & video"],
+  ["equipment", "Equipment"],
+  ["ingredients", "Ingredients"],
+  ["steps", "Steps"],
+  ["details", "Details"],
+] as const;
 const DIFFICULTY = ["Easy", "Simple", "Medium", "Tricky", "Showstopper"];
 
 /* ------------------------------------------------------------------ component */
@@ -47,7 +54,7 @@ export function RecipeForm({ userId, isEditor, categories, recipeId, initial }: 
   const [v, setV] = useState<RecipeFormValues>(() => initial ?? blankValues(categories[0]?.id ?? ""));
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [restoredAt, setRestoredAt] = useState<number | null>(null);
-  const [pasteFor, setPasteFor] = useState<null | "ingredients" | "steps">(null);
+  const [pasteFor, setPasteFor] = useState<null | "equipment" | "ingredients" | "steps">(null);
   const [pasteText, setPasteText] = useState("");
   const [focusId, setFocusId] = useState<string | null>(null);
   const [dragging, setDragging] = useState(false);
@@ -155,9 +162,9 @@ export function RecipeForm({ userId, isEditor, categories, recipeId, initial }: 
     return copy;
   }
 
-  /* ---- ingredient and step rows */
-  function addRowAfter(kind: "ingredients" | "steps", index: number) {
-    const row = kind === "ingredients" ? emptyRow() : emptyStep();
+  /* ---- equipment, ingredient and step rows */
+  function addRowAfter(kind: "equipment" | "ingredients" | "steps", index: number) {
+    const row = kind === "steps" ? emptyStep() : emptyRow();
     setV((s) => {
       const list = (s[kind] as (Row | StepRow)[]).slice();
       list.splice(index + 1, 0, row);
@@ -166,12 +173,12 @@ export function RecipeForm({ userId, isEditor, categories, recipeId, initial }: 
     setFocusId(row.id);
   }
 
-  function removeRow(kind: "ingredients" | "steps", id: string) {
+  function removeRow(kind: "equipment" | "ingredients" | "steps", id: string) {
     const list = v[kind] as (Row | StepRow)[];
     const i = list.findIndex((r) => r.id === id);
     if (kind === "steps") discard((list[i] as StepRow).media);
     const next = list.filter((r) => r.id !== id);
-    if (!next.length) next.push(kind === "ingredients" ? emptyRow() : emptyStep());
+    if (!next.length) next.push(kind === "steps" ? emptyStep() : emptyRow());
     setV((s) => ({ ...s, [kind]: next }));
     setFocusId(next[Math.max(0, i - 1)].id);
   }
@@ -182,7 +189,9 @@ export function RecipeForm({ userId, isEditor, categories, recipeId, initial }: 
     if (lines.length) {
       setV((s) => {
         const existing = (s[pasteFor] as (Row | StepRow)[]).filter((r) => r.text.trim() || (r as StepRow).media);
-        const added = lines.map((text) => (pasteFor === "ingredients" ? { id: uid(), text } : { id: uid(), text, media: null }));
+        const added = lines.map((text) =>
+          pasteFor === "steps" ? { id: uid(), text, media: null } : { id: uid(), text },
+        );
         return { ...s, [pasteFor]: [...existing, ...added] };
       });
     }
@@ -240,6 +249,7 @@ export function RecipeForm({ userId, isEditor, categories, recipeId, initial }: 
       newCategory: v.categoryId === "__new" ? { name: v.newCatName, emoji: "" } : null,
       emoji: v.emoji, totalMinutes: num(v.totalMinutes), timeNote: v.timeNote, servings: num(v.servings), difficulty: v.difficulty, tags: v.tags,
       ingredients: v.ingredients.map((r) => r.text.trim()).filter(Boolean),
+      equipment: v.equipment.map((r) => r.text.trim()).filter(Boolean),
       steps: v.steps.filter((s) => s.text.trim()).map((s) => ({ text: s.text.trim(), media: s.media?.status === "done" && s.media.path ? { kind: s.media.kind, path: s.media.path } : null })),
       gallery: v.gallery.filter((u) => u.status === "done" && u.path).map((u) => ({ kind: u.kind, path: u.path!, caption: u.caption })),
       intent,
@@ -353,9 +363,42 @@ export function RecipeForm({ userId, isEditor, categories, recipeId, initial }: 
         )}
       </section>
 
-      {/* 3. Ingredients */}
+      {/* 3. Equipment */}
+      <section className="rf-sec" id={fid("equipment")} aria-labelledby={fid("equip-h")}>
+        <h2 id={fid("equip-h")}><span className="num" aria-hidden="true">3</span>Equipment <small>(optional)</small></h2>
+        <p className="hint">Tools and gear the cook will need. Leave blank to hide this section on the recipe page. Press Enter for a new line.</p>
+        <ol className="rows-edit">
+          {v.equipment.map((r, i) => (
+            <li key={r.id}>
+              <input
+                ref={(el) => { if (el) inputs.current.set(r.id, el); else inputs.current.delete(r.id); }}
+                className="field" value={r.text} maxLength={200} placeholder={i === 0 ? "Mixing bowls" : i === 1 ? "Loaf pan" : "Another tool"}
+                aria-label={`Equipment ${i + 1}`} aria-invalid={!!errors[`equipment.${i}`]}
+                onChange={(e) => set("equipment", v.equipment.map((x) => (x.id === r.id ? { ...x, text: e.target.value } : x)))}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") { e.preventDefault(); addRowAfter("equipment", i); }
+                  if (e.key === "Backspace" && !r.text && v.equipment.length > 1) { e.preventDefault(); removeRow("equipment", r.id); }
+                }}
+                onPaste={(e) => {
+                  const text = e.clipboardData.getData("text");
+                  if (text.includes("\n")) { e.preventDefault(); setPasteFor("equipment"); setPasteText(text); }
+                }}
+              />
+              <button type="button" className="icon-btn danger" aria-label={`Remove equipment ${i + 1}`} onClick={() => removeRow("equipment", r.id)}>×</button>
+            </li>
+          ))}
+        </ol>
+        {err("equipment") && <p className="f-err" role="alert">{err("equipment")}</p>}
+        <div className="row-actions">
+          <button type="button" className="btn ghost small" onClick={() => addRowAfter("equipment", v.equipment.length - 1)}>Add equipment</button>
+          <button type="button" className="btn ghost small" onClick={() => setPasteFor(pasteFor === "equipment" ? null : "equipment")}>Paste a whole list</button>
+        </div>
+        {pasteFor === "equipment" && <PasteBox label="Paste your equipment list, one per line" value={pasteText} onChange={setPasteText} onApply={applyPaste} onCancel={() => setPasteFor(null)} />}
+      </section>
+
+      {/* 4. Ingredients */}
       <section className="rf-sec" id={fid("ingredients")} aria-labelledby={fid("ing-h")}>
-        <h2 id={fid("ing-h")}><span className="num" aria-hidden="true">3</span>Ingredients</h2>
+        <h2 id={fid("ing-h")}><span className="num" aria-hidden="true">4</span>Ingredients</h2>
         <p className="hint">One per line, amount first (&ldquo;1 1/2 cups flour&rdquo;) so the servings scaler can adjust it. Press Enter for a new line.</p>
         <ol className="rows-edit">
           {v.ingredients.map((r, i) => (
@@ -386,9 +429,9 @@ export function RecipeForm({ userId, isEditor, categories, recipeId, initial }: 
         {pasteFor === "ingredients" && <PasteBox label="Paste your ingredient list, one per line" value={pasteText} onChange={setPasteText} onApply={applyPaste} onCancel={() => setPasteFor(null)} />}
       </section>
 
-      {/* 4. Steps */}
+      {/* 5. Steps */}
       <section className="rf-sec" id={fid("steps")} aria-labelledby={fid("steps-h")}>
-        <h2 id={fid("steps-h")}><span className="num" aria-hidden="true">4</span>Steps</h2>
+        <h2 id={fid("steps-h")}><span className="num" aria-hidden="true">5</span>Steps</h2>
         <p className="hint">One step per box, in order. Mention times like &ldquo;bake 25 minutes&rdquo; and they&apos;ll be highlighted for the cook. Add a photo or short clip to any step that&apos;s easier to show than tell.</p>
         <ol className="steps-edit">
           {v.steps.map((s, i) => (
@@ -440,9 +483,9 @@ export function RecipeForm({ userId, isEditor, categories, recipeId, initial }: 
         {pasteFor === "steps" && <PasteBox label="Paste your steps, one per line (numbers are removed for you)" value={pasteText} onChange={setPasteText} onApply={applyPaste} onCancel={() => setPasteFor(null)} />}
       </section>
 
-      {/* 5. Details */}
+      {/* 6. Details */}
       <section className="rf-sec" id={fid("details")} aria-labelledby={fid("det-h")}>
-        <h2 id={fid("det-h")}><span className="num" aria-hidden="true">5</span>Details <small>(optional)</small></h2>
+        <h2 id={fid("det-h")}><span className="num" aria-hidden="true">6</span>Details <small>(optional)</small></h2>
         <div className="f-grid three">
           <div className="f"><label htmlFor={fid("time")}>Total time (minutes)</label><input id={fid("time")} className="field" type="number" inputMode="numeric" min={1} max={2880} value={v.totalMinutes} onChange={(e) => set("totalMinutes", e.target.value)} aria-invalid={!!err("totalMinutes")} />{err("totalMinutes") && <p className="f-err">{err("totalMinutes")}</p>}</div>
           <div className="f"><label htmlFor={fid("serv")}>Serves</label><input id={fid("serv")} className="field" type="number" inputMode="numeric" min={1} max={200} value={v.servings} onChange={(e) => set("servings", e.target.value)} aria-invalid={!!err("servings")} />{err("servings") && <p className="f-err">{err("servings")}</p>}</div>

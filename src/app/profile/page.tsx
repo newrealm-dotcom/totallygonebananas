@@ -7,7 +7,7 @@ import { createClient } from "@/lib/supabase/server";
 import { AVATAR_BUCKET, isLocalUrl, publicUrl } from "@/lib/media";
 import { RecipeGrid } from "@/components/RecipeGrid";
 import { HeroSlide } from "@/components/HeroSlide";
-import { CopyLinkButton } from "@/components/OwnerTools";
+import { CopyLinkButton, DeleteRecipeButton } from "@/components/OwnerTools";
 import { plural, shortDate, siteUrlSafe } from "@/app/profile/helpers";
 import { getDarkMainSliderImages, getMainSliderImages, pickRandomSlide } from "@/lib/main-slider";
 import { referralHandle } from "@/lib/referral";
@@ -114,7 +114,12 @@ export default async function ProfilePage({ searchParams }: PageProps<"/profile"
                 </div>
                 <div className="end">
                   <span className={`status s-${m.status}`}>{STATUS_LABEL[m.status as RecipeStatus]}</span>
-                  {(m.status !== "published" || isEditorRole(profile)) && <Link className="btn ghost small" href={`/recipes/${m.slug}/edit`}>Edit</Link>}
+                  {(m.status !== "published" || isEditorRole(profile)) && (
+                    <>
+                      <Link className="btn ghost small" href={`/recipes/${m.slug}/edit`}>Edit</Link>
+                      <DeleteRecipeButton recipeId={m.id} afterDelete="refresh" />
+                    </>
+                  )}
                 </div>
               </li>
             ))}
