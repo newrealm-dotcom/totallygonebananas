@@ -10,7 +10,9 @@ export type SaveBlogCategoryResult = { ok: true; id: string } | { ok: false; err
 
 function revalidateBlogCategoryPaths() {
   revalidatePath("/blog");
+  revalidatePath("/our-faves");
   revalidatePath("/admin/posts");
+  revalidatePath("/admin/our-faves");
   revalidatePath("/admin/blog-categories");
 }
 

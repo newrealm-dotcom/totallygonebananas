@@ -5,11 +5,12 @@ import { shortDate } from "@/lib/format";
 import { mediaSrc } from "@/lib/media";
 import { AdminBulkList } from "@/components/AdminBulkList";
 
-export const metadata: Metadata = { title: "Admin · Blog" };
+export const metadata: Metadata = { title: "Admin · Our Faves" };
 
+const FAVORITES_CATEGORY = "favorites";
 const PAGE_SIZE = 10;
 
-export default async function AdminPostsPage({
+export default async function AdminOurFavesPage({
   searchParams,
 }: {
   searchParams: Promise<Record<string, string | string[] | undefined>>;
@@ -18,31 +19,34 @@ export default async function AdminPostsPage({
   const rawPage = typeof sp.page === "string" ? Number(sp.page) : 1;
   const page = Number.isFinite(rawPage) && rawPage >= 1 ? Math.floor(rawPage) : 1;
 
+  const filters = { category: FAVORITES_CATEGORY };
   const [{ profile }, total] = await Promise.all([
     getViewer(),
-    countPosts({ excludeCategory: "favorites" }),
+    countPosts(filters),
   ]);
   const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
   const current = Math.min(page, totalPages);
   const offset = (current - 1) * PAGE_SIZE;
-  const posts = await listPosts({ limit: PAGE_SIZE, offset, excludeCategory: "favorites" });
+  const posts = await listPosts({ ...filters, limit: PAGE_SIZE, offset });
   const admin = isAdminRole(profile);
 
   return (
     <>
       <div className="sec-head">
         <div>
-          <h2>Blog posts</h2>
+          <h2>Our Faves</h2>
           <p>
-            Write updates, stories, and tips. Published posts appear on /blog.
-            Favorites are managed under Our Faves.
+            Hand-picked favorites that appear on /our-faves.
             {admin ? " Select one or many to edit status, clone, or delete." : ""}
           </p>
         </div>
-        <Link className="btn small" href="/admin/posts/new">New post</Link>
+        <Link className="btn small" href="/admin/our-faves/new">New fave</Link>
       </div>
       {total === 0 ? (
-        <div className="empty"><p>No posts yet.</p><Link className="btn" href="/admin/posts/new">Write the first one</Link></div>
+        <div className="empty">
+          <p>No favorites yet.</p>
+          <Link className="btn" href="/admin/our-faves/new">Add the first one</Link>
+        </div>
       ) : (
         <>
           <AdminBulkList
@@ -59,9 +63,12 @@ export default async function AdminPostsPage({
             }))}
           />
           {totalPages > 1 && (
-            <nav className="admin-pager" aria-label="Blog posts pages">
+            <nav className="admin-pager" aria-label="Our Faves pages">
               {current > 1 ? (
-                <Link className="btn small ghost" href={current === 2 ? "/admin/posts" : `/admin/posts?page=${current - 1}`}>
+                <Link
+                  className="btn small ghost"
+                  href={current === 2 ? "/admin/our-faves" : `/admin/our-faves?page=${current - 1}`}
+                >
                   Previous
                 </Link>
               ) : (
@@ -71,7 +78,7 @@ export default async function AdminPostsPage({
                 Page {current} of {totalPages}
               </span>
               {current < totalPages ? (
-                <Link className="btn small ghost" href={`/admin/posts?page=${current + 1}`}>
+                <Link className="btn small ghost" href={`/admin/our-faves?page=${current + 1}`}>
                   Next
                 </Link>
               ) : (

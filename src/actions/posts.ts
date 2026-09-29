@@ -164,7 +164,9 @@ export async function savePost(raw: unknown, postId?: string): Promise<SavePostR
     }
     revalidatePath("/admin");
     revalidatePath("/admin/posts");
+    revalidatePath("/admin/our-faves");
     revalidatePath("/blog");
+    revalidatePath("/our-faves");
     revalidatePath(`/blog/${existing.slug}`);
     if (slug !== existing.slug) revalidatePath(`/blog/${slug}`);
     return { ok: true, id: existing.id, slug, status };
@@ -182,7 +184,9 @@ export async function savePost(raw: unknown, postId?: string): Promise<SavePostR
 
   revalidatePath("/admin");
   revalidatePath("/admin/posts");
+  revalidatePath("/admin/our-faves");
   revalidatePath("/blog");
+  revalidatePath("/our-faves");
   return { ok: true, id: data.id, slug: data.slug, status };
 }
 
@@ -194,7 +198,9 @@ export async function deletePost(postId: string): Promise<{ ok: true } | { ok: f
   if (error) return { ok: false, error: error.message };
   revalidatePath("/admin");
   revalidatePath("/admin/posts");
+  revalidatePath("/admin/our-faves");
   revalidatePath("/blog");
+  revalidatePath("/our-faves");
   if (data?.slug) revalidatePath(`/blog/${data.slug}`);
   return { ok: true };
 }

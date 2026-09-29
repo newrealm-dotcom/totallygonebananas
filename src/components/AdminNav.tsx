@@ -11,6 +11,7 @@ export function AdminNav({ isAdmin }: { isAdmin: boolean }) {
     { href: "/admin/recipes", label: "Recipes", match: (p: string) => p.startsWith("/admin/recipes") },
     { href: "/admin/categories", label: "Recipe Categories", match: (p: string) => p.startsWith("/admin/categories") },
     { href: "/admin/posts", label: "Blog", match: (p: string) => p.startsWith("/admin/posts") },
+    { href: "/admin/our-faves", label: "Our Faves", match: (p: string) => p.startsWith("/admin/our-faves") },
     { href: "/admin/blog-categories", label: "Blog Categories", match: (p: string) => p.startsWith("/admin/blog-categories") },
     { href: "/admin/review", label: "Review queue", match: (p: string) => p.startsWith("/admin/review") },
     { href: "/admin/referrals", label: "Referrals", match: (p: string) => p.startsWith("/admin/referrals") },

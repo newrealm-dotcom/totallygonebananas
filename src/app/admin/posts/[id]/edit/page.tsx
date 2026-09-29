@@ -10,6 +10,10 @@ export default async function EditPostPage({ params }: PageProps<"/admin/posts/[
   const [post, blogCategories] = await Promise.all([getPostById(id), getBlogCategories()]);
   if (!post) notFound();
 
+  const listHref = (post.categories ?? []).includes("favorites")
+    ? "/admin/our-faves"
+    : "/admin/posts";
+
   return (
     <>
       <div className="sec-head">
@@ -22,6 +26,7 @@ export default async function EditPostPage({ params }: PageProps<"/admin/posts/[
         key={`${post.id}:${post.categories.join(",")}`}
         post={post}
         blogCategories={blogCategories}
+        listHref={listHref}
       />
     </>
   );

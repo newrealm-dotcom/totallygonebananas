@@ -123,7 +123,9 @@ export async function adminDeletePost(postId: string): Promise<Result> {
   if (error) return { ok: false, error: error.message };
   if (!data) return { ok: false, error: "Post not found." };
   revalidatePath("/admin/posts");
+  revalidatePath("/admin/our-faves");
   revalidatePath("/blog");
+  revalidatePath("/our-faves");
   if (data.slug) revalidatePath(`/blog/${data.slug}`);
   return { ok: true };
 }
@@ -159,6 +161,7 @@ export async function adminClonePost(postId: string): Promise<Result> {
   if (insertError || !created) return { ok: false, error: insertError?.message || "Couldn't clone the post." };
 
   revalidatePath("/admin/posts");
+  revalidatePath("/admin/our-faves");
   return { ok: true, id: created.id, slug: created.slug };
 }
 
@@ -224,7 +227,9 @@ export async function adminBulkDeletePosts(ids: unknown): Promise<Result & { cou
   const { data, error } = await supabase.from("posts").delete().in("id", list).select("id, slug");
   if (error) return { ok: false, error: error.message };
   revalidatePath("/admin/posts");
+  revalidatePath("/admin/our-faves");
   revalidatePath("/blog");
+  revalidatePath("/our-faves");
   data?.forEach((p) => p.slug && revalidatePath(`/blog/${p.slug}`));
   return { ok: true, count: data?.length ?? 0 };
 }
@@ -274,7 +279,9 @@ export async function adminBulkSetPostStatus(
   const { data, error } = await supabase.from("posts").update({ status }).in("id", list).select("id, slug");
   if (error) return { ok: false, error: error.message };
   revalidatePath("/admin/posts");
+  revalidatePath("/admin/our-faves");
   revalidatePath("/blog");
+  revalidatePath("/our-faves");
   data?.forEach((p) => p.slug && revalidatePath(`/blog/${p.slug}`));
   return { ok: true, count: data?.length ?? 0 };
 }

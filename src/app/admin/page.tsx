@@ -20,6 +20,7 @@ export default async function AdminHomePage() {
       <div className="admin-actions">
         <Link className="btn" href="/recipes/new">New recipe</Link>
         <Link className="btn ghost" href="/admin/posts/new">New blog post</Link>
+        <Link className="btn ghost" href="/admin/our-faves/new">New fave</Link>
         <Link className="btn ghost" href="/admin/homepage">Edit homepage promo</Link>
         <Link className="btn ghost" href="/admin/categories">Recipe categories</Link>
         <Link className="btn ghost" href="/admin/blog-categories">Blog categories</Link>

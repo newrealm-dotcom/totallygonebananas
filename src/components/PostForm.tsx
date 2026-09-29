@@ -38,10 +38,16 @@ function normalizeCategoryIds(value: unknown): string[] {
 export function PostForm({
   post,
   blogCategories = [],
+  defaultCategories = [],
+  listHref = "/admin/posts",
 }: {
   post?: Post;
   /** Existing blog categories for checkboxes — never recipe categories. */
   blogCategories?: BlogCategory[];
+  /** Pre-selected category ids when creating a new post. */
+  defaultCategories?: string[];
+  /** Where to return after saving a draft or deleting. */
+  listHref?: string;
 }) {
   const router = useRouter();
   const supabase = useMemo(() => createClient(), []);
@@ -55,14 +61,16 @@ export function PostForm({
   const [excerpt, setExcerpt] = useState(post?.excerpt ?? "");
   const [categoryDraft, setCategoryDraft] = useState("");
   const [knownCategories, setKnownCategories] = useState<BlogCategory[]>(() => {
-    const saved = normalizeCategoryIds(post?.categories);
+    const saved = normalizeCategoryIds(post ? post.categories : defaultCategories);
     const byId = new Map(blogCategories.map((c) => [c.id, c]));
     for (const id of saved) {
-      if (!byId.has(id)) byId.set(id, { id, name: id, sort_order: 999 });
+      if (!byId.has(id)) byId.set(id, { id, name: id === "favorites" ? "Favorites" : id, sort_order: 999 });
     }
     return [...byId.values()].sort((a, b) => a.name.localeCompare(b.name));
   });
-  const [selectedCategories, setSelectedCategories] = useState<string[]>(() => normalizeCategoryIds(post?.categories));
+  const [selectedCategories, setSelectedCategories] = useState<string[]>(() =>
+    normalizeCategoryIds(post ? post.categories : defaultCategories),
+  );
   const [body, setBody] = useState(post?.body ?? "");
   const [publishedAtLocal, setPublishedAtLocal] = useState(() =>
     toEasternDatetimeLocal(post?.published_at),
@@ -268,7 +276,7 @@ export function PostForm({
         setErrors(result.errors);
         return;
       }
-      router.push(result.status === "published" ? `/blog/${result.slug}` : "/admin/posts");
+      router.push(result.status === "published" ? `/blog/${result.slug}` : listHref);
       router.refresh();
     });
   }
@@ -281,7 +289,7 @@ export function PostForm({
         setErrors({ form: result.error });
         return;
       }
-      router.push("/admin/posts");
+      router.push(listHref);
       router.refresh();
     });
   }
