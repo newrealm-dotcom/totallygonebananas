@@ -11,6 +11,19 @@ export function plural(n: number, word: string) {
   return `${n} ${word}${n === 1 ? "" : "s"}`;
 }
 
+/** Pull a positive count from free-form serving size text (e.g. "12 muffins" → 12). */
+export function parseServingCount(value: string | number | null | undefined): number | null {
+  if (typeof value === "number" && Number.isFinite(value) && value > 0) {
+    return Math.min(200, Math.round(value));
+  }
+  if (typeof value !== "string") return null;
+  const match = value.trim().match(/(\d+(?:\.\d+)?)/);
+  if (!match) return null;
+  const n = Number(match[1]);
+  if (!Number.isFinite(n) || n <= 0) return null;
+  return Math.min(200, Math.round(n));
+}
+
 export function slugify(s: string) {
   return (
     s

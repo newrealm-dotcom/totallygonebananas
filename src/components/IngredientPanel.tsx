@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { parseServingCount } from "@/lib/format";
 import { scaleLine } from "@/lib/scale";
 import type { IngredientGroup } from "@/lib/ingredients";
 
@@ -9,12 +10,13 @@ export function IngredientPanel({
   servings,
 }: {
   ingredients: IngredientGroup[];
-  servings: number | null;
+  servings: string | number | null;
 }) {
-  const [serv, setServ] = useState(servings ?? 0);
+  const baseServings = parseServingCount(servings);
+  const [serv, setServ] = useState(baseServings ?? 0);
   const [mult, setMult] = useState(1);
   const [checked, setChecked] = useState<Set<string>>(new Set());
-  const k = servings ? serv / servings : mult;
+  const k = baseServings ? serv / baseServings : mult;
   const groups = ingredients.length ? ingredients : [{ title: "", items: [] as string[] }];
 
   const toggle = (key: string) =>
@@ -30,9 +32,9 @@ export function IngredientPanel({
       <h2 id="ing-title">Ingredients</h2>
       <p>Tick things off as you shop or cook.</p>
       <div className="scale">
-        {servings ? (
+        {baseServings ? (
           <>
-            <span id="serv-label">Servings</span>
+            <span id="serv-label">Serving size</span>
             <span className="stepper" role="group" aria-labelledby="serv-label">
               <button type="button" aria-label="Fewer servings" disabled={serv <= 1} onClick={() => setServ((s) => Math.max(1, s - 1))}>−</button>
               <output aria-live="polite">{serv}</output>

@@ -1,4 +1,5 @@
 import { parseIngredient } from "parse-ingredient";
+import { parseServingCount } from "@/lib/format";
 import { flattenIngredientItems, type IngredientGroup } from "@/lib/ingredients";
 
 /** Per-serving / total macros for a recipe estimate. */
@@ -220,7 +221,7 @@ function foodPinchGrams(food: FoodEntry): number | null {
 /** Estimate nutrition from ingredient groups. Returns null when nothing can be matched. */
 export function estimateRecipeNutrition(
   ingredients: IngredientGroup[] | string[],
-  servings: number | null | undefined,
+  servings: string | number | null | undefined,
 ): RecipeNutrition | null {
   const lines = Array.isArray(ingredients) && typeof ingredients[0] === "string"
     ? (ingredients as string[])
@@ -259,7 +260,7 @@ export function estimateRecipeNutrition(
 
   if (matchedCount === 0) return null;
 
-  const serv = servings && servings > 0 ? servings : 1;
+  const serv = parseServingCount(servings) ?? 1;
   const perServing = roundFacts({
     calories: total.calories / serv,
     fat: total.fat / serv,

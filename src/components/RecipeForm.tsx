@@ -397,8 +397,7 @@ export function RecipeForm({ userId, isEditor, categories, recipeId, initial }: 
       title: g.title.trim(),
       items: g.items.map((r) => r.text.trim()).filter(Boolean),
     })).filter((g) => g.items.length || g.title);
-    const servings = Number(v.servings);
-    return estimateRecipeNutrition(groups, Number.isFinite(servings) && servings > 0 ? servings : null);
+    return estimateRecipeNutrition(groups, v.servings);
   }, [v.ingredientGroups, v.servings]);
 
   /* ---- submit */
@@ -454,7 +453,7 @@ export function RecipeForm({ userId, isEditor, categories, recipeId, initial }: 
     const payload = {
       title: v.title, description: v.description, categoryId: v.categoryId,
       newCategory: v.categoryId === "__new" ? { name: v.newCatName, emoji: "" } : null,
-      emoji: v.emoji, totalMinutes: num(v.totalMinutes), notes: v.notes, servings: num(v.servings), difficulty: v.difficulty, tags: v.tags,
+      emoji: v.emoji, totalMinutes: num(v.totalMinutes), notes: v.notes, servings: v.servings.trim(), difficulty: v.difficulty, tags: v.tags,
       ingredients: ingredientGroups.length ? ingredientGroups : [{ title: "", items: [] as string[] }],
       equipment: v.equipment.map((r) => r.text.trim()).filter(Boolean),
       steps: stepGroups.length ? stepGroups : [{ title: "", steps: [] as { text: string; media: null }[] }],
@@ -848,7 +847,19 @@ export function RecipeForm({ userId, isEditor, categories, recipeId, initial }: 
         <h2 id={fid("det-h")}><span className="num" aria-hidden="true">6</span>Details <small>(optional)</small></h2>
         <div className="f-grid three">
           <div className="f"><label htmlFor={fid("time")}>Total time (minutes)</label><input id={fid("time")} className="field" type="number" inputMode="numeric" min={1} max={2880} value={v.totalMinutes} onChange={(e) => set("totalMinutes", e.target.value)} aria-invalid={!!err("totalMinutes")} />{err("totalMinutes") && <p className="f-err">{err("totalMinutes")}</p>}</div>
-          <div className="f"><label htmlFor={fid("serv")}>Serves</label><input id={fid("serv")} className="field" type="number" inputMode="numeric" min={1} max={200} value={v.servings} onChange={(e) => set("servings", e.target.value)} aria-invalid={!!err("servings")} />{err("servings") && <p className="f-err">{err("servings")}</p>}</div>
+          <div className="f">
+            <label htmlFor={fid("serv")}>Serving Size</label>
+            <input
+              id={fid("serv")}
+              className="field"
+              maxLength={80}
+              value={v.servings}
+              placeholder="1 loaf, 12 muffins, serves 4…"
+              onChange={(e) => set("servings", e.target.value)}
+              aria-invalid={!!err("servings")}
+            />
+            {err("servings") && <p className="f-err">{err("servings")}</p>}
+          </div>
           <div className="f"><label htmlFor={fid("diff")}>Difficulty</label>
             <select id={fid("diff")} className="field" value={v.difficulty} onChange={(e) => set("difficulty", Number(e.target.value))}>
               {DIFFICULTY.map((d, i) => <option key={d} value={i + 1}>{"🍌".repeat(i + 1)} {d}</option>)}

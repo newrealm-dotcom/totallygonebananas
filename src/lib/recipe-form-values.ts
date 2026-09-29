@@ -137,7 +137,7 @@ export function valuesFromRecipe(r: {
   total_minutes: number | null;
   time_note?: string | null;
   notes?: string | null;
-  servings: number | null;
+  servings: string | number | null;
   difficulty: number | null;
   tags: string[] | null;
   equipment?: string[] | null;
@@ -170,7 +170,7 @@ export function valuesFromRecipe(r: {
     emoji: r.emoji ?? "",
     totalMinutes: r.total_minutes ? String(r.total_minutes) : "",
     notes,
-    servings: r.servings ? String(r.servings) : "",
+    servings: r.servings != null && String(r.servings).trim() ? String(r.servings) : "",
     difficulty: r.difficulty ?? 2,
     tags: r.tags ?? [],
     equipment: equipment.length ? equipment.map((text) => ({ id: uid(), text })) : [emptyRow()],

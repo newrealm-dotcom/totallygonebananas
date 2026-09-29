@@ -78,7 +78,8 @@ export interface Recipe {
   notes: string | null;
   /** Estimated nutrition facts calculated from ingredients. */
   nutrition: RecipeNutrition | null;
-  servings: number | null;
+  /** Free-form serving size, e.g. "8", "1 loaf", "makes 12 muffins". */
+  servings: string | null;
   difficulty: number | null;
   tags: string[];
   equipment: string[];

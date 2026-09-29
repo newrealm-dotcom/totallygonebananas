@@ -83,7 +83,7 @@ export async function saveRecipe(raw: unknown, recipeId?: string): Promise<SaveR
 
   const cover = input.gallery.find((g) => g.kind === "image")?.path ?? null;
   const notesHtml = input.notes ? renderPostMarkdown(input.notes) : "";
-  const nutrition = estimateRecipeNutrition(input.ingredients, input.servings);
+  const nutrition = estimateRecipeNutrition(input.ingredients, input.servings || null);
   const row = {
     title: input.title,
     description: input.description || null,
@@ -92,7 +92,7 @@ export async function saveRecipe(raw: unknown, recipeId?: string): Promise<SaveR
     total_minutes: input.totalMinutes,
     notes: notesHtml || null,
     nutrition,
-    servings: input.servings,
+    servings: input.servings || null,
     difficulty: input.difficulty,
     tags: input.tags,
     equipment: input.equipment,
