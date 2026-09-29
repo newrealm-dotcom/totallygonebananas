@@ -42,6 +42,7 @@ export default async function BlogPostPage({ params }: PageProps<"/blog/[slug]">
   const headJson = headJsonScript(post.head_json);
   const nameById = new Map(blogCategories.map((c) => [c.id, c.name]));
   const categories = (post.categories ?? [])
+    .filter((id) => id && id !== "favorites")
     .map((id) => ({ id, name: nameById.get(id) ?? id }))
     .filter((c) => c.name);
   const authorName = post.author?.display_name || "Totally Gone Bananas";

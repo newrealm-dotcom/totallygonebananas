@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import {
   countPosts,
   getBlogCategories,
@@ -18,29 +19,32 @@ export const metadata: Metadata = {
 const INITIAL_LIMIT = 12;
 const FAVORITES_CATEGORY = "favorites";
 const ARCHIVE_LEDE =
-  "Welcome to the archive, where every post we've ever written about bananas lives in one place. Some of it is history, like how the banana made its way from Southeast Asia to nearly every grocery store on the planet, or why the variety your grandparents ate tasted different from the one you buy today. Some of it is trivia you'll want to bring up at dinner, such as the fact that bananas are technically berries and the plants they grow on are technically herbs. And some of it is just fun and weird banana-themed gadgets, and the occasional deep dive into why a banana peel became the universal symbol for slipping. Poke around, start wherever looks interesting, and don't worry about reading in order. There's no wrong way to peel this thing.";
+  "History, weird science, botanical oddities, and banana lore — pick a topic or dive into the latest story.";
 
 export default async function BlogPage({ searchParams }: PageProps<"/blog">) {
   const sp = await searchParams;
   const author = typeof sp.author === "string" ? sp.author.trim() : "";
   const category = typeof sp.category === "string" ? sp.category.trim() : "";
   const date = typeof sp.date === "string" ? sp.date.trim() : "";
+  if (category === FAVORITES_CATEGORY) redirect("/our-faves");
+
   const filters = {
     ...(author ? { author } : {}),
     ...(category ? { category } : {}),
     ...(date ? { date } : {}),
-    // Favorites live on /our-faves — keep them out of the archive unless that category is selected.
-    ...(category === FAVORITES_CATEGORY ? {} : { excludeCategory: FAVORITES_CATEGORY }),
+    // Favorites live on /our-faves — never list them in the archive.
+    excludeCategory: FAVORITES_CATEGORY,
   };
   const filtered = Boolean(author || category || date);
 
   const [posts, total, blogCategories, authorProfile] = await Promise.all([
     listPosts({ publishedOnly: true, limit: INITIAL_LIMIT, offset: 0, ...filters }),
     countPosts({ publishedOnly: true, ...filters }),
-    category ? getBlogCategories() : Promise.resolve([]),
+    getBlogCategories(),
     author ? getProfileByUsernameOrId(author) : Promise.resolve(null),
   ]);
 
+  const browseCategories = blogCategories.filter((c) => c.id !== FAVORITES_CATEGORY);
   const categoryName = category
     ? blogCategories.find((c) => c.id === category)?.name ?? category
     : null;
@@ -55,22 +59,54 @@ export default async function BlogPage({ searchParams }: PageProps<"/blog">) {
     heading = `Posts by ${authorLabel}`;
     lede = `Published posts from ${authorLabel}.`;
   } else if (category && categoryName) {
-    heading = `Category: ${categoryName}`;
-    lede = `Blog posts filed under ${categoryName}.`;
+    heading = categoryName;
+    lede = `Stories filed under ${categoryName}.`;
   } else if (date && dateLabel) {
     heading = `Posts from ${dateLabel}`;
     lede = `Everything published on ${dateLabel} (Eastern Time).`;
   }
 
+  const categoryNames = Object.fromEntries(blogCategories.map((c) => [c.id, c.name]));
+
   return (
     <div className="wrap blog-index">
-      <div className="page-head">
+      <header className="blog-archive-hero">
+        <p className="blog-archive-kicker" aria-hidden="true">The archive</p>
         <h1>{heading}</h1>
         <p className="lede">{lede}</p>
-        {filtered ? (
-          <p><Link className="btn ghost small" href="/blog">View all posts</Link></p>
+        {!filtered && total > 0 ? (
+          <p className="blog-archive-count">
+            <strong>{total}</strong> {total === 1 ? "story" : "stories"} waiting to be peeled open
+          </p>
         ) : null}
-      </div>
+        {browseCategories.length > 0 && !author && !date ? (
+          <nav className="blog-topic-nav" aria-label="Browse by topic">
+            <Link
+              className="blog-topic"
+              href="/blog"
+              aria-current={!category ? "page" : undefined}
+            >
+              All stories
+            </Link>
+            {browseCategories.map((c) => (
+              <Link
+                key={c.id}
+                className="blog-topic"
+                href={`/blog?category=${encodeURIComponent(c.id)}`}
+                aria-current={category === c.id ? "page" : undefined}
+              >
+                {c.name}
+              </Link>
+            ))}
+          </nav>
+        ) : null}
+        {filtered ? (
+          <p className="blog-archive-reset">
+            <Link className="btn ghost small" href="/blog">View all posts</Link>
+          </p>
+        ) : null}
+      </header>
+
       {posts.length === 0 ? (
         <div className="empty">
           <p>{filtered ? "No posts match this filter." : "No posts yet. Check back soon."}</p>
@@ -82,6 +118,8 @@ export default async function BlogPage({ searchParams }: PageProps<"/blog">) {
           initialPosts={posts}
           total={total}
           filters={filters}
+          showFeatured={!filtered}
+          categoryNames={categoryNames}
         />
       )}
       <div style={{ height: "3rem" }} />

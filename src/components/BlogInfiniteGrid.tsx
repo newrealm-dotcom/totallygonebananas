@@ -10,20 +10,94 @@ import type { Post } from "@/lib/types";
 
 const PAGE_SIZE = 12;
 
+function categoryLabel(post: Post, names?: Record<string, string>): string | null {
+  const id = post.categories?.find((c) => c && c !== "favorites");
+  if (!id) return null;
+  return names?.[id] ?? id;
+}
+
+function PostCard({
+  post,
+  categoryNames,
+  featured = false,
+}: {
+  post: Post;
+  categoryNames?: Record<string, string>;
+  featured?: boolean;
+}) {
+  const cover = mediaSrc(post.cover_path);
+  const topic = categoryLabel(post, categoryNames);
+  const title = stripInlineMarkdown(post.title);
+  const excerpt = post.excerpt ? stripInlineMarkdown(post.excerpt) : null;
+  const href = `/blog/${post.slug}`;
+
+  if (featured) {
+    return (
+      <article className="blog-featured">
+        <Link href={href} className="blog-featured-media" tabIndex={-1} aria-hidden>
+          {cover ? (
+            <Image src={cover} alt="" width={1200} height={675} unoptimized priority />
+          ) : (
+            <span className="blog-card-media-ph blog-featured-ph" />
+          )}
+        </Link>
+        <div className="blog-featured-copy">
+          <p className="blog-featured-label">Latest story</p>
+          {topic ? <p className="blog-card-topic">{topic}</p> : null}
+          <h2><Link href={href}>{title}</Link></h2>
+          {excerpt ? <p className="blog-featured-excerpt">{excerpt}</p> : null}
+          <div className="blog-featured-meta">
+            {post.published_at ? <span>{shortDate(post.published_at)}</span> : null}
+            <Link className="btn small" href={href}>Read the story</Link>
+          </div>
+        </div>
+      </article>
+    );
+  }
+
+  return (
+    <li className="blog-card">
+      {cover ? (
+        <Link href={href} className="blog-card-media" tabIndex={-1} aria-hidden>
+          <Image src={cover} alt="" width={640} height={360} unoptimized />
+        </Link>
+      ) : (
+        <Link href={href} className="blog-card-media blog-card-media-ph" tabIndex={-1} aria-hidden />
+      )}
+      <div className="blog-card-body">
+        {topic ? <p className="blog-card-topic">{topic}</p> : null}
+        <h2><Link href={href}>{title}</Link></h2>
+        {excerpt ? <p>{excerpt}</p> : null}
+        <div className="blog-card-foot">
+          {post.published_at ? <p className="muted">{shortDate(post.published_at)}</p> : <span />}
+          <Link className="blog-card-read" href={href}>Read</Link>
+        </div>
+      </div>
+    </li>
+  );
+}
+
 export function BlogInfiniteGrid({
   initialPosts,
   total,
   filters = {},
+  showFeatured = false,
+  categoryNames,
 }: {
   initialPosts: Post[];
   total: number;
   filters?: { author?: string; category?: string; date?: string; excludeCategory?: string };
+  showFeatured?: boolean;
+  categoryNames?: Record<string, string>;
 }) {
   const [posts, setPosts] = useState(initialPosts);
   const [hasMore, setHasMore] = useState(initialPosts.length < total);
   const [loading, setLoading] = useState(false);
   const sentinelRef = useRef<HTMLDivElement | null>(null);
   const loadingRef = useRef(false);
+
+  const featured = showFeatured && posts.length > 0 ? posts[0] : null;
+  const gridPosts = featured ? posts.slice(1) : posts;
 
   const loadMore = useCallback(async () => {
     if (loadingRef.current || !hasMore) return;
@@ -69,27 +143,22 @@ export function BlogInfiniteGrid({
 
   return (
     <div className="blog-feed">
-      <ul className="blog-grid home-blog-grid">
-        {posts.map((p) => {
-          const cover = mediaSrc(p.cover_path);
-          return (
-            <li key={p.id} className="blog-card">
-              {cover ? (
-                <Link href={`/blog/${p.slug}`} className="blog-card-media" tabIndex={-1} aria-hidden>
-                  <Image src={cover} alt="" width={640} height={360} unoptimized />
-                </Link>
-              ) : (
-                <Link href={`/blog/${p.slug}`} className="blog-card-media blog-card-media-ph" tabIndex={-1} aria-hidden />
-              )}
-              <div className="blog-card-body">
-                <h2><Link href={`/blog/${p.slug}`}>{stripInlineMarkdown(p.title)}</Link></h2>
-                {p.excerpt ? <p>{stripInlineMarkdown(p.excerpt)}</p> : null}
-                {p.published_at ? <p className="muted">{shortDate(p.published_at)}</p> : null}
-              </div>
-            </li>
-          );
-        })}
-      </ul>
+      {featured ? <PostCard post={featured} categoryNames={categoryNames} featured /> : null}
+      {gridPosts.length > 0 ? (
+        <>
+          {featured ? (
+            <div className="blog-more-head">
+              <h2>More from the archive</h2>
+              <p className="blog-more-hint">Pick a card and keep peeling</p>
+            </div>
+          ) : null}
+          <ul className={`blog-grid home-blog-grid${featured ? " blog-grid-rest" : ""}`}>
+            {gridPosts.map((p) => (
+              <PostCard key={p.id} post={p} categoryNames={categoryNames} />
+            ))}
+          </ul>
+        </>
+      ) : null}
       {hasMore ? <div ref={sentinelRef} className="blog-feed-sentinel" aria-hidden="true" /> : null}
       {loading ? <p className="hint blog-feed-status" role="status">Loading more posts…</p> : null}
       {!hasMore && posts.length > PAGE_SIZE ? (
