@@ -46,8 +46,17 @@ export default async function BlogPostPage({ params }: PageProps<"/blog/[slug]">
   const headJson = headJsonScript(post.head_json);
   const nameById = new Map(blogCategories.map((c) => [c.id, c.name]));
   const categories = (post.categories ?? [])
-    .filter((id) => id && id !== "favorites")
-    .map((id) => ({ id, name: nameById.get(id) ?? id }))
+    .filter((id) => {
+      if (!id) return false;
+      // Favorites only appears on Favorites posts; never list it on archive posts.
+      if (id === "favorites") return isFavorite;
+      return true;
+    })
+    .map((id) => ({
+      id,
+      name: id === "favorites" ? (nameById.get(id) ?? "Favorites") : (nameById.get(id) ?? id),
+      href: id === "favorites" ? "/our-faves" : `/blog?category=${encodeURIComponent(id)}`,
+    }))
     .filter((c) => c.name);
   const authorName = post.author?.display_name || "Totally Gone Bananas";
   const authorHref = post.author_id
@@ -95,7 +104,7 @@ export default async function BlogPostPage({ params }: PageProps<"/blog/[slug]">
                 categories.map((c, i) => (
                   <span key={c.id}>
                     {i > 0 ? ", " : null}
-                    <Link href={`/blog?category=${encodeURIComponent(c.id)}`}>{c.name}</Link>
+                    <Link href={c.href}>{c.name}</Link>
                   </span>
                 ))
               ) : (
