@@ -20,10 +20,12 @@ function PostCard({
   post,
   categoryNames,
   featured = false,
+  featuredLabel = "Latest story",
 }: {
   post: Post;
   categoryNames?: Record<string, string>;
   featured?: boolean;
+  featuredLabel?: string;
 }) {
   const cover = mediaSrc(post.cover_path);
   const topic = categoryLabel(post, categoryNames);
@@ -42,7 +44,7 @@ function PostCard({
           )}
         </Link>
         <div className="blog-featured-copy">
-          <p className="blog-featured-label">Latest story</p>
+          <p className="blog-featured-label">{featuredLabel}</p>
           {topic ? <p className="blog-card-topic">{topic}</p> : null}
           <h2><Link href={href}>{title}</Link></h2>
           {excerpt ? <p className="blog-featured-excerpt">{excerpt}</p> : null}
@@ -83,12 +85,18 @@ export function BlogInfiniteGrid({
   filters = {},
   showFeatured = false,
   categoryNames,
+  featuredLabel = "Latest story",
+  moreHeading = "More from the archive",
+  moreHint = "Pick a card and keep peeling",
 }: {
   initialPosts: Post[];
   total: number;
   filters?: { author?: string; category?: string; date?: string; excludeCategory?: string };
   showFeatured?: boolean;
   categoryNames?: Record<string, string>;
+  featuredLabel?: string;
+  moreHeading?: string;
+  moreHint?: string;
 }) {
   const [posts, setPosts] = useState(initialPosts);
   const [hasMore, setHasMore] = useState(initialPosts.length < total);
@@ -143,13 +151,20 @@ export function BlogInfiniteGrid({
 
   return (
     <div className="blog-feed">
-      {featured ? <PostCard post={featured} categoryNames={categoryNames} featured /> : null}
+      {featured ? (
+        <PostCard
+          post={featured}
+          categoryNames={categoryNames}
+          featured
+          featuredLabel={featuredLabel}
+        />
+      ) : null}
       {gridPosts.length > 0 ? (
         <>
           {featured ? (
             <div className="blog-more-head">
-              <h2>More from the archive</h2>
-              <p className="blog-more-hint">Pick a card and keep peeling</p>
+              <h2>{moreHeading}</h2>
+              {moreHint ? <p className="blog-more-hint">{moreHint}</p> : null}
             </div>
           ) : null}
           <ul className={`blog-grid home-blog-grid${featured ? " blog-grid-rest" : ""}`}>

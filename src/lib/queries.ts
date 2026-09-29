@@ -269,15 +269,21 @@ export async function getProfileByUsernameOrId(key: string): Promise<Pick<Profil
 export async function listRelatedPosts(opts: {
   excludeId: string;
   authorId?: string | null;
+  /** When set, only include posts that have this blog category. */
+  category?: string;
+  /** When set, skip posts that include this blog category. */
+  excludeCategory?: string;
   limit?: number;
 }): Promise<Post[]> {
   const limit = opts.limit ?? 3;
   const supabase = await createClient();
   const out: Post[] = [];
   const seen = new Set<string>([opts.excludeId]);
+  const category = opts.category?.trim() || "";
+  const excludeCategory = opts.excludeCategory?.trim() || "";
 
   if (opts.authorId) {
-    const { data } = await supabase
+    let query = supabase
       .from("posts")
       .select("*")
       .eq("status", "published")
@@ -286,6 +292,9 @@ export async function listRelatedPosts(opts: {
       .order("published_at", { ascending: false, nullsFirst: false })
       .order("updated_at", { ascending: false })
       .limit(limit);
+    if (category) query = query.contains("categories", [category]);
+    if (excludeCategory) query = query.not("categories", "cs", `{${excludeCategory}}`);
+    const { data } = await query;
     for (const row of (data as Post[]) ?? []) {
       if (seen.has(row.id)) continue;
       seen.add(row.id);
@@ -294,7 +303,7 @@ export async function listRelatedPosts(opts: {
     }
   }
 
-  const { data } = await supabase
+  let fill = supabase
     .from("posts")
     .select("*")
     .eq("status", "published")
@@ -302,6 +311,9 @@ export async function listRelatedPosts(opts: {
     .order("published_at", { ascending: false, nullsFirst: false })
     .order("updated_at", { ascending: false })
     .limit(limit + out.length);
+  if (category) fill = fill.contains("categories", [category]);
+  if (excludeCategory) fill = fill.not("categories", "cs", `{${excludeCategory}}`);
+  const { data } = await fill;
   for (const row of (data as Post[]) ?? []) {
     if (seen.has(row.id)) continue;
     seen.add(row.id);

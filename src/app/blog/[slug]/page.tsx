@@ -31,10 +31,14 @@ export default async function BlogPostPage({ params }: PageProps<"/blog/[slug]">
   const editor = isEditorRole(profile);
   if (post.status !== "published" && !editor) notFound();
 
+  const isFavorite = (post.categories ?? []).includes("favorites");
   const related = await listRelatedPosts({
     excludeId: post.id,
     authorId: post.author_id,
     limit: 3,
+    ...(isFavorite
+      ? { category: "favorites" }
+      : { excludeCategory: "favorites" }),
   });
 
   const cover = mediaSrc(post.cover_path);
@@ -116,9 +120,11 @@ export default async function BlogPostPage({ params }: PageProps<"/blog/[slug]">
           <div className="sec-head">
             <div>
               <h2 id="related-posts-h">Related posts</h2>
-              <p>More from the blog.</p>
+              <p>{isFavorite ? "More from Our Faves." : "More from the blog."}</p>
             </div>
-            <Link className="btn ghost small" href="/blog">View all posts</Link>
+            <Link className="btn ghost small" href={isFavorite ? "/our-faves" : "/blog"}>
+              {isFavorite ? "View Our Faves" : "View all posts"}
+            </Link>
           </div>
           <ul className="blog-grid home-blog-grid">
             {related.map((p) => {
