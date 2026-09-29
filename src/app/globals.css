@@ -17,6 +17,16 @@ html[data-theme="dark"] {
 *, *::before, *::after { box-sizing: border-box; }
 html { scroll-padding-top: 220px; }
 body { margin: 0; background: var(--bg); color: var(--ink); font-family: var(--body); font-size: 1.0625rem; line-height: 1.55; -webkit-font-smoothing: antialiased; padding-bottom: env(safe-area-inset-bottom, 0px); }
+/* Same gold → cream wash as the homepage hero, on every page (light mode only). */
+#main {
+  background-color: var(--cream);
+  background-image: linear-gradient(180deg, var(--yellow) 0%, var(--cream) 100%);
+  background-repeat: no-repeat;
+  background-size: 100% min(70vh, 40rem);
+}
+html[data-theme="dark"] #main {
+  background: transparent;
+}
 img, svg, video { max-width: 100%; }
 a { color: inherit; }
 button, input, select, textarea { font: inherit; color: inherit; }
@@ -440,10 +450,11 @@ textarea.field { resize: vertical; line-height: 1.45; }
 /* ---------- home ---------- */
 .hero {
   padding: clamp(1.5rem, 4vw, 3rem) 0 .5rem;
-  background: linear-gradient(180deg, var(--yellow) 0%, var(--cream) 100%);
+  /* Site-wide #main wash supplies the gold → cream gradient. */
+  background: transparent;
 }
 html[data-theme="dark"] .hero {
-  background: var(--bg);
+  background: transparent;
 }
 .hero-grid { display: grid; grid-template-columns: minmax(0, 6fr) minmax(0, 5fr); gap: 1rem 2rem; align-items: center; }
 .hero h1 { font-size: clamp(2.5rem, 6vw, 4.9rem); line-height: .98; }
