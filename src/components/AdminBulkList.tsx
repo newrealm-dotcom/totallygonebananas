@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { useMemo, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
@@ -28,6 +29,8 @@ export interface AdminBulkItem {
   viewHref?: string;
   detail: string;
   status?: string;
+  /** Optional featured/cover image shown before the title. */
+  imageSrc?: string | null;
 }
 
 type Kind = "recipe" | "post" | "category";
@@ -245,15 +248,24 @@ export function AdminBulkList({
                 />
               </label>
             )}
-            <div>
-              <h3>
-                <Link href={item.viewHref || item.editHref}>{item.name}</Link>
-              </h3>
-              <p>
-                {item.status ? <span className={`status s-${item.status}`}>{item.status}</span> : null}
-                {item.status ? " · " : null}
-                {item.detail}
-              </p>
+            <div className="admin-row-main">
+              {item.imageSrc ? (
+                <Link href={item.viewHref || item.editHref} className="admin-row-thumb" tabIndex={-1} aria-hidden="true">
+                  <Image src={item.imageSrc} alt="" width={144} height={108} unoptimized />
+                </Link>
+              ) : kind === "post" ? (
+                <span className="admin-row-thumb is-empty" aria-hidden="true" />
+              ) : null}
+              <div className="admin-row-copy">
+                <h3>
+                  <Link href={item.viewHref || item.editHref}>{item.name}</Link>
+                </h3>
+                <p>
+                  {item.status ? <span className={`status s-${item.status}`}>{item.status}</span> : null}
+                  {item.status ? " · " : null}
+                  {item.detail}
+                </p>
+              </div>
             </div>
             <div className="row-actions">
               <Link className="btn small ghost" href={item.editHref}>
