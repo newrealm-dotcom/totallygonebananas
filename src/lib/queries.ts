@@ -188,6 +188,8 @@ export type PostListFilters = {
   author?: string;
   /** Blog category id (not a recipe category). */
   category?: string;
+  /** Exclude posts that include this blog category id. */
+  excludeCategory?: string;
   /** Eastern calendar day YYYY-MM-DD. */
   date?: string;
 };
@@ -221,6 +223,7 @@ export async function listPosts(opts: PostListFilters = {}): Promise<Post[]> {
   if (opts.publishedOnly) query = query.eq("status", "published");
   if (authorId) query = query.eq("author_id", authorId);
   if (opts.category) query = query.contains("categories", [opts.category]);
+  if (opts.excludeCategory) query = query.not("categories", "cs", `{${opts.excludeCategory}}`);
   if (dateRange) query = query.gte("published_at", dateRange.start).lt("published_at", dateRange.end);
 
   const from = opts.offset ?? 0;
@@ -240,6 +243,7 @@ export async function countPosts(opts: Omit<PostListFilters, "limit" | "offset">
   if (opts.publishedOnly) query = query.eq("status", "published");
   if (authorId) query = query.eq("author_id", authorId);
   if (opts.category) query = query.contains("categories", [opts.category]);
+  if (opts.excludeCategory) query = query.not("categories", "cs", `{${opts.excludeCategory}}`);
   if (dateRange) query = query.gte("published_at", dateRange.start).lt("published_at", dateRange.end);
 
   const { count } = await query;

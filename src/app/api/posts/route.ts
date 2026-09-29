@@ -10,8 +10,9 @@ export async function GET(req: Request) {
   const author = url.searchParams.get("author")?.trim() || undefined;
   const category = url.searchParams.get("category")?.trim() || undefined;
   const date = url.searchParams.get("date")?.trim() || undefined;
+  const excludeCategory = url.searchParams.get("excludeCategory")?.trim() || undefined;
 
-  const filters = { publishedOnly: true as const, author, category, date };
+  const filters = { publishedOnly: true as const, author, category, date, excludeCategory };
   const [posts, total] = await Promise.all([
     listPosts({ ...filters, limit, offset }),
     countPosts(filters),

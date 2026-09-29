@@ -16,6 +16,7 @@ export const metadata: Metadata = {
 };
 
 const INITIAL_LIMIT = 12;
+const FAVORITES_CATEGORY = "favorites";
 const ARCHIVE_LEDE =
   "Welcome to the archive, where every post we've ever written about bananas lives in one place. Some of it is history, like how the banana made its way from Southeast Asia to nearly every grocery store on the planet, or why the variety your grandparents ate tasted different from the one you buy today. Some of it is trivia you'll want to bring up at dinner, such as the fact that bananas are technically berries and the plants they grow on are technically herbs. And some of it is just fun and weird banana-themed gadgets, and the occasional deep dive into why a banana peel became the universal symbol for slipping. Poke around, start wherever looks interesting, and don't worry about reading in order. There's no wrong way to peel this thing.";
 
@@ -28,6 +29,8 @@ export default async function BlogPage({ searchParams }: PageProps<"/blog">) {
     ...(author ? { author } : {}),
     ...(category ? { category } : {}),
     ...(date ? { date } : {}),
+    // Favorites live on /our-faves — keep them out of the archive unless that category is selected.
+    ...(category === FAVORITES_CATEGORY ? {} : { excludeCategory: FAVORITES_CATEGORY }),
   };
   const filtered = Boolean(author || category || date);
 
@@ -75,7 +78,7 @@ export default async function BlogPage({ searchParams }: PageProps<"/blog">) {
         </div>
       ) : (
         <BlogInfiniteGrid
-          key={`${filters.author ?? ""}|${filters.category ?? ""}|${filters.date ?? ""}`}
+          key={`${filters.author ?? ""}|${filters.category ?? ""}|${filters.date ?? ""}|${filters.excludeCategory ?? ""}`}
           initialPosts={posts}
           total={total}
           filters={filters}
