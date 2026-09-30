@@ -873,9 +873,7 @@ video.media-fill { background: #000; }
 .d-hero {
   display: grid;
   grid-template-columns: minmax(0, 5fr) minmax(0, 6fr);
-  grid-template-areas:
-    "media right"
-    "engage right";
+  grid-template-areas: "media right";
   gap: 1.5rem 2rem;
   align-items: start;
   padding: 1rem 0 1.4rem;
@@ -914,23 +912,27 @@ video.media-fill { background: #000; }
   min-width: 0;
 }
 .d-engage {
-  grid-area: engage;
   display: grid;
-  gap: 1.25rem;
+  gap: 0;
   align-content: start;
   min-width: 0;
   width: 100%;
+  margin-top: 25px;
 }
-.d-engage .nf-wrap {
-  margin-top: 0;
-  max-width: none;
-  width: 100%;
+.d-engage > * {
+  padding-bottom: 25px;
+}
+.d-engage > #made {
+  padding-bottom: 0;
 }
 .d-engage .panel { margin: 0; }
 .d-engage .panel h2,
 .d-cooks h2 {
   margin: 0 0 .5rem;
   font-size: clamp(1.6rem, 3.2vw, 2.3rem);
+}
+.d-cooks {
+  padding-top: 50px;
 }
 .d-cooks h2 { margin-bottom: 1rem; }
 .d-hero .lede { margin-bottom: .4rem; }
@@ -986,7 +988,7 @@ video.media-fill { background: #000; }
   color: var(--muted);
   flex-shrink: 0;
 }
-.d-steps { margin-top: 1.4rem; }
+.d-steps { margin-top: 50px; }
 .d-steps h2 { margin: 0 0 1rem; }
 .ing-panel { position: static; }
 .ing-group + .ing-group { margin-top: 1rem; }
@@ -1009,7 +1011,6 @@ video.media-fill { background: #000; }
 .ing-edit-group:last-of-type { margin-bottom: .4rem; }
 .ing-edit-title-row { display: flex; gap: .5rem; align-items: center; }
 .ing-edit-title-row .field { flex: 1 1 auto; min-width: 0; }
-.rf-nutrition { margin-top: 1.2rem; max-width: 22rem; }
 .recipe-notes {
   margin: 1.2rem 0 0;
   padding: 1rem 1.1rem 1.1rem;
@@ -1830,7 +1831,6 @@ html[data-theme="dark"] .login-hero-stack .login-hero-dark { display: block; }
   .recipes-page .lede { max-width: none; }
   .recipes-page .grid { column-gap: 50px; row-gap: 35px; }
   .recipes-page .d-hero { column-gap: 50px; }
-  .recipes-page .d-engage { margin-top: .5rem; }
   .hero,
   .about,
   .stand-hero { padding-top: 0; }
@@ -1849,14 +1849,15 @@ html[data-theme="dark"] .login-hero-stack .login-hero-dark { display: block; }
     grid-template-areas:
       "heading"
       "media"
-      "intro"
-      "engage";
+      "intro";
   }
   .d-right { display: contents; }
   .d-heading { grid-area: heading; }
   .d-intro { grid-area: intro; }
   .d-heading .h1 { margin-bottom: .45rem; }
   .d-media { position: static; }
+  .d-cooks { padding-top: 25px; }
+  .d-steps { margin-top: 25px; }
   .adapted-from {
     display: grid;
     gap: .15rem;

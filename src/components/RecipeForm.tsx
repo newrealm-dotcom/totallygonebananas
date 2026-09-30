@@ -19,9 +19,7 @@ import {
   type StepRow,
   type Upload,
 } from "@/lib/recipe-form-values";
-import { estimateRecipeNutrition } from "@/lib/nutrition";
 import { PostBodyEditor } from "@/components/PostBodyEditor";
-import { NutritionFactsPanel } from "@/components/NutritionFacts";
 
 export type { RecipeFormValues, Upload };
 export { blankValues, valuesFromRecipe } from "@/lib/recipe-form-values";
@@ -392,14 +390,6 @@ export function RecipeForm({ userId, isEditor, categories, recipeId, initial }: 
     setCustomTag("");
     setTagError("");
   }
-
-  const nutritionPreview = useMemo(() => {
-    const groups = v.ingredientGroups.map((g) => ({
-      title: g.title.trim(),
-      items: g.items.map((r) => r.text.trim()).filter(Boolean),
-    })).filter((g) => g.items.length || g.title);
-    return estimateRecipeNutrition(groups, v.servings);
-  }, [v.ingredientGroups, v.servings]);
 
   /* ---- submit */
   const uploading =
@@ -940,11 +930,6 @@ export function RecipeForm({ userId, isEditor, categories, recipeId, initial }: 
           <p className="hint">Letters, numbers, spaces, or hyphens. No profanity or nonsense.</p>
           {(tagError || err("tags")) && <p className="f-err" id={fid("tag-err")} role="alert">{tagError || err("tags")}</p>}
         </fieldset>
-        {nutritionPreview && (
-          <div className="rf-nutrition">
-            <NutritionFactsPanel nutrition={nutritionPreview} />
-          </div>
-        )}
       </section>
 
       {/* 7. Adapted from */}

@@ -6,12 +6,10 @@ import { createClient } from "@/lib/supabase/server";
 import { publicUrl } from "@/lib/media";
 import { shortDate, tintFor, titleCase } from "@/lib/format";
 import { timersIn } from "@/lib/scale";
-import { estimateRecipeNutrition } from "@/lib/nutrition";
 import { renderPostMarkdown } from "@/lib/render-post-markdown";
 import { MediaView } from "@/components/MediaView";
 import { SaveButton } from "@/components/SaveButton";
 import { IngredientPanel } from "@/components/IngredientPanel";
-import { NutritionFactsPanel } from "@/components/NutritionFacts";
 import { MadeItForm } from "@/components/MadeItForm";
 import { DeleteRecipeButton, RemoveLogButton, ReviewButtons } from "@/components/OwnerTools";
 import type { CookLog } from "@/lib/types";
@@ -53,7 +51,6 @@ export default async function RecipePage({ params, searchParams }: PageProps<"/r
   const savedMsg = typeof sp.saved === "string" ? SAVED_MSG[sp.saved] : undefined;
   const gallery = r.recipe_media;
   const hero = gallery[0];
-  const nutrition = r.nutrition ?? estimateRecipeNutrition(r.ingredients, r.servings);
 
   return (
     <div className="wrap">
@@ -112,6 +109,31 @@ export default async function RecipePage({ params, searchParams }: PageProps<"/r
               )}
             </div>
           )}
+          <div className="d-engage" aria-label="Ratings and tips">
+            <div id="made">
+              <MadeItForm recipeId={r.id} signedIn={!!userId} slug={r.slug} />
+            </div>
+            <div className="d-cooks">
+              <h2>From Other Cooks</h2>
+              {logs.length ? (
+                <ul className="reviews">
+                  {logs.map((l) => (
+                    <li key={l.id} className="review">
+                      <div className="who">
+                        <span>{l.user_id === userId ? "You" : nameOf.get(l.user_id) || "A banana fan"}</span>
+                        <span role="img" aria-label={`${l.rating} out of 5`}>{"🍌".repeat(l.rating)}</span>
+                        <span className="muted">{shortDate(l.created_at)}</span>
+                        {(l.user_id === userId || isEditorRole(profile)) && <RemoveLogButton id={l.id} />}
+                      </div>
+                      {l.tip && <p>{l.tip}</p>}
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                <p className="muted">No ratings yet. Be the first to share how it went!</p>
+              )}
+            </div>
+          </div>
           {gallery.length > 1 && (
             <ul className="thumbs" aria-label="More photos and videos">
               {gallery.slice(1).map((m) => (
@@ -188,33 +210,6 @@ export default async function RecipePage({ params, searchParams }: PageProps<"/r
                 <h2>Review</h2>
                 <ReviewButtons recipeId={r.id} />
               </div>
-            )}
-          </div>
-        </div>
-
-        <div className="d-engage" aria-label="Nutrition, ratings and tips">
-          {nutrition ? <NutritionFactsPanel nutrition={nutrition} /> : null}
-          <div id="made">
-            <MadeItForm recipeId={r.id} signedIn={!!userId} slug={r.slug} />
-          </div>
-          <div className="d-cooks">
-            <h2>From Other Cooks</h2>
-            {logs.length ? (
-              <ul className="reviews">
-                {logs.map((l) => (
-                  <li key={l.id} className="review">
-                    <div className="who">
-                      <span>{l.user_id === userId ? "You" : nameOf.get(l.user_id) || "A banana fan"}</span>
-                      <span role="img" aria-label={`${l.rating} out of 5`}>{"🍌".repeat(l.rating)}</span>
-                      <span className="muted">{shortDate(l.created_at)}</span>
-                      {(l.user_id === userId || isEditorRole(profile)) && <RemoveLogButton id={l.id} />}
-                    </div>
-                    {l.tip && <p>{l.tip}</p>}
-                  </li>
-                ))}
-              </ul>
-            ) : (
-              <p className="muted">No ratings yet. Be the first to share how it went!</p>
             )}
           </div>
         </div>
