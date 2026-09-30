@@ -1863,6 +1863,18 @@ html[data-theme="dark"] .login-hero-stack .login-hero-dark { display: block; }
     justify-items: center;
   }
   .adapted-from-source { display: block; }
+  .our-faves-page .blog-archive-hero {
+    padding-top: calc(clamp(1.4rem, 3.5vw, 2.4rem) + 25px);
+    padding-bottom: max(0px, calc(1.6rem - 25px));
+  }
+  .recipes-index > .page-head {
+    padding-top: calc(clamp(1.8rem, 4vw, 3rem) + 25px);
+  }
+  .recipes-index > .page-head h1 {
+    white-space: nowrap;
+    text-wrap: nowrap;
+    font-size: clamp(1.25rem, 8.1vw, 2.3rem);
+  }
   .mascot-wrap { order: -1; }
   .about-slide {
     position: relative;

@@ -43,7 +43,7 @@ export default async function RecipesPage({ searchParams }: PageProps<"/recipes"
   const filtered = Boolean(f.q || f.category || f.tag);
 
   return (
-    <div className="wrap">
+    <div className="wrap recipes-index">
       <div className="page-head">
         <h1>{titleCase(cat ? cat.name : "Every banana recipe")}</h1>
         <p className="lede">{cat?.tagline ?? "Filter by category, tag or search for whatever's already in your kitchen."}</p>
