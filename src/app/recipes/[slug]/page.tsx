@@ -88,6 +88,28 @@ export default async function RecipePage({ params, searchParams }: PageProps<"/r
               {r.tags.map((t) => <Link key={t} className="pill" href={`/recipes?tag=${encodeURIComponent(t)}`}>{t}</Link>)}
             </div>
           )}
+          {(r.author || r.adapted_from_name || r.adapted_from_url) && (
+            <div className="d-credit">
+              {r.author && (
+                <p className="byline">
+                  Shared by {r.author.display_name || "a banana fan"}
+                  {r.published_at ? ` on ${shortDate(r.published_at)}` : ""}
+                </p>
+              )}
+              {(r.adapted_from_name || r.adapted_from_url) && (
+                <p className="adapted-from">
+                  Adapted from a recipe by:{" "}
+                  {r.adapted_from_url ? (
+                    <a href={r.adapted_from_url} target="_blank" rel="noopener noreferrer">
+                      {r.adapted_from_name || r.adapted_from_url}
+                    </a>
+                  ) : (
+                    r.adapted_from_name
+                  )}
+                </p>
+              )}
+            </div>
+          )}
           {gallery.length > 1 && (
             <ul className="thumbs" aria-label="More photos and videos">
               {gallery.slice(1).map((m) => (
@@ -99,6 +121,7 @@ export default async function RecipePage({ params, searchParams }: PageProps<"/r
             </ul>
           )}
         </div>
+
         <div className="d-intro">
           <h1 className="h1">{titleCase(r.title)}</h1>
           {r.description && <p className="lede">{r.description}</p>}
@@ -119,69 +142,57 @@ export default async function RecipePage({ params, searchParams }: PageProps<"/r
               <div className="recipe-notes-body" dangerouslySetInnerHTML={{ __html: renderPostMarkdown(r.notes) }} />
             </div>
           ) : null}
-          <div className="d-nutrition-made">
-            {nutrition ? <NutritionFactsPanel nutrition={nutrition} /> : null}
-            <div id="made">
-              <MadeItForm recipeId={r.id} signedIn={!!userId} slug={r.slug} />
-            </div>
-          </div>
-          {r.author && <p className="byline">Shared by {r.author.display_name || "a banana fan"}{r.published_at ? ` on ${shortDate(r.published_at)}` : ""}</p>}
-          {(r.adapted_from_name || r.adapted_from_url) && (
-            <p className="adapted-from">
-              Adapted from{" "}
-              {r.adapted_from_url ? (
-                <a href={r.adapted_from_url} target="_blank" rel="noopener noreferrer">
-                  {r.adapted_from_name || r.adapted_from_url}
-                </a>
-              ) : (
-                r.adapted_from_name
-              )}
-            </p>
-          )}
-          {r.status === "pending" && isEditorRole(profile) && <div className="panel" style={{ marginTop: "1.2rem" }}><h2>Review</h2><ReviewButtons recipeId={r.id} /></div>}
-        </div>
-      </section>
-
-      <section className="made-grid d-cook" aria-label="Steps, ratings and tips">
-        <div className="d-steps" aria-labelledby="steps-h">
-          <h2 id="steps-h">Steps</h2>
-          {r.steps.map((group, gi) => (
-            <div key={gi} className="step-group">
-              {group.title ? <h3 className="step-group-title">{group.title}</h3> : null}
-              <ol className="steps">
-                {group.steps.map((s, i) => {
-                  const timers = timersIn(s.text);
-                  return (
-                    <li key={i}>
-                      <div>
-                        <p>{s.text}</p>
-                        {s.media && (
-                          <div className="step-media-view">
-                            <MediaView
-                              path={s.media.path}
-                              kind={s.media.kind}
-                              alt={`${group.title || "Step"} ${i + 1}`}
-                              sizes="(max-width: 900px) 100vw, 560px"
-                            />
-                          </div>
+          <div className="d-steps" aria-labelledby="steps-h">
+            <h2 id="steps-h">Steps</h2>
+            {r.steps.map((group, gi) => (
+              <div key={gi} className="step-group">
+                {group.title ? <h3 className="step-group-title">{group.title}</h3> : null}
+                <ol className="steps">
+                  {group.steps.map((s, i) => {
+                    const timers = timersIn(s.text);
+                    return (
+                      <li key={i}>
+                        <div>
+                          <p>{s.text}</p>
+                          {s.media && (
+                            <div className="step-media-view">
+                              <MediaView
+                                path={s.media.path}
+                                kind={s.media.kind}
+                                alt={`${group.title || "Step"} ${i + 1}`}
+                                sizes="(max-width: 900px) 100vw, 560px"
+                              />
+                            </div>
+                          )}
+                        </div>
+                        {timers.length > 0 && (
+                          <p className="timer-hint">
+                            <span className="timer-hint-icon" aria-hidden="true">⏲️</span>
+                            <span className="timer-hint-label">{timers.map((t) => t.label).join(", ")}</span>
+                          </p>
                         )}
-                      </div>
-                      {timers.length > 0 && (
-                        <p className="timer-hint">
-                          <span className="timer-hint-icon" aria-hidden="true">⏲️</span>
-                          <span className="timer-hint-label">{timers.map((t) => t.label).join(", ")}</span>
-                        </p>
-                      )}
-                    </li>
-                  );
-                })}
-              </ol>
+                      </li>
+                    );
+                  })}
+                </ol>
+              </div>
+            ))}
+          </div>
+          {r.status === "pending" && isEditorRole(profile) && (
+            <div className="panel" style={{ marginTop: "1.2rem" }}>
+              <h2>Review</h2>
+              <ReviewButtons recipeId={r.id} />
             </div>
-          ))}
+          )}
         </div>
-        <div className="d-made-col">
-          <div>
-            <h2 style={{ marginBottom: "1rem" }}>From Other Cooks</h2>
+
+        <div className="d-engage" aria-label="Nutrition, ratings and tips">
+          {nutrition ? <NutritionFactsPanel nutrition={nutrition} /> : null}
+          <div id="made">
+            <MadeItForm recipeId={r.id} signedIn={!!userId} slug={r.slug} />
+          </div>
+          <div className="d-cooks">
+            <h2>From Other Cooks</h2>
             {logs.length ? (
               <ul className="reviews">
                 {logs.map((l) => (
