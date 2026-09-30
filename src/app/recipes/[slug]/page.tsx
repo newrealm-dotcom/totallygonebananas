@@ -124,68 +124,72 @@ export default async function RecipePage({ params, searchParams }: PageProps<"/r
           )}
         </div>
 
-        <div className="d-intro">
-          <h1 className="h1">{titleCase(r.title)}</h1>
-          {r.description && <p className="lede">{r.description}</p>}
-          {r.equipment?.length ? (
-            <div className="equip-panel" aria-labelledby="equip-title">
-              <h2 id="equip-title">Equipment</h2>
-              <ol className="equip-list">
-                {r.equipment.map((item, i) => (
-                  <li key={i}>{item}</li>
-                ))}
-              </ol>
-            </div>
-          ) : null}
-          <IngredientPanel ingredients={r.ingredients} servings={r.servings} />
-          {r.notes?.trim() ? (
-            <div className="recipe-notes" aria-labelledby="notes-title">
-              <h2 id="notes-title">Notes</h2>
-              <div className="recipe-notes-body" dangerouslySetInnerHTML={{ __html: renderPostMarkdown(r.notes) }} />
-            </div>
-          ) : null}
-          <div className="d-steps" aria-labelledby="steps-h">
-            <h2 id="steps-h">Steps</h2>
-            {r.steps.map((group, gi) => (
-              <div key={gi} className="step-group">
-                {group.title ? <h3 className="step-group-title">{group.title}</h3> : null}
-                <ol className="steps">
-                  {group.steps.map((s, i) => {
-                    const timers = timersIn(s.text);
-                    return (
-                      <li key={i}>
-                        <div>
-                          <p>{s.text}</p>
-                          {s.media && (
-                            <div className="step-media-view">
-                              <MediaView
-                                path={s.media.path}
-                                kind={s.media.kind}
-                                alt={`${group.title || "Step"} ${i + 1}`}
-                                sizes="(max-width: 900px) 100vw, 560px"
-                              />
-                            </div>
-                          )}
-                        </div>
-                        {timers.length > 0 && (
-                          <p className="timer-hint">
-                            <span className="timer-hint-icon" aria-hidden="true">⏲️</span>
-                            <span className="timer-hint-label">{timers.map((t) => t.label).join(", ")}</span>
-                          </p>
-                        )}
-                      </li>
-                    );
-                  })}
+        <div className="d-right">
+          <div className="d-heading">
+            <h1 className="h1">{titleCase(r.title)}</h1>
+            {r.description && <p className="lede">{r.description}</p>}
+          </div>
+          <div className="d-intro">
+            {r.equipment?.length ? (
+              <div className="equip-panel" aria-labelledby="equip-title">
+                <h2 id="equip-title">Equipment</h2>
+                <ol className="equip-list">
+                  {r.equipment.map((item, i) => (
+                    <li key={i}>{item}</li>
+                  ))}
                 </ol>
               </div>
-            ))}
-          </div>
-          {r.status === "pending" && isEditorRole(profile) && (
-            <div className="panel" style={{ marginTop: "1.2rem" }}>
-              <h2>Review</h2>
-              <ReviewButtons recipeId={r.id} />
+            ) : null}
+            <IngredientPanel ingredients={r.ingredients} servings={r.servings} />
+            {r.notes?.trim() ? (
+              <div className="recipe-notes" aria-labelledby="notes-title">
+                <h2 id="notes-title">Notes</h2>
+                <div className="recipe-notes-body" dangerouslySetInnerHTML={{ __html: renderPostMarkdown(r.notes) }} />
+              </div>
+            ) : null}
+            <div className="d-steps" aria-labelledby="steps-h">
+              <h2 id="steps-h">Steps</h2>
+              {r.steps.map((group, gi) => (
+                <div key={gi} className="step-group">
+                  {group.title ? <h3 className="step-group-title">{group.title}</h3> : null}
+                  <ol className="steps">
+                    {group.steps.map((s, i) => {
+                      const timers = timersIn(s.text);
+                      return (
+                        <li key={i}>
+                          <div>
+                            <p>{s.text}</p>
+                            {s.media && (
+                              <div className="step-media-view">
+                                <MediaView
+                                  path={s.media.path}
+                                  kind={s.media.kind}
+                                  alt={`${group.title || "Step"} ${i + 1}`}
+                                  sizes="(max-width: 900px) 100vw, 560px"
+                                />
+                              </div>
+                            )}
+                          </div>
+                          {timers.length > 0 && (
+                            <p className="timer-hint">
+                              <span className="timer-hint-icon" aria-hidden="true">⏲️</span>
+                              <span className="timer-hint-label">{timers.map((t) => t.label).join(", ")}</span>
+                            </p>
+                          )}
+                        </li>
+                      );
+                    })}
+                  </ol>
+                </div>
+              ))}
             </div>
-          )}
+            {r.status === "pending" && isEditorRole(profile) && (
+              <div className="panel" style={{ marginTop: "1.2rem" }}>
+                <h2>Review</h2>
+                <ReviewButtons recipeId={r.id} />
+              </div>
+            )}
+          </div>
         </div>
 
         <div className="d-engage" aria-label="Nutrition, ratings and tips">

@@ -874,8 +874,8 @@ video.media-fill { background: #000; }
   display: grid;
   grid-template-columns: minmax(0, 5fr) minmax(0, 6fr);
   grid-template-areas:
-    "media intro"
-    "engage intro";
+    "media right"
+    "engage right";
   gap: 1.5rem 2rem;
   align-items: start;
   padding: 1rem 0 1.4rem;
@@ -899,8 +899,15 @@ video.media-fill { background: #000; }
 .thumbs { list-style: none; padding: 0; margin: .9rem 0 0; width: 100%; display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: .7rem; }
 .thumbs li { display: grid; gap: .25rem; font-size: .8rem; font-weight: 700; color: var(--muted); }
 .thumb-media { position: relative; aspect-ratio: 4 / 3; border: 2.5px solid var(--line); border-radius: 14px; overflow: hidden; }
+.d-right {
+  grid-area: right;
+  display: grid;
+  gap: 0;
+  align-content: start;
+  min-width: 0;
+}
+.d-heading { min-width: 0; }
 .d-intro {
-  grid-area: intro;
   display: grid;
   gap: 0;
   align-content: start;
@@ -1840,10 +1847,15 @@ html[data-theme="dark"] .login-hero-stack .login-hero-dark { display: block; }
   .d-hero {
     grid-template-columns: 1fr;
     grid-template-areas:
+      "heading"
       "media"
       "intro"
       "engage";
   }
+  .d-right { display: contents; }
+  .d-heading { grid-area: heading; }
+  .d-intro { grid-area: intro; }
+  .d-heading .h1 { margin-bottom: .45rem; }
   .d-media { position: static; }
   .adapted-from {
     display: grid;
