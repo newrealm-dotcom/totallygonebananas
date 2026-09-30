@@ -6,6 +6,7 @@ import { NavLinks } from "@/components/NavLinks";
 import { BrandLogo } from "@/components/BrandLogo";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { MobileNav } from "@/components/MobileNav";
+import { HeaderCompactMode } from "@/components/HeaderCompactMode";
 
 export async function SiteHeader() {
   const [{ userId, profile }, standings] = await Promise.all([getViewer(), getViewerStandings()]);
@@ -13,6 +14,7 @@ export async function SiteHeader() {
   const name = profile?.display_name || "You";
   return (
     <header className="top">
+      <HeaderCompactMode />
       <div className="wrap">
         <NavLinks side="left" />
         <BrandLogo />
