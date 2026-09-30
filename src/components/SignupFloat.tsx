@@ -1,13 +1,8 @@
-import Link from "next/link";
 import { getViewer } from "@/lib/queries";
+import { SignupFloatButton } from "@/components/SignupFloatButton";
 
 export async function SignupFloat() {
   const { userId } = await getViewer();
   if (userId) return null;
-
-  return (
-    <Link className="signup-float" href="/login">
-      Sign up for a free account
-    </Link>
-  );
+  return <SignupFloatButton />;
 }
