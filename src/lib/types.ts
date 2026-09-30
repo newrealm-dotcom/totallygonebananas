@@ -92,6 +92,8 @@ export interface Recipe {
   author_id: string | null;
   review_note: string | null;
   referred_by: string | null;
+  adapted_from_name: string | null;
+  adapted_from_url: string | null;
   created_at: string;
   updated_at: string;
   published_at: string | null;

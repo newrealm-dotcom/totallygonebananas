@@ -54,6 +54,8 @@ export interface RecipeFormValues {
   ingredientGroups: IngredientGroupRow[];
   stepGroups: StepGroupRow[];
   gallery: Upload[];
+  adaptedFromName: string;
+  adaptedFromUrl: string;
 }
 
 const uid = () => (typeof crypto !== "undefined" && "randomUUID" in crypto ? crypto.randomUUID() : Math.random().toString(36).slice(2));
@@ -103,6 +105,8 @@ export function blankValues(categoryId = ""): RecipeFormValues {
       ],
     }],
     gallery: [],
+    adaptedFromName: "",
+    adaptedFromUrl: "",
   };
 }
 
@@ -144,6 +148,8 @@ export function valuesFromRecipe(r: {
   ingredients: unknown;
   steps: unknown;
   recipe_media: { kind: MediaKind; path: string; caption: string | null }[] | null;
+  adapted_from_name?: string | null;
+  adapted_from_url?: string | null;
 }): RecipeFormValues {
   const existing = (kind: MediaKind, path: string, caption = ""): Upload => ({
     id: uid(),
@@ -177,6 +183,8 @@ export function valuesFromRecipe(r: {
     ingredientGroups: groupsToFormRows(ingredientGroups.length ? ingredientGroups : [{ title: "", items: [] }]),
     stepGroups: stepGroupsToFormRows(stepGroups.length ? stepGroups : [{ title: "", steps: [] }], existing),
     gallery: media.map((m) => existing(m.kind, m.path, m.caption ?? "")),
+    adaptedFromName: r.adapted_from_name ?? "",
+    adaptedFromUrl: r.adapted_from_url ?? "",
   };
 }
 
@@ -215,6 +223,8 @@ export function mergeRecipeDraft(
     ingredientGroups,
     stepGroups,
     gallery: Array.isArray(draft.gallery) ? draft.gallery : base.gallery,
+    adaptedFromName: typeof draft.adaptedFromName === "string" ? draft.adaptedFromName : base.adaptedFromName,
+    adaptedFromUrl: typeof draft.adaptedFromUrl === "string" ? draft.adaptedFromUrl : base.adaptedFromUrl,
   };
 }
 

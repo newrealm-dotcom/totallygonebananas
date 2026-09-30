@@ -881,6 +881,17 @@ video.media-fill { background: #000; }
 .d-intro { display: grid; gap: 0; align-content: start; min-width: 0; }
 .d-hero .lede { margin-bottom: .4rem; }
 .byline { font-weight: 700; color: var(--muted); margin: calc(.6rem + 10px) 0 0; }
+.adapted-from {
+  margin: .35rem 0 0;
+  font-weight: 700;
+  color: var(--muted);
+}
+.adapted-from a {
+  color: var(--ink);
+  font-weight: 800;
+  text-underline-offset: 3px;
+}
+.adapted-from a:hover { text-decoration: underline; }
 .d-actions { display: flex; flex-wrap: wrap; gap: .8rem; align-items: center; }
 .d-intro .ing-panel { margin-top: .9rem; }
 .d-intro .ing-panel > h2 { margin-top: 0; font-size: clamp(1.6rem, 3.2vw, 2.3rem); }
@@ -923,7 +934,24 @@ video.media-fill { background: #000; }
 .d-cook { padding: .4rem 0 2.2rem; }
 .d-steps h2 { margin: 0 0 1rem; }
 .d-made-col { display: grid; gap: 1.5rem; align-content: start; min-width: 0; }
-.d-made-col .panel h2 { margin: 0 0 .5rem; font-size: clamp(1.6rem, 3.2vw, 2.3rem); }
+.d-nutrition-made {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 1.25rem;
+  align-items: start;
+  margin-top: 1.2rem;
+}
+.d-nutrition-made .nf-wrap { margin-top: 0; max-width: none; }
+.d-nutrition-made .panel { margin: 0; }
+.d-nutrition-made .panel h2 {
+  margin: 0 0 .5rem;
+  font-size: clamp(1.6rem, 3.2vw, 2.3rem);
+}
+@media (min-width: 901px) {
+  .d-nutrition-made:has(.nf-wrap) {
+    grid-template-columns: minmax(0, 22rem) minmax(0, 1fr);
+  }
+}
 .ing-panel { position: static; }
 .ing-group + .ing-group { margin-top: 1rem; }
 .ing-group-title,

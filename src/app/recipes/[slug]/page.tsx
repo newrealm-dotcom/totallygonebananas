@@ -119,13 +119,30 @@ export default async function RecipePage({ params, searchParams }: PageProps<"/r
               <div className="recipe-notes-body" dangerouslySetInnerHTML={{ __html: renderPostMarkdown(r.notes) }} />
             </div>
           ) : null}
-          {nutrition ? <NutritionFactsPanel nutrition={nutrition} /> : null}
+          <div className="d-nutrition-made">
+            {nutrition ? <NutritionFactsPanel nutrition={nutrition} /> : null}
+            <div id="made">
+              <MadeItForm recipeId={r.id} signedIn={!!userId} slug={r.slug} />
+            </div>
+          </div>
           {r.author && <p className="byline">Shared by {r.author.display_name || "a banana fan"}{r.published_at ? ` on ${shortDate(r.published_at)}` : ""}</p>}
+          {(r.adapted_from_name || r.adapted_from_url) && (
+            <p className="adapted-from">
+              Adapted from{" "}
+              {r.adapted_from_url ? (
+                <a href={r.adapted_from_url} target="_blank" rel="noopener noreferrer">
+                  {r.adapted_from_name || r.adapted_from_url}
+                </a>
+              ) : (
+                r.adapted_from_name
+              )}
+            </p>
+          )}
           {r.status === "pending" && isEditorRole(profile) && <div className="panel" style={{ marginTop: "1.2rem" }}><h2>Review</h2><ReviewButtons recipeId={r.id} /></div>}
         </div>
       </section>
 
-      <section className="made-grid d-cook" id="made" aria-label="Steps, ratings and tips">
+      <section className="made-grid d-cook" aria-label="Steps, ratings and tips">
         <div className="d-steps" aria-labelledby="steps-h">
           <h2 id="steps-h">Steps</h2>
           {r.steps.map((group, gi) => (
@@ -163,7 +180,6 @@ export default async function RecipePage({ params, searchParams }: PageProps<"/r
           ))}
         </div>
         <div className="d-made-col">
-          <MadeItForm recipeId={r.id} signedIn={!!userId} slug={r.slug} />
           <div>
             <h2 style={{ marginBottom: "1rem" }}>From Other Cooks</h2>
             {logs.length ? (

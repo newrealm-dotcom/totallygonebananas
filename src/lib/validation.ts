@@ -92,6 +92,13 @@ export const recipeInput = z.object({
       }
     }),
   gallery: z.array(mediaRef.extend({ caption: z.string().trim().max(140).default("") })).max(12, "Up to 12 photos and videos"),
+  adaptedFromName: z.string().trim().max(120, "Keep the adapted-from name under 120 characters").default(""),
+  adaptedFromUrl: z
+    .string()
+    .trim()
+    .max(500, "Keep the adapted-from URL under 500 characters")
+    .default("")
+    .refine((s) => !s || /^https?:\/\/.+/i.test(s), "Use a full http:// or https:// link"),
   intent: z.enum(["draft", "submit", "publish"]),
 });
 

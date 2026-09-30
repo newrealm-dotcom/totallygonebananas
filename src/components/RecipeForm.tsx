@@ -45,6 +45,7 @@ const SECTIONS = [
   ["ingredients", "Ingredients"],
   ["steps", "Steps"],
   ["details", "Details"],
+  ["adapted", "Adapted from"],
 ] as const;
 const DIFFICULTY = ["Easy", "Simple", "Medium", "Tricky", "Showstopper"];
 
@@ -458,6 +459,8 @@ export function RecipeForm({ userId, isEditor, categories, recipeId, initial }: 
       equipment: v.equipment.map((r) => r.text.trim()).filter(Boolean),
       steps: stepGroups.length ? stepGroups : [{ title: "", steps: [] as { text: string; media: null }[] }],
       gallery: v.gallery.filter((u) => u.status === "done" && u.path).map((u) => ({ kind: u.kind, path: u.path!, caption: u.caption })),
+      adaptedFromName: v.adaptedFromName.trim(),
+      adaptedFromUrl: v.adaptedFromUrl.trim(),
       intent,
     };
     // Drafts may be incomplete; give the server something valid to hold on to.
@@ -942,6 +945,42 @@ export function RecipeForm({ userId, isEditor, categories, recipeId, initial }: 
             <NutritionFactsPanel nutrition={nutritionPreview} />
           </div>
         )}
+      </section>
+
+      {/* 7. Adapted from */}
+      <section className="rf-sec" id={fid("adapted")} aria-labelledby={fid("adapted-h")}>
+        <h2 id={fid("adapted-h")}><span className="num" aria-hidden="true">7</span>Adapted this recipe from <small>(optional)</small></h2>
+        <p className="hint">Credit the original source if you adapted this. Leave blank to hide this on the recipe page. Links open in a new tab.</p>
+        <div className="f-grid two">
+          <div className="f" id={fid("adaptedFromName")}>
+            <label htmlFor={fid("adapted-name")}>Source name</label>
+            <input
+              id={fid("adapted-name")}
+              className="field"
+              maxLength={120}
+              value={v.adaptedFromName}
+              placeholder="Serious Eats banana bread"
+              onChange={(e) => set("adaptedFromName", e.target.value)}
+              aria-invalid={!!err("adaptedFromName")}
+            />
+            {err("adaptedFromName") && <p className="f-err">{err("adaptedFromName")}</p>}
+          </div>
+          <div className="f" id={fid("adaptedFromUrl")}>
+            <label htmlFor={fid("adapted-url")}>Source URL</label>
+            <input
+              id={fid("adapted-url")}
+              className="field"
+              type="url"
+              inputMode="url"
+              maxLength={500}
+              value={v.adaptedFromUrl}
+              placeholder="https://…"
+              onChange={(e) => set("adaptedFromUrl", e.target.value)}
+              aria-invalid={!!err("adaptedFromUrl")}
+            />
+            {err("adaptedFromUrl") && <p className="f-err">{err("adaptedFromUrl")}</p>}
+          </div>
+        </div>
       </section>
 
       {/* Submit */}

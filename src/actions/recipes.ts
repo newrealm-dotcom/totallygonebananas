@@ -103,6 +103,8 @@ export async function saveRecipe(raw: unknown, recipeId?: string): Promise<SaveR
     })),
     cover_path: cover,
     status,
+    adapted_from_name: input.adaptedFromName || null,
+    adapted_from_url: input.adaptedFromUrl || null,
   };
 
   let id: string;
