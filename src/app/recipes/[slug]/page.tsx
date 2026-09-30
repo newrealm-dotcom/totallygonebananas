@@ -98,14 +98,16 @@ export default async function RecipePage({ params, searchParams }: PageProps<"/r
               )}
               {(r.adapted_from_name || r.adapted_from_url) && (
                 <p className="adapted-from">
-                  Adapted from a recipe by:{" "}
-                  {r.adapted_from_url ? (
-                    <a href={r.adapted_from_url} target="_blank" rel="noopener noreferrer">
-                      {r.adapted_from_name || r.adapted_from_url}
-                    </a>
-                  ) : (
-                    r.adapted_from_name
-                  )}
+                  <span className="adapted-from-label">Adapted from a recipe by:</span>{" "}
+                  <span className="adapted-from-source">
+                    {r.adapted_from_url ? (
+                      <a href={r.adapted_from_url} target="_blank" rel="noopener noreferrer">
+                        {r.adapted_from_name || r.adapted_from_url}
+                      </a>
+                    ) : (
+                      r.adapted_from_name
+                    )}
+                  </span>
                 </p>
               )}
             </div>

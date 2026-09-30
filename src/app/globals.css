@@ -933,6 +933,7 @@ video.media-fill { background: #000; }
   font-weight: 700;
   color: var(--muted);
 }
+.adapted-from-source { display: inline; }
 .adapted-from a {
   color: var(--ink);
   font-weight: 800;
@@ -1844,6 +1845,12 @@ html[data-theme="dark"] .login-hero-stack .login-hero-dark { display: block; }
       "engage";
   }
   .d-media { position: static; }
+  .adapted-from {
+    display: grid;
+    gap: .15rem;
+    justify-items: center;
+  }
+  .adapted-from-source { display: block; }
   .mascot-wrap { order: -1; }
   .about-slide {
     position: relative;
