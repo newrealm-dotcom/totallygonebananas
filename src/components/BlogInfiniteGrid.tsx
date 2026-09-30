@@ -50,7 +50,7 @@ function PostCard({
           {excerpt ? <p className="blog-featured-excerpt">{excerpt}</p> : null}
           <div className="blog-featured-meta">
             {post.published_at ? <span>{shortDate(post.published_at)}</span> : null}
-            <Link className="btn small" href={href}>Read the story</Link>
+            <Link className="btn blog-read-cta" href={href}>Read the story</Link>
           </div>
         </div>
       </article>

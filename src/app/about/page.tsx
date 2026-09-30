@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { AboutSlide } from "@/components/AboutSlide";
+import { HeroSlide } from "@/components/HeroSlide";
 import { getDarkMainSliderImages, getMainSliderImages, pickRandomSlide } from "@/lib/main-slider";
 
 export const metadata: Metadata = { title: "About" };
@@ -25,7 +25,9 @@ export default async function AboutPage() {
           <p className="about-note">* Editors give new submissions a quick look before they go live.</p>
           <p><Link className="btn" href="/recipes/new">Share a recipe</Link></p>
         </div>
-        <AboutSlide lightSrc={heroLight} darkSrc={heroDark} />
+        <div className="mascot-wrap about-slide">
+          <HeroSlide lightSrc={heroLight} darkSrc={heroDark} />
+        </div>
       </div>
     </div>
   );

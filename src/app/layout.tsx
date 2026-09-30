@@ -5,6 +5,8 @@ import "@fontsource-variable/nunito/index.css";
 import "./globals.css";
 import { SiteHeader } from "@/components/SiteHeader";
 import { SiteFooter } from "@/components/SiteFooter";
+import { BackToTop } from "@/components/BackToTop";
+import { SignupFloat } from "@/components/SignupFloat";
 import { siteUrl } from "@/lib/env";
 
 export const metadata: Metadata = {
@@ -32,6 +34,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <SiteHeader />
         <main id="main">{children}</main>
         <SiteFooter />
+        <SignupFloat />
+        <BackToTop />
       </body>
     </html>
   );
