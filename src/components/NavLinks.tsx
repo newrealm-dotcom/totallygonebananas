@@ -12,6 +12,12 @@ const LEFT = [
 
 const RIGHT = [
   { href: "/profile", label: "My Banana Stand", match: (p: string) => p.startsWith("/profile") },
+  {
+    href: "https://store.totallygonebananas.com/",
+    label: "Merch",
+    match: () => false,
+    external: true,
+  },
   { href: "/about", label: "About", match: (p: string) => p === "/about" },
 ];
 
@@ -21,9 +27,17 @@ export function NavLinks({ side }: { side: "left" | "right" }) {
 
   return (
     <nav className={`main ${side}`} aria-label={side === "left" ? "Main" : "Account"}>
-      {links.map((l) => (
-        <Link key={l.href} href={l.href} aria-current={l.match(path) ? "page" : undefined}>{l.label}</Link>
-      ))}
+      {links.map((l) =>
+        "external" in l && l.external ? (
+          <a key={l.href} href={l.href} target="_blank" rel="noopener noreferrer">
+            {l.label}
+          </a>
+        ) : (
+          <Link key={l.href} href={l.href} aria-current={l.match(path) ? "page" : undefined}>
+            {l.label}
+          </Link>
+        ),
+      )}
     </nav>
   );
 }

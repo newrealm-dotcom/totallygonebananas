@@ -38,6 +38,9 @@ export function SiteFooter() {
           <Link href="/our-faves">Our Faves</Link>
           <Link href="/recipes/new">Share a recipe</Link>
           <Link href="/profile">My Banana Stand</Link>
+          <a href="https://store.totallygonebananas.com/" target="_blank" rel="noopener noreferrer">
+            Merch
+          </a>
           <Link href="/about">About</Link>
         </nav>
         <div className="footer-social">

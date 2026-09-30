@@ -10,6 +10,12 @@ const LINKS = [
   { href: "/blog", label: "Blog", match: (p: string) => p.startsWith("/blog") },
   { href: "/our-faves", label: "Our Faves", match: (p: string) => p.startsWith("/our-faves") },
   { href: "/profile", label: "My Banana Stand", match: (p: string) => p.startsWith("/profile") },
+  {
+    href: "https://store.totallygonebananas.com/",
+    label: "Merch",
+    match: () => false,
+    external: true,
+  },
   { href: "/about", label: "About", match: (p: string) => p === "/about" },
 ] as const;
 
@@ -49,16 +55,28 @@ export function MobileNav() {
         </span>
       </button>
       <nav id={panelId} className="mobile-nav-panel" aria-label="Site" hidden={!open}>
-        {LINKS.map((l) => (
-          <Link
-            key={l.href}
-            href={l.href}
-            aria-current={l.match(path) ? "page" : undefined}
-            onClick={() => setOpen(false)}
-          >
-            {l.label}
-          </Link>
-        ))}
+        {LINKS.map((l) =>
+          "external" in l && l.external ? (
+            <a
+              key={l.href}
+              href={l.href}
+              target="_blank"
+              rel="noopener noreferrer"
+              onClick={() => setOpen(false)}
+            >
+              {l.label}
+            </a>
+          ) : (
+            <Link
+              key={l.href}
+              href={l.href}
+              aria-current={l.match(path) ? "page" : undefined}
+              onClick={() => setOpen(false)}
+            >
+              {l.label}
+            </Link>
+          ),
+        )}
       </nav>
     </div>
   );
