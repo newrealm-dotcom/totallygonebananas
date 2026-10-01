@@ -580,7 +580,7 @@ textarea.field { resize: vertical; line-height: 1.45; }
 .tag-add { display: flex; flex-wrap: wrap; gap: .5rem; align-items: center; margin-top: .75rem; }
 .tag-add .field { flex: 1 1 12rem; min-width: 0; margin: 0; }
 .row-actions { display: flex; flex-wrap: wrap; gap: .7rem; align-items: center; }
-.notice-inline { display: flex; gap: 1rem; align-items: center; flex-wrap: wrap; background: #C7E7D7; color: var(--brown); border: 3px solid var(--brown); border-radius: 18px; padding: .7rem 1rem; font-weight: 800; margin: 1.2rem 0 0; }
+.notice-inline { display: flex; gap: 1rem; align-items: center; flex-wrap: wrap; background: #C7E7D7; color: var(--brown); border: 3px solid var(--brown); border-radius: 18px; padding: 1rem; font-weight: 800; margin: 1.2rem 0 0; }
 .notice-inline.warn { background: var(--yellow); }
 .notice-inline .linkbtn { color: var(--brown); }
 .notice-inline-mascot {
