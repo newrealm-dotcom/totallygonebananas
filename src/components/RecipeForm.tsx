@@ -38,11 +38,11 @@ function splitList(text: string) {
 
 const SECTIONS = [
   ["basics", "Basics"],
+  ["details", "Details"],
   ["media", "Photos & video"],
   ["equipment", "Equipment"],
   ["ingredients", "Ingredients"],
   ["steps", "Steps"],
-  ["details", "Details"],
   ["adapted", "Adapted from"],
 ] as const;
 const DIFFICULTY = ["Easy", "Simple", "Medium", "Tricky", "Showstopper"];
@@ -524,9 +524,112 @@ export function RecipeForm({ userId, isEditor, categories, recipeId, initial }: 
         </div>
       </section>
 
-      {/* 2. Photos & video */}
+      {/* 2. Details */}
+      <section className="rf-sec" id={fid("details")} aria-labelledby={fid("det-h")}>
+        <h2 id={fid("det-h")}><span className="num" aria-hidden="true">2</span>Details <small>(optional)</small></h2>
+        <div className="f-grid three">
+          <div className="f"><label htmlFor={fid("time")}>Total time (minutes)</label><input id={fid("time")} className="field" type="number" inputMode="numeric" min={1} max={2880} value={v.totalMinutes} onChange={(e) => set("totalMinutes", e.target.value)} aria-invalid={!!err("totalMinutes")} />{err("totalMinutes") && <p className="f-err">{err("totalMinutes")}</p>}</div>
+          <div className="f">
+            <label htmlFor={fid("serv")}>Serving Size</label>
+            <input
+              id={fid("serv")}
+              className="field"
+              maxLength={80}
+              value={v.servings}
+              placeholder="1 loaf, 12 muffins, serves 4…"
+              onChange={(e) => set("servings", e.target.value)}
+              aria-invalid={!!err("servings")}
+            />
+            {err("servings") && <p className="f-err">{err("servings")}</p>}
+          </div>
+          <div className="f"><label htmlFor={fid("diff")}>Difficulty</label>
+            <select
+              id={fid("diff")}
+              className="field"
+              value={v.difficulty ?? ""}
+              onChange={(e) => set("difficulty", e.target.value ? Number(e.target.value) : null)}
+            >
+              <option value="">Choose…</option>
+              {DIFFICULTY.map((d, i) => <option key={d} value={i + 1}>{"🍌".repeat(i + 1)} {d}</option>)}
+            </select>
+          </div>
+        </div>
+        <div className="f">
+          <label htmlFor={fid("notes")}>Notes</label>
+          <PostBodyEditor
+            id={fid("notes")}
+            value={v.notes}
+            onChange={(html) => set("notes", html)}
+            invalid={!!err("notes")}
+            placeholder="Tips, swaps, make-ahead notes…"
+            ariaLabel="Recipe notes"
+            compact
+          />
+          {err("notes") && <p className="f-err">{err("notes")}</p>}
+        </div>
+        <fieldset className="f" id={fid("tags")}>
+          <legend>Tags</legend>
+          <div className="tagbox">
+            {TAGS.map((t) => (
+              <label key={t}>
+                <input
+                  type="checkbox"
+                  checked={v.tags.includes(t)}
+                  onChange={(e) => {
+                    setTagError("");
+                    set("tags", e.target.checked ? [...v.tags, t] : v.tags.filter((x) => x !== t));
+                  }}
+                />{" "}
+                {t}
+              </label>
+            ))}
+            {v.tags.filter((t) => !(TAGS as readonly string[]).includes(t)).map((t) => (
+              <label key={t} className="tag-custom">
+                <input
+                  type="checkbox"
+                  checked
+                  onChange={() => {
+                    setTagError("");
+                    set("tags", v.tags.filter((x) => x !== t));
+                  }}
+                />{" "}
+                {t}
+              </label>
+            ))}
+          </div>
+          <div className="tag-add">
+            <label className="sr" htmlFor={fid("tag-in")}>Add a custom tag</label>
+            <input
+              id={fid("tag-in")}
+              className="field"
+              maxLength={24}
+              value={customTag}
+              placeholder="Add your own tag…"
+              aria-invalid={!!(tagError || err("tags"))}
+              aria-describedby={tagError || err("tags") ? fid("tag-err") : undefined}
+              onChange={(e) => {
+                setCustomTag(e.target.value);
+                if (tagError) setTagError("");
+              }}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  e.preventDefault();
+                  addCustomTag();
+                }
+              }}
+            />
+            <button type="button" className="btn ghost small" onClick={addCustomTag} disabled={!customTag.trim()}>
+              Add tag
+            </button>
+          </div>
+          <p className="hint">Letters, numbers, spaces, or hyphens. No profanity or nonsense.</p>
+          {(tagError || err("tags")) && <p className="f-err" id={fid("tag-err")} role="alert">{tagError || err("tags")}</p>}
+        </fieldset>
+      </section>
+
+      {/* 3. Photos & video */}
       <section className="rf-sec" id={fid("media")} aria-labelledby={fid("media-h")}>
-        <h2 id={fid("media-h")}><span className="num" aria-hidden="true">2</span>Photos &amp; video</h2>
+        <h2 id={fid("media-h")}><span className="num" aria-hidden="true">3</span>Photos &amp; video</h2>
         <p className="hint">Add up to 12. The first photo becomes the cover. Photos up to 10 MB, videos up to 50 MB (MP4, WebM, or MOV).</p>
         <div
           id={fid("gallery")}
@@ -566,9 +669,9 @@ export function RecipeForm({ userId, isEditor, categories, recipeId, initial }: 
         )}
       </section>
 
-      {/* 3. Equipment */}
+      {/* 4. Equipment */}
       <section className="rf-sec" id={fid("equipment")} aria-labelledby={fid("equip-h")}>
-        <h2 id={fid("equip-h")}><span className="num" aria-hidden="true">3</span>Equipment <small>(optional)</small></h2>
+        <h2 id={fid("equip-h")}><span className="num" aria-hidden="true">4</span>Equipment <small>(optional)</small></h2>
         <p className="hint">Tools and gear the cook will need. Leave blank to hide this section on the recipe page. Press Enter for a new line.</p>
         <ol className="rows-edit">
           {v.equipment.map((r, i) => (
@@ -599,9 +702,9 @@ export function RecipeForm({ userId, isEditor, categories, recipeId, initial }: 
         {pasteFor === "equipment" && <PasteBox label="Paste your equipment list, one per line" value={pasteText} onChange={setPasteText} onApply={applyPaste} onCancel={() => setPasteFor(null)} />}
       </section>
 
-      {/* 4. Ingredients */}
+      {/* 5. Ingredients */}
       <section className="rf-sec" id={fid("ingredients")} aria-labelledby={fid("ing-h")}>
-        <h2 id={fid("ing-h")}><span className="num" aria-hidden="true">4</span>Ingredients</h2>
+        <h2 id={fid("ing-h")}><span className="num" aria-hidden="true">5</span>Ingredients</h2>
         <p className="hint">
           One per line, amount first (&ldquo;1 1/2 cups flour&rdquo;) so the servings scaler can adjust it.
           Add another titled list for frostings, sauces, or mix-ins.
@@ -709,9 +812,9 @@ export function RecipeForm({ userId, isEditor, categories, recipeId, initial }: 
         </div>
       </section>
 
-      {/* 5. Steps */}
+      {/* 6. Steps */}
       <section className="rf-sec" id={fid("steps")} aria-labelledby={fid("steps-h")}>
-        <h2 id={fid("steps-h")}><span className="num" aria-hidden="true">5</span>Steps</h2>
+        <h2 id={fid("steps-h")}><span className="num" aria-hidden="true">6</span>Steps</h2>
         <p className="hint">
           One step per box, in order. Mention times like &ldquo;bake 25 minutes&rdquo; and they&apos;ll be highlighted for the cook.
           Add another titled list for frostings, sauces, or mix-ins.
@@ -833,103 +936,6 @@ export function RecipeForm({ userId, isEditor, categories, recipeId, initial }: 
             Add another step list
           </button>
         </div>
-      </section>
-
-      {/* 6. Details */}
-      <section className="rf-sec" id={fid("details")} aria-labelledby={fid("det-h")}>
-        <h2 id={fid("det-h")}><span className="num" aria-hidden="true">6</span>Details <small>(optional)</small></h2>
-        <div className="f-grid three">
-          <div className="f"><label htmlFor={fid("time")}>Total time (minutes)</label><input id={fid("time")} className="field" type="number" inputMode="numeric" min={1} max={2880} value={v.totalMinutes} onChange={(e) => set("totalMinutes", e.target.value)} aria-invalid={!!err("totalMinutes")} />{err("totalMinutes") && <p className="f-err">{err("totalMinutes")}</p>}</div>
-          <div className="f">
-            <label htmlFor={fid("serv")}>Serving Size</label>
-            <input
-              id={fid("serv")}
-              className="field"
-              maxLength={80}
-              value={v.servings}
-              placeholder="1 loaf, 12 muffins, serves 4…"
-              onChange={(e) => set("servings", e.target.value)}
-              aria-invalid={!!err("servings")}
-            />
-            {err("servings") && <p className="f-err">{err("servings")}</p>}
-          </div>
-          <div className="f"><label htmlFor={fid("diff")}>Difficulty</label>
-            <select id={fid("diff")} className="field" value={v.difficulty} onChange={(e) => set("difficulty", Number(e.target.value))}>
-              {DIFFICULTY.map((d, i) => <option key={d} value={i + 1}>{"🍌".repeat(i + 1)} {d}</option>)}
-            </select>
-          </div>
-        </div>
-        <div className="f">
-          <label htmlFor={fid("notes")}>Notes</label>
-          <PostBodyEditor
-            id={fid("notes")}
-            value={v.notes}
-            onChange={(html) => set("notes", html)}
-            invalid={!!err("notes")}
-            placeholder="Tips, swaps, make-ahead notes…"
-            ariaLabel="Recipe notes"
-            compact
-          />
-          {err("notes") && <p className="f-err">{err("notes")}</p>}
-        </div>
-        <fieldset className="f" id={fid("tags")}>
-          <legend>Tags</legend>
-          <div className="tagbox">
-            {TAGS.map((t) => (
-              <label key={t}>
-                <input
-                  type="checkbox"
-                  checked={v.tags.includes(t)}
-                  onChange={(e) => {
-                    setTagError("");
-                    set("tags", e.target.checked ? [...v.tags, t] : v.tags.filter((x) => x !== t));
-                  }}
-                />{" "}
-                {t}
-              </label>
-            ))}
-            {v.tags.filter((t) => !(TAGS as readonly string[]).includes(t)).map((t) => (
-              <label key={t} className="tag-custom">
-                <input
-                  type="checkbox"
-                  checked
-                  onChange={() => {
-                    setTagError("");
-                    set("tags", v.tags.filter((x) => x !== t));
-                  }}
-                />{" "}
-                {t}
-              </label>
-            ))}
-          </div>
-          <div className="tag-add">
-            <label className="sr" htmlFor={fid("tag-in")}>Add a custom tag</label>
-            <input
-              id={fid("tag-in")}
-              className="field"
-              maxLength={24}
-              value={customTag}
-              placeholder="Add your own tag…"
-              aria-invalid={!!(tagError || err("tags"))}
-              aria-describedby={tagError || err("tags") ? fid("tag-err") : undefined}
-              onChange={(e) => {
-                setCustomTag(e.target.value);
-                if (tagError) setTagError("");
-              }}
-              onKeyDown={(e) => {
-                if (e.key === "Enter") {
-                  e.preventDefault();
-                  addCustomTag();
-                }
-              }}
-            />
-            <button type="button" className="btn ghost small" onClick={addCustomTag} disabled={!customTag.trim()}>
-              Add tag
-            </button>
-          </div>
-          <p className="hint">Letters, numbers, spaces, or hyphens. No profanity or nonsense.</p>
-          {(tagError || err("tags")) && <p className="f-err" id={fid("tag-err")} role="alert">{tagError || err("tags")}</p>}
-        </fieldset>
       </section>
 
       {/* 7. Adapted from */}

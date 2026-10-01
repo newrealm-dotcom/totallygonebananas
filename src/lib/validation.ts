@@ -27,7 +27,7 @@ export const recipeInput = z.object({
   totalMinutes: optionalInt(1, 2880, "Time"),
   notes: z.string().trim().max(20000, "Keep the notes under 20,000 characters").default(""),
   servings: z.string().trim().max(80, "Keep the serving size under 80 characters").default(""),
-  difficulty: z.number().int().min(1).max(5).default(2),
+  difficulty: z.number().int().min(1).max(5).nullable().default(null),
   tags: z
     .array(
       z

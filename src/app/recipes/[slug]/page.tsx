@@ -12,6 +12,7 @@ import { IngredientPanel } from "@/components/IngredientPanel";
 import { MadeItForm } from "@/components/MadeItForm";
 import { KitchenConverter } from "@/components/KitchenConverter";
 import { PrintRecipeButton } from "@/components/PrintRecipeButton";
+import { RecipeFacts } from "@/components/RecipeFacts";
 import { DeleteRecipeButton, RemoveLogButton, ReviewButtons } from "@/components/OwnerTools";
 import type { CookLog } from "@/lib/types";
 
@@ -168,6 +169,11 @@ export default async function RecipePage({ params, searchParams }: PageProps<"/r
         <div className="d-right">
           <div className="d-heading">
             <h1 className="h1">{titleCase(r.title)}</h1>
+            <RecipeFacts
+              difficulty={r.difficulty}
+              servings={r.servings}
+              totalMinutes={r.total_minutes}
+            />
             {r.description && <p className="lede">{r.description}</p>}
           </div>
           <div className="d-intro">

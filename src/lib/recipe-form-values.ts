@@ -48,7 +48,7 @@ export interface RecipeFormValues {
   totalMinutes: string;
   notes: string;
   servings: string;
-  difficulty: number;
+  difficulty: number | null;
   tags: string[];
   equipment: Row[];
   ingredientGroups: IngredientGroupRow[];
@@ -84,7 +84,7 @@ export function blankValues(categoryId = ""): RecipeFormValues {
     totalMinutes: "",
     notes: "",
     servings: "",
-    difficulty: 2,
+    difficulty: null,
     tags: [],
     equipment: [{ id: "equip-0", text: "" }],
     ingredientGroups: [{
@@ -177,7 +177,7 @@ export function valuesFromRecipe(r: {
     totalMinutes: r.total_minutes ? String(r.total_minutes) : "",
     notes,
     servings: r.servings != null && String(r.servings).trim() ? String(r.servings) : "",
-    difficulty: r.difficulty ?? 2,
+    difficulty: r.difficulty ?? null,
     tags: r.tags ?? [],
     equipment: equipment.length ? equipment.map((text) => ({ id: uid(), text })) : [emptyRow()],
     ingredientGroups: groupsToFormRows(ingredientGroups.length ? ingredientGroups : [{ title: "", items: [] }]),
