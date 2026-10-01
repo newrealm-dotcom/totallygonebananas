@@ -2457,9 +2457,41 @@ html[data-theme="dark"] .login-hero-stack .login-hero-dark { display: block; }
   .recipes-page .wrap,
   .recipes-page .wrap.narrow { padding-inline: 0; }
   .recipes-page .wrap > :first-child { margin-top: 0; padding-top: 0; }
+  .recipes-page .wrap > .notice-inline:first-child { padding: 1rem; }
   .recipes-page .lede { max-width: none; }
   .recipes-page .grid { column-gap: 50px; row-gap: 35px; }
-  .recipes-page .d-hero { column-gap: 50px; }
+  .recipes-page .d-hero {
+    column-gap: 50px;
+    padding-bottom: 2.75rem;
+  }
+  .recipes-page .crumbs + .d-hero { padding-top: .85rem; }
+  .recipes-page .crumbs { padding-inline-start: 50px; }
+  /* Open vertical rhythm between recipe sections on desktop. */
+  .recipes-page .d-right { gap: 2.5rem; }
+  .recipes-page .d-intro { gap: 2.75rem; }
+  .recipes-page .d-intro .ing-panel,
+  .recipes-page .d-intro .equip-panel { margin-top: 0; }
+  .recipes-page .d-steps { margin-top: 0; }
+  .recipes-page .recipe-notes { margin-top: 0; }
+  .recipes-page .d-hero .lede { margin-bottom: 0; }
+  .recipes-page .recipe-facts {
+    margin: 1.15rem 0 1.35rem;
+    padding-block: 1.1rem;
+  }
+  .recipes-page .d-art { margin-bottom: 1.85rem; }
+  .recipes-page .d-media .meta { margin-top: 1rem; }
+  .recipes-page .d-credit { margin-top: 1.35rem; gap: .4rem; }
+  .recipes-page .d-media > .kcc,
+  .recipes-page .d-media > .kcc-placeholder { margin-top: 2.25rem; }
+  .recipes-page .d-engage {
+    margin-top: 2.25rem;
+    gap: 2.75rem;
+  }
+  .recipes-page .d-engage > * { padding-bottom: 0; }
+  .recipes-page .d-cooks { padding-top: 0; }
+  .recipes-page .d-cooks h2 { margin-bottom: 1.15rem; }
+  .recipes-page .step-group + .step-group { margin-top: 2rem; }
+  .recipes-page ol.steps { gap: 1.55rem; }
   .hero,
   .about,
   .stand-hero { padding-top: 0; }
