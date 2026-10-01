@@ -196,6 +196,20 @@ export const blogCategoryInput = z.object({
 
 export type BlogCategoryInput = z.input<typeof blogCategoryInput>;
 
+export const recipeTagInput = z.object({
+  name: z
+    .string()
+    .trim()
+    .transform(normalizeTag)
+    .superRefine((val, ctx) => {
+      const issue = tagIssue(val);
+      if (issue) ctx.addIssue({ code: "custom", message: issue });
+    }),
+  sortOrder: z.number().int().min(0).max(999).default(0),
+});
+
+export type RecipeTagInput = z.input<typeof recipeTagInput>;
+
 export const roleInput = z.object({
   userId: z.string().uuid(),
   role: z.enum(["member", "editor", "admin"]),

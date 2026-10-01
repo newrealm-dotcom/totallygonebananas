@@ -65,7 +65,7 @@ function containsBlockedWord(tag: string): boolean {
   return BLOCKED_STEMS.some((w) => compact.includes(w));
 }
 
-/** Heuristics for keyboard smash / nonsense tags. Preset diet tags always pass. */
+/** Heuristics for keyboard smash / nonsense tags. Built-in diet tags always pass. */
 function looksLikeGibberish(tag: string): boolean {
   if ((TAGS as readonly string[]).includes(tag)) return false;
   const letters = lettersOnly(tag);

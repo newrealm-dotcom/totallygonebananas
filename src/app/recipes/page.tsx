@@ -1,9 +1,8 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { countRecipes, getCategories, getRatings, getSavedIds, getViewer, listRecipes, type RecipeFilters } from "@/lib/queries";
+import { countRecipes, getCategories, getRatings, getRecipeTags, getSavedIds, getViewer, listRecipes, type RecipeFilters } from "@/lib/queries";
 import { CategoryStickers } from "@/components/CategoryStickers";
 import { RecipesInfiniteGrid } from "@/components/RecipesInfiniteGrid";
-import { TAGS } from "@/lib/types";
 import { isValidTag, normalizeTag } from "@/lib/tags";
 import { plural, titleCase } from "@/lib/format";
 
@@ -25,11 +24,12 @@ export default async function RecipesPage({ searchParams }: PageProps<"/recipes"
     limit: PAGE_SIZE,
     offset: 0,
   };
-  const [categories, recipes, total, viewer] = await Promise.all([
+  const [categories, recipes, total, viewer, recipeTags] = await Promise.all([
     getCategories(),
     listRecipes(f),
     countRecipes(f),
     getViewer(),
+    getRecipeTags(),
   ]);
   const [ratings, saved] = await Promise.all([getRatings(recipes.map((r) => r.id)), getSavedIds(viewer.userId)]);
   const cat = categories.find((c) => c.id === f.category);
@@ -66,11 +66,13 @@ export default async function RecipesPage({ searchParams }: PageProps<"/recipes"
       </form>
 
       <CategoryStickers small categories={categories} active={f.category} hrefFor={(id) => href({ category: id ?? undefined })} />
-      <nav className="chips" aria-label="Diet and lifestyle">
-        {TAGS.map((t) => (
-          <Link key={t} className="chip" href={href({ tag: f.tag === t ? undefined : t })} aria-current={f.tag === t ? "true" : undefined}>{t}</Link>
-        ))}
-      </nav>
+      {recipeTags.length > 0 && (
+        <nav className="chips" aria-label="Diet and lifestyle">
+          {recipeTags.map((t) => (
+            <Link key={t.name} className="chip" href={href({ tag: f.tag === t.name ? undefined : t.name })} aria-current={f.tag === t.name ? "true" : undefined}>{t.name}</Link>
+          ))}
+        </nav>
+      )}
 
       <div className="result-bar">
         <p aria-live="polite">{plural(total, "recipe")}{filtered ? " found" : ""}</p>

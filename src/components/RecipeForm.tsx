@@ -49,8 +49,8 @@ const DIFFICULTY = ["Easy", "Simple", "Medium", "Tricky", "Showstopper"];
 
 /* ------------------------------------------------------------------ component */
 
-export function RecipeForm({ userId, isEditor, categories, recipeId, initial }: {
-  userId: string; isEditor: boolean; categories: Category[]; recipeId?: string; initial?: RecipeFormValues;
+export function RecipeForm({ userId, isEditor, categories, activeTags = [...TAGS], recipeId, initial }: {
+  userId: string; isEditor: boolean; categories: Category[]; activeTags?: string[]; recipeId?: string; initial?: RecipeFormValues;
 }) {
   const router = useRouter();
   const supabase = useMemo(() => createClient(), []);
@@ -572,7 +572,7 @@ export function RecipeForm({ userId, isEditor, categories, recipeId, initial }: 
         <fieldset className="f" id={fid("tags")}>
           <legend>Tags</legend>
           <div className="tagbox">
-            {TAGS.map((t) => (
+            {activeTags.map((t) => (
               <label key={t}>
                 <input
                   type="checkbox"
@@ -585,7 +585,7 @@ export function RecipeForm({ userId, isEditor, categories, recipeId, initial }: 
                 {t}
               </label>
             ))}
-            {v.tags.filter((t) => !(TAGS as readonly string[]).includes(t)).map((t) => (
+            {v.tags.filter((t) => !activeTags.includes(t)).map((t) => (
               <label key={t} className="tag-custom">
                 <input
                   type="checkbox"

@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { notFound, redirect } from "next/navigation";
-import { canEdit, getCategories, getRecipeBySlug, getViewer, isEditorRole } from "@/lib/queries";
+import { canEdit, getCategories, getRecipeBySlug, getRecipeTags, getViewer, isEditorRole } from "@/lib/queries";
 import { RecipeForm } from "@/components/RecipeForm";
 import { valuesFromRecipe } from "@/lib/recipe-form-values";
 import { titleCase } from "@/lib/format";
@@ -9,7 +9,12 @@ export const metadata: Metadata = { title: "Edit recipe" };
 
 export default async function EditRecipePage({ params }: PageProps<"/recipes/[slug]/edit">) {
   const { slug } = await params;
-  const [{ userId, profile }, categories, recipe] = await Promise.all([getViewer(), getCategories(), getRecipeBySlug(slug)]);
+  const [{ userId, profile }, categories, recipe, recipeTags] = await Promise.all([
+    getViewer(),
+    getCategories(),
+    getRecipeBySlug(slug),
+    getRecipeTags(),
+  ]);
   if (!userId) redirect(`/login?next=/recipes/${slug}/edit`);
   if (!recipe) notFound();
   if (!canEdit(recipe, userId, profile)) redirect(`/recipes/${slug}`);
@@ -19,7 +24,14 @@ export default async function EditRecipePage({ params }: PageProps<"/recipes/[sl
         <h1>Edit recipe</h1>
         <p className="lede">{titleCase(recipe.title)}</p>
       </div>
-      <RecipeForm userId={userId} isEditor={isEditorRole(profile)} categories={categories} recipeId={recipe.id} initial={valuesFromRecipe(recipe)} />
+      <RecipeForm
+        userId={userId}
+        isEditor={isEditorRole(profile)}
+        categories={categories}
+        activeTags={recipeTags.map((t) => t.name)}
+        recipeId={recipe.id}
+        initial={valuesFromRecipe(recipe)}
+      />
     </div>
   );
 }

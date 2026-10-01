@@ -11,7 +11,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
     <div className="wrap admin">
       <div className="page-head">
         <h1>Admin</h1>
-        <p className="lede">Upload and manage recipes, blog posts, recipe categories, blog categories, and more.</p>
+        <p className="lede">Upload and manage recipes, blog posts, recipe categories, tags, and more.</p>
       </div>
       <AdminNav isAdmin={isAdminRole(profile)} />
       {children}

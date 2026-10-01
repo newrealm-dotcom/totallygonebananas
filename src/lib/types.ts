@@ -142,5 +142,21 @@ export interface Post {
 
 export type PostWithAuthor = Post & { author: AuthorSummary | null };
 
+/** Default seed tags — prefer `getRecipeTags()` for the live list. */
 export const TAGS = ["vegan", "gluten-free", "dairy-free", "kid-friendly", "no added sugar", "quick"] as const;
+
+/** Active recipe tag (`public.recipe_tags`). Stored on recipes as `tags text[]`. */
+export interface RecipeTag {
+  name: string;
+  sort_order: number;
+  created_at: string;
+}
+
+/** Admin tags list: active tags plus every tag used on recipes. */
+export interface AdminRecipeTag {
+  name: string;
+  recipeCount: number;
+  sort_order: number;
+}
+
 export const ROLES = ["member", "editor", "admin"] as const;

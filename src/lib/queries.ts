@@ -6,7 +6,7 @@ import { pointsFromCounts, standingsFor } from "@/lib/standings";
 import { normalizeIngredientGroups } from "@/lib/ingredients";
 import { normalizeNutrition } from "@/lib/nutrition";
 import { normalizeStepGroups } from "@/lib/steps";
-import type { BlogCategory, Category, HomepagePromo, Post, PostWithAuthor, Profile, Rating, Recipe, RecipeWithExtras } from "@/lib/types";
+import type { AdminRecipeTag, BlogCategory, Category, HomepagePromo, Post, PostWithAuthor, Profile, Rating, Recipe, RecipeTag, RecipeWithExtras } from "@/lib/types";
 
 
 export const DEFAULT_HOMEPAGE_PROMO: HomepagePromo = {
@@ -84,6 +84,42 @@ export const getBlogCategories = cache(async (): Promise<BlogCategory[]> => {
   const supabase = await createClient();
   const { data } = await supabase.from("blog_categories").select("*").order("sort_order").order("name");
   return (data as BlogCategory[]) ?? [];
+});
+
+/** Active recipe tags for forms and /recipes filter chips. */
+export const getRecipeTags = cache(async (): Promise<RecipeTag[]> => {
+  const supabase = await createClient();
+  const { data } = await supabase.from("recipe_tags").select("*").order("sort_order").order("name");
+  return (data as RecipeTag[]) ?? [];
+});
+
+/** All tags for admin: saved active tags plus every tag currently used on recipes. */
+export const getAdminRecipeTags = cache(async (): Promise<AdminRecipeTag[]> => {
+  const supabase = await createClient();
+  const [{ data: active }, { data: recipes }] = await Promise.all([
+    supabase.from("recipe_tags").select("name, sort_order").order("sort_order").order("name"),
+    supabase.from("recipes").select("tags"),
+  ]);
+
+  const counts = new Map<string, number>();
+  for (const row of recipes ?? []) {
+    for (const tag of row.tags ?? []) {
+      if (!tag) continue;
+      counts.set(tag, (counts.get(tag) ?? 0) + 1);
+    }
+  }
+
+  const activeRows = active ?? [];
+  const activeNames = new Set(activeRows.map((t) => t.name));
+  const names = new Set<string>([...activeNames, ...counts.keys()]);
+
+  return [...names]
+    .sort((a, b) => a.localeCompare(b))
+    .map((name) => ({
+      name,
+      recipeCount: counts.get(name) ?? 0,
+      sort_order: activeRows.find((t) => t.name === name)?.sort_order ?? 999,
+    }));
 });
 
 export interface RecipeFilters {
@@ -388,12 +424,13 @@ export const getHomepagePromo = cache(async (): Promise<HomepagePromo> => {
 
 export async function adminCounts() {
   const supabase = await createClient();
-  const [recipes, pending, posts, categories, blogCategories, profiles] = await Promise.all([
+  const [recipes, pending, posts, categories, blogCategories, tags, profiles] = await Promise.all([
     supabase.from("recipes").select("id", { count: "exact", head: true }),
     supabase.from("recipes").select("id", { count: "exact", head: true }).eq("status", "pending"),
     supabase.from("posts").select("id", { count: "exact", head: true }),
     supabase.from("categories").select("id", { count: "exact", head: true }),
     supabase.from("blog_categories").select("id", { count: "exact", head: true }),
+    supabase.from("recipe_tags").select("name", { count: "exact", head: true }),
     supabase.from("profiles").select("id", { count: "exact", head: true }),
   ]);
   return {
@@ -402,6 +439,7 @@ export async function adminCounts() {
     posts: posts.count ?? 0,
     categories: categories.count ?? 0,
     blogCategories: blogCategories.count ?? 0,
+    tags: tags.count ?? 0,
     profiles: profiles.count ?? 0,
   };
 }
