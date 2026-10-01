@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { checkFile, kindOf, publicUrl, RECIPE_BUCKET } from "@/lib/media";
 import { saveRecipe } from "@/actions/recipes";
-import { TAGS, type Category, type MediaKind } from "@/lib/types";
+import { TAGS, type Category, type MediaKind, type RecipeStatus } from "@/lib/types";
 import { MAX_TAGS, normalizeTag, tagIssue } from "@/lib/tags";
 import {
   blankValues,
@@ -49,8 +49,8 @@ const DIFFICULTY = ["Easy", "Simple", "Medium", "Tricky", "Showstopper"];
 
 /* ------------------------------------------------------------------ component */
 
-export function RecipeForm({ userId, isEditor, categories, activeTags = [...TAGS], recipeId, initial }: {
-  userId: string; isEditor: boolean; categories: Category[]; activeTags?: string[]; recipeId?: string; initial?: RecipeFormValues;
+export function RecipeForm({ userId, isEditor, categories, activeTags = [...TAGS], recipeId, initial, initialStatus }: {
+  userId: string; isEditor: boolean; categories: Category[]; activeTags?: string[]; recipeId?: string; initial?: RecipeFormValues; initialStatus?: RecipeStatus;
 }) {
   const router = useRouter();
   const supabase = useMemo(() => createClient(), []);
@@ -69,6 +69,12 @@ export function RecipeForm({ userId, isEditor, categories, activeTags = [...TAGS
   const [customTag, setCustomTag] = useState("");
   const [tagError, setTagError] = useState("");
   const inputs = useRef(new Map<string, HTMLInputElement | HTMLTextAreaElement>());
+
+  const isPublished = initialStatus === "published";
+  const publishLabel = isPublished ? "Update recipe" : "Publish recipe";
+  const publishHint = isPublished
+    ? "Saves your changes and keeps the recipe live for everyone."
+    : "Publishing makes it visible to everyone right away.";
 
   const set = useCallback(<K extends keyof RecipeFormValues>(key: K, value: RecipeFormValues[K]) => setV((s) => ({ ...s, [key]: value })), []);
 
@@ -982,12 +988,12 @@ export function RecipeForm({ userId, isEditor, categories, activeTags = [...TAGS
         {uploading && <p className="hint" role="status">Waiting for uploads to finish…</p>}
         <div className="row-actions">
           <button type="submit" className="btn" disabled={pending || uploading}>
-            {pending ? "Saving…" : isEditor ? "Publish recipe" : "Submit for review"}
+            {pending ? "Saving…" : isEditor ? publishLabel : "Submit for review"}
           </button>
           <button type="button" className="btn ghost" disabled={pending || uploading} onClick={() => submit("draft")}>Save as draft</button>
         </div>
         <p className="hint">
-          {isEditor ? "Publishing makes it visible to everyone right away." : "An editor will take a look, then it goes live. Drafts stay private to you."}
+          {isEditor ? publishHint : "An editor will take a look, then it goes live. Drafts stay private to you."}
           {" "}Your work is saved on this device as you type.
         </p>
       </div>

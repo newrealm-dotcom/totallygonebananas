@@ -10,32 +10,35 @@ interface BananaPiece {
   delay: number;
   dur: number;
   drift: number;
+  sway: number;
   r0: number;
   r1: number;
-  land: number;
+  rMid: number;
+  ease: string;
 }
 
+const EASINGS = [
+  "cubic-bezier(.22, .61, .36, 1)",
+  "cubic-bezier(.37, 0, .63, 1)",
+  "cubic-bezier(.45, .05, .55, .95)",
+  "cubic-bezier(.25, .46, .45, .94)",
+  "linear",
+];
+
 function makePieces(count: number): BananaPiece[] {
-  const out: BananaPiece[] = [];
-  let seed = 0x9e3779b9;
-  const next = () => {
-    seed = (seed * 1664525 + 1013904223) >>> 0;
-    return seed / 0xffffffff;
-  };
-  for (let i = 0; i < count; i++) {
-    out.push({
-      id: i,
-      x: next() * 100,
-      size: 16 + next() * 26,
-      delay: next() * 1.6,
-      dur: 2.1 + next() * 2.4,
-      drift: (next() - 0.5) * 90,
-      r0: next() * 360,
-      r1: next() * 700 - 350,
-      land: next() * 28,
-    });
-  }
-  return out;
+  return Array.from({ length: count }, (_, id) => ({
+    id,
+    x: -8 + Math.random() * 116,
+    size: 12 + Math.random() * 38,
+    delay: Math.random() * 2.8,
+    dur: 1.5 + Math.random() * 3.6,
+    drift: (Math.random() - 0.5) * 260,
+    sway: (Math.random() - 0.5) * 90,
+    r0: Math.random() * 360,
+    rMid: Math.random() * 720 - 360,
+    r1: Math.random() * 1080 - 540,
+    ease: EASINGS[Math.floor(Math.random() * EASINGS.length)],
+  }));
 }
 
 const emptySubscribe = () => () => {};
@@ -44,8 +47,7 @@ const getServer = () => false;
 
 export function BananaRain({ active }: { active: boolean }) {
   const isClient = useSyncExternalStore(emptySubscribe, getClient, getServer);
-  const [pieces] = useState(() => makePieces(52));
-  const [fading, setFading] = useState(false);
+  const [pieces] = useState(() => makePieces(60));
   const [done, setDone] = useState(false);
 
   const reducedMotion =
@@ -54,18 +56,14 @@ export function BananaRain({ active }: { active: boolean }) {
   useEffect(() => {
     if (!active || !isClient || reducedMotion) return;
     const maxFall = Math.max(...pieces.map((p) => p.delay + p.dur));
-    const fadeTimer = window.setTimeout(() => setFading(true), (maxFall + 1.2) * 1000);
-    const doneTimer = window.setTimeout(() => setDone(true), (maxFall + 2.6) * 1000);
-    return () => {
-      window.clearTimeout(fadeTimer);
-      window.clearTimeout(doneTimer);
-    };
+    const doneTimer = window.setTimeout(() => setDone(true), (maxFall + 0.4) * 1000);
+    return () => window.clearTimeout(doneTimer);
   }, [active, isClient, reducedMotion, pieces]);
 
   if (!active || !isClient || reducedMotion || done) return null;
 
   return createPortal(
-    <div className={`banana-rain${fading ? " is-fading" : ""}`} aria-hidden="true">
+    <div className="banana-rain" aria-hidden="true">
       {pieces.map((p) => (
         <span
           key={p.id}
@@ -77,9 +75,11 @@ export function BananaRain({ active }: { active: boolean }) {
               "--delay": `${p.delay}s`,
               "--dur": `${p.dur}s`,
               "--drift": `${p.drift}px`,
+              "--sway": `${p.sway}px`,
               "--r0": `${p.r0}deg`,
+              "--rMid": `${p.rMid}deg`,
               "--r1": `${p.r1}deg`,
-              "--land": `${p.land}px`,
+              "--ease": p.ease,
             } as CSSProperties
           }
         >

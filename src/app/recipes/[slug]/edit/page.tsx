@@ -31,6 +31,7 @@ export default async function EditRecipePage({ params }: PageProps<"/recipes/[sl
         activeTags={recipeTags.map((t) => t.name)}
         recipeId={recipe.id}
         initial={valuesFromRecipe(recipe)}
+        initialStatus={recipe.status}
       />
     </div>
   );
