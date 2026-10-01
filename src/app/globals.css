@@ -1871,17 +1871,99 @@ ol.steps > li > div > p:first-child { margin-top: 0; }
   margin: .35rem 0 0;
 }
 .admin-nav {
+  position: relative;
   display: flex;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
+  align-items: center;
   gap: .35rem;
   margin: 0 0 1.6rem;
-  padding: .8rem 0;
+  padding: calc(.8rem + 10px) 0;
   border-top: 3px solid var(--line);
   border-bottom: 3px solid var(--line);
+  overflow: visible;
 }
-.admin-nav a { padding: .4rem .9rem; border-radius: 999px; font-weight: 800; text-decoration: none; border: 2.5px solid transparent; text-transform: uppercase; }
-.admin-nav a[aria-current="page"] { background: var(--yellow); color: var(--on-yellow); border-color: var(--brown); }
-.admin-nav a:not([aria-current]):hover { background: var(--panel); }
+.admin-nav-measure {
+  position: absolute;
+  left: 0;
+  top: 0;
+  visibility: hidden;
+  pointer-events: none;
+  display: flex;
+  flex-wrap: nowrap;
+  gap: .35rem;
+  height: 0;
+  overflow: hidden;
+}
+.admin-nav-link,
+.admin-nav-more-btn {
+  padding: .4rem .9rem;
+  border-radius: 999px;
+  font-family: inherit;
+  font-size: inherit;
+  font-weight: 800;
+  line-height: inherit;
+  text-decoration: none;
+  border: 2.5px solid transparent;
+  text-transform: uppercase;
+  white-space: nowrap;
+  flex-shrink: 0;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: .35rem;
+  min-height: 0;
+  box-shadow: none;
+}
+.admin-nav a.admin-nav-link[aria-current="page"],
+.admin-nav-more-btn[aria-current="true"] {
+  background: var(--yellow);
+  color: var(--on-yellow);
+  border-color: var(--brown);
+}
+.admin-nav a.admin-nav-link:not([aria-current]):hover,
+.admin-nav-more-btn:hover,
+.admin-nav-more-btn[aria-expanded="true"] {
+  background: var(--panel);
+}
+.admin-nav-more {
+  position: relative;
+  flex-shrink: 0;
+}
+.admin-nav-menu {
+  position: absolute;
+  top: calc(100% + .45rem);
+  right: 0;
+  z-index: 20;
+  list-style: none;
+  margin: 0;
+  padding: .45rem;
+  min-width: 12rem;
+  display: grid;
+  gap: .2rem;
+  background: var(--paper);
+  border: 3px solid var(--line);
+  border-radius: 18px;
+  box-shadow: 4px 4px 0 var(--line);
+}
+.admin-nav-menu a {
+  display: block;
+  padding: .55rem .85rem;
+  border-radius: 12px;
+  font-weight: 800;
+  text-decoration: none;
+  text-transform: uppercase;
+  border: 2px solid transparent;
+}
+.admin-nav-menu a:hover {
+  background: var(--panel);
+}
+.admin-nav-menu a[aria-current="page"] {
+  background: var(--yellow);
+  color: var(--on-yellow);
+  border-color: var(--brown);
+}
 .admin-stats { list-style: none; margin: 0 0 1.4rem; padding: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: .8rem; }
 .admin-actions { display: flex; flex-wrap: wrap; gap: .7rem; margin-bottom: 1rem; }
 .admin-cat-edit { display: grid; grid-template-columns: 4rem 1fr 1.4fr 5rem auto; gap: .5rem; align-items: center; width: 100%; }
@@ -2820,3 +2902,45 @@ header.top.is-compact .top-actions { margin-left: 0; }
   }
 }
 
+
+/* ---------- banana rain (publish celebration) ---------- */
+.banana-rain {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  pointer-events: none;
+  overflow: hidden;
+  opacity: 1;
+  transition: opacity .9s ease;
+}
+.banana-rain.is-fading { opacity: 0; }
+.banana-rain-piece {
+  position: absolute;
+  top: 0;
+  left: var(--x);
+  width: var(--size);
+  height: var(--size);
+  display: grid;
+  place-items: center;
+  line-height: 1;
+  animation: banana-fall var(--dur) var(--delay) cubic-bezier(.22, .61, .36, 1) forwards;
+  will-change: transform;
+}
+.banana-rain-piece img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  display: block;
+  filter: drop-shadow(0 2px 2px rgb(0 0 0 / .18));
+}
+@keyframes banana-fall {
+  from {
+    transform: translate3d(0, -12vh, 0) rotate(var(--r0));
+  }
+  to {
+    transform: translate3d(var(--drift), calc(100vh - var(--size) - var(--land) - env(safe-area-inset-bottom, 0px)) , 0) rotate(var(--r1));
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .banana-rain { display: none; }
+}

@@ -14,6 +14,7 @@ import { KitchenConverter } from "@/components/KitchenConverter";
 import { PrintRecipeButton } from "@/components/PrintRecipeButton";
 import { RecipeFacts } from "@/components/RecipeFacts";
 import { DeleteRecipeButton, RemoveLogButton, ReviewButtons } from "@/components/OwnerTools";
+import { BananaRain } from "@/components/BananaRain";
 import type { CookLog } from "@/lib/types";
 
 export async function generateMetadata({ params }: PageProps<"/recipes/[slug]">): Promise<Metadata> {
@@ -56,6 +57,7 @@ export default async function RecipePage({ params, searchParams }: PageProps<"/r
 
   return (
     <div className="wrap">
+      {sp.saved === "published" && <BananaRain active />}
       {savedMsg && (
         <div className="notice-inline" role="status">
           {/* eslint-disable-next-line @next/next/no-img-element -- small static mascot asset */}
