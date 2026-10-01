@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { countPosts, getBlogCategories, listPosts } from "@/lib/queries";
+import { countPosts, getBlogCategories, listPosts, pickRandomPost } from "@/lib/queries";
 import { BlogInfiniteGrid } from "@/components/BlogInfiniteGrid";
 
 export const metadata: Metadata = {
@@ -7,15 +7,19 @@ export const metadata: Metadata = {
   description: "Hand-picked favorite banana-inspired pieces from Totally Gone Bananas.",
 };
 
+/** Fresh random featured fave on each visit. */
+export const dynamic = "force-dynamic";
+
 const FAVORITES_CATEGORY = "favorites";
 const INITIAL_LIMIT = 12;
 
 export default async function OurFavesPage() {
   const filters = { category: FAVORITES_CATEGORY };
-  const [posts, total, blogCategories] = await Promise.all([
+  const [posts, total, blogCategories, featuredPost] = await Promise.all([
     listPosts({ publishedOnly: true, ...filters, limit: INITIAL_LIMIT, offset: 0 }),
     countPosts({ publishedOnly: true, ...filters }),
     getBlogCategories(),
+    pickRandomPost({ publishedOnly: true, ...filters }),
   ]);
   const categoryNames = Object.fromEntries(blogCategories.map((c) => [c.id, c.name]));
 
@@ -38,6 +42,7 @@ export default async function OurFavesPage() {
           total={total}
           filters={filters}
           showFeatured
+          featuredPost={featuredPost}
           categoryNames={categoryNames}
           featuredLabel="Featured fave"
           moreHeading="More faves"

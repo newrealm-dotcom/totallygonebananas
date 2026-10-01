@@ -1,4 +1,5 @@
 import { cache } from "react";
+import { randomInt } from "node:crypto";
 import { createClient } from "@/lib/supabase/server";
 import { easternDayRange } from "@/lib/format";
 import { pointsFromCounts, standingsFor } from "@/lib/standings";
@@ -248,6 +249,31 @@ export async function countPosts(opts: Omit<PostListFilters, "limit" | "offset">
 
   const { count } = await query;
   return count ?? 0;
+}
+
+/** One published post chosen uniformly at random for the given filters. */
+export async function pickRandomPost(opts: Omit<PostListFilters, "limit" | "offset"> = {}): Promise<Post | null> {
+  const supabase = await createClient();
+  const authorId = await resolveAuthorId(supabase, opts.author);
+  if (opts.author && !authorId) return null;
+  const dateRange = opts.date ? easternDayRange(opts.date) : null;
+  if (opts.date && !dateRange) return null;
+
+  let query = supabase.from("posts").select("id");
+  if (opts.publishedOnly) query = query.eq("status", "published");
+  if (authorId) query = query.eq("author_id", authorId);
+  if (opts.category) query = query.contains("categories", [opts.category]);
+  if (opts.excludeCategory) query = query.not("categories", "cs", `{${opts.excludeCategory}}`);
+  if (dateRange) query = query.gte("published_at", dateRange.start).lt("published_at", dateRange.end);
+
+  const { data: ids } = await query;
+  if (!ids?.length) return null;
+
+  const pick = ids[randomInt(ids.length)]!;
+  const { data } = await supabase.from("posts").select("*").eq("id", pick.id).maybeSingle();
+  if (!data) return null;
+  const post = data as Post;
+  return { ...post, categories: post.categories ?? [] };
 }
 
 /** Look up a profile for blog author filter headings. */

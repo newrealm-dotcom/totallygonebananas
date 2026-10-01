@@ -84,6 +84,7 @@ export function BlogInfiniteGrid({
   total,
   filters = {},
   showFeatured = false,
+  featuredPost = null,
   categoryNames,
   featuredLabel = "Latest story",
   moreHeading = "More from the archive",
@@ -93,6 +94,8 @@ export function BlogInfiniteGrid({
   total: number;
   filters?: { author?: string; category?: string; date?: string; excludeCategory?: string };
   showFeatured?: boolean;
+  /** When set, this post is featured instead of the first item in `initialPosts`. */
+  featuredPost?: Post | null;
   categoryNames?: Record<string, string>;
   featuredLabel?: string;
   moreHeading?: string;
@@ -104,8 +107,10 @@ export function BlogInfiniteGrid({
   const sentinelRef = useRef<HTMLDivElement | null>(null);
   const loadingRef = useRef(false);
 
-  const featured = showFeatured && posts.length > 0 ? posts[0] : null;
-  const gridPosts = featured ? posts.slice(1) : posts;
+  const featured =
+    featuredPost ??
+    (showFeatured && posts.length > 0 ? posts[0] : null);
+  const gridPosts = featured ? posts.filter((p) => p.id !== featured.id) : posts;
 
   const loadMore = useCallback(async () => {
     if (loadingRef.current || !hasMore) return;
