@@ -1665,10 +1665,14 @@ html[data-theme="dark"] .print-preview-sheet {
 .ing-edit-title-row .field { flex: 1 1 auto; min-width: 0; }
 .recipe-notes {
   margin: 1.2rem 0 0;
-  padding: 1rem 1.1rem 1.1rem;
-  border: 2.5px solid var(--line);
-  border-radius: 18px;
-  background: color-mix(in srgb, var(--panel) 55%, var(--paper));
+  padding: 1.3rem 1.4rem 1.4rem;
+  border: 3px solid var(--line);
+  border-radius: 28px;
+  box-shadow: 6px 6px 0 var(--line);
+  background: #fff;
+}
+html[data-theme="dark"] .recipe-notes {
+  background: var(--paper);
 }
 .recipe-notes h2 { margin: 0 0 .55rem; font-size: clamp(1.35rem, 2.6vw, 1.7rem); }
 .recipe-notes-body { font-weight: 600; line-height: 1.5; }
