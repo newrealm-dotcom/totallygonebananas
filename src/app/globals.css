@@ -958,7 +958,8 @@ video.media-fill { background: #000; }
 .recipe-facts-icon {
   width: 2.35rem;
   height: 2.35rem;
-  color: var(--ink);
+  object-fit: contain;
+  display: block;
   margin-bottom: .15rem;
 }
 .recipe-fact dt {
