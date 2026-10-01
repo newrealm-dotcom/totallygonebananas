@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { countRecipes, getCategories, getRatings, getRecipeTags, getSavedIds, getViewer, listRecipes, type RecipeFilters } from "@/lib/queries";
 import { CategoryStickers } from "@/components/CategoryStickers";
+import { FilterPillsScroller } from "@/components/FilterPillsScroller";
 import { RecipesInfiniteGrid } from "@/components/RecipesInfiniteGrid";
 import { isValidTag, normalizeTag } from "@/lib/tags";
 import { plural, titleCase } from "@/lib/format";
@@ -58,21 +59,33 @@ export default async function RecipesPage({ searchParams }: PageProps<"/recipes"
         </div>
         <div className="f">
           <label htmlFor="sort">Sort by</label>
-          <select id="sort" name="sort" className="field" defaultValue={f.sort}>
+          <select id="sort" name="sort" className="field filters-sort" defaultValue={f.sort}>
             <option value="new">Newest</option><option value="quick">Quickest</option><option value="easy">Easiest</option><option value="az">A to Z</option>
           </select>
         </div>
         <button className="btn" type="submit">Apply</button>
       </form>
 
-      <CategoryStickers small categories={categories} active={f.category} hrefFor={(id) => href({ category: id ?? undefined })} />
-      {recipeTags.length > 0 && (
-        <nav className="chips" aria-label="Diet and lifestyle">
-          {recipeTags.map((t) => (
-            <Link key={t.name} className="chip" href={href({ tag: f.tag === t.name ? undefined : t.name })} aria-current={f.tag === t.name ? "true" : undefined}>{t.name}</Link>
-          ))}
-        </nav>
-      )}
+      <div className="filter-pills">
+        <div className="filter-pills-row">
+          <span className="filter-pills-label">Categories:</span>
+          <FilterPillsScroller label="categories">
+            <CategoryStickers small categories={categories} active={f.category} hrefFor={(id) => href({ category: id ?? undefined })} />
+          </FilterPillsScroller>
+        </div>
+        {recipeTags.length > 0 && (
+          <div className="filter-pills-row">
+            <span className="filter-pills-label">Tags:</span>
+            <FilterPillsScroller label="tags">
+              <nav className="chips" aria-label="Tags">
+                {recipeTags.map((t) => (
+                  <Link key={t.name} className="chip" href={href({ tag: f.tag === t.name ? undefined : t.name })} aria-current={f.tag === t.name ? "true" : undefined}>{t.name}</Link>
+                ))}
+              </nav>
+            </FilterPillsScroller>
+          </div>
+        )}
+      </div>
 
       <div className="result-bar">
         <p aria-live="polite">{plural(total, "recipe")}{filtered ? " found" : ""}</p>

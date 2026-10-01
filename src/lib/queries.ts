@@ -86,11 +86,33 @@ export const getBlogCategories = cache(async (): Promise<BlogCategory[]> => {
   return (data as BlogCategory[]) ?? [];
 });
 
-/** Active recipe tags for forms and /recipes filter chips. */
+/** All available recipe tags: active tags plus every tag used on recipes. */
 export const getRecipeTags = cache(async (): Promise<RecipeTag[]> => {
   const supabase = await createClient();
-  const { data } = await supabase.from("recipe_tags").select("*").order("sort_order").order("name");
-  return (data as RecipeTag[]) ?? [];
+  const [{ data: active }, { data: recipes }] = await Promise.all([
+    supabase.from("recipe_tags").select("*").order("sort_order").order("name"),
+    supabase.from("recipes").select("tags"),
+  ]);
+
+  const activeRows = (active as RecipeTag[] | null) ?? [];
+  const byName = new Map<string, RecipeTag>(activeRows.map((t) => [t.name, t]));
+
+  for (const row of recipes ?? []) {
+    for (const tag of row.tags ?? []) {
+      if (!tag || byName.has(tag)) continue;
+      byName.set(tag, { name: tag, sort_order: 999, created_at: "" });
+    }
+  }
+
+  const activeNames = new Set(activeRows.map((t) => t.name));
+  return [...byName.values()].sort((a, b) => {
+    const aActive = activeNames.has(a.name);
+    const bActive = activeNames.has(b.name);
+    if (aActive && bActive) return a.sort_order - b.sort_order || a.name.localeCompare(b.name);
+    if (aActive) return -1;
+    if (bActive) return 1;
+    return a.name.localeCompare(b.name);
+  });
 });
 
 /** All tags for admin: saved active tags plus every tag currently used on recipes. */
