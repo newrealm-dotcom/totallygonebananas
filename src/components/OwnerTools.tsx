@@ -18,7 +18,7 @@ export function DeleteRecipeButton({
   const [pending, start] = useTransition();
   const router = useRouter();
   return (
-    <>
+    <span className="delete-recipe-btn">
       <button type="button" className="btn danger small" disabled={pending} onClick={() => {
         if (!armed) { setArmed(true); setTimeout(() => setArmed(false), 4000); return; }
         start(async () => {
@@ -29,7 +29,7 @@ export function DeleteRecipeButton({
         });
       }}>{pending ? "Deleting…" : armed ? "Tap again to delete" : "Delete"}</button>
       {error && <span className="f-err" role="alert">{error}</span>}
-    </>
+    </span>
   );
 }
 

@@ -5,12 +5,13 @@ import { canEdit, getCategories, getRatings, getRecipeBySlug, getSavedIds, getVi
 import { createClient } from "@/lib/supabase/server";
 import { publicUrl } from "@/lib/media";
 import { shortDate, tintFor, titleCase } from "@/lib/format";
-import { timersIn } from "@/lib/scale";
 import { renderPostMarkdown } from "@/lib/render-post-markdown";
 import { MediaView } from "@/components/MediaView";
 import { SaveButton } from "@/components/SaveButton";
 import { IngredientPanel } from "@/components/IngredientPanel";
 import { MadeItForm } from "@/components/MadeItForm";
+import { KitchenConverter } from "@/components/KitchenConverter";
+import { PrintRecipeButton } from "@/components/PrintRecipeButton";
 import { DeleteRecipeButton, RemoveLogButton, ReviewButtons } from "@/components/OwnerTools";
 import type { CookLog } from "@/lib/types";
 
@@ -76,8 +77,25 @@ export default async function RecipePage({ params, searchParams }: PageProps<"/r
           <div className="d-actions">
             <a className="btn" href="#made">I made it!</a>
             <SaveButton recipeId={r.id} title={r.title} initialSaved={saved} signedIn={!!userId} className="inline" />
-            {editable && <Link className="btn ghost small" href={`/recipes/${r.slug}/edit`}>Edit recipe</Link>}
-            {editable && <DeleteRecipeButton recipeId={r.id} />}
+            <PrintRecipeButton
+              recipe={{
+                title: titleCase(r.title),
+                description: r.description,
+                imageUrl: hero && hero.kind !== "video" ? publicUrl(hero.path) : null,
+                imageAlt: hero?.caption || r.title,
+                ingredients: r.ingredients,
+                steps: r.steps.map((group) => ({
+                  title: group.title || "",
+                  steps: group.steps.map((s) => s.text),
+                })),
+              }}
+            />
+            {editable && (
+              <div className="d-actions-owner">
+                <Link className="btn ghost small" href={`/recipes/${r.slug}/edit`}>Edit recipe</Link>
+                <DeleteRecipeButton recipeId={r.id} />
+              </div>
+            )}
           </div>
           {(rating || r.tags.length > 0) && (
             <div className="meta">
@@ -109,6 +127,7 @@ export default async function RecipePage({ params, searchParams }: PageProps<"/r
               )}
             </div>
           )}
+          <KitchenConverter />
           <div className="d-engage" aria-label="Ratings and tips">
             <div id="made">
               <MadeItForm recipeId={r.id} signedIn={!!userId} slug={r.slug} />
@@ -175,32 +194,23 @@ export default async function RecipePage({ params, searchParams }: PageProps<"/r
                 <div key={gi} className="step-group">
                   {group.title ? <h3 className="step-group-title">{group.title}</h3> : null}
                   <ol className="steps">
-                    {group.steps.map((s, i) => {
-                      const timers = timersIn(s.text);
-                      return (
-                        <li key={i}>
-                          <div>
-                            <p>{s.text}</p>
-                            {s.media && (
-                              <div className="step-media-view">
-                                <MediaView
-                                  path={s.media.path}
-                                  kind={s.media.kind}
-                                  alt={`${group.title || "Step"} ${i + 1}`}
-                                  sizes="(max-width: 900px) 100vw, 560px"
-                                />
-                              </div>
-                            )}
-                          </div>
-                          {timers.length > 0 && (
-                            <p className="timer-hint">
-                              <span className="timer-hint-icon" aria-hidden="true">⏲️</span>
-                              <span className="timer-hint-label">{timers.map((t) => t.label).join(", ")}</span>
-                            </p>
+                    {group.steps.map((s, i) => (
+                      <li key={i}>
+                        <div>
+                          <p>{s.text}</p>
+                          {s.media && (
+                            <div className="step-media-view">
+                              <MediaView
+                                path={s.media.path}
+                                kind={s.media.kind}
+                                alt={`${group.title || "Step"} ${i + 1}`}
+                                sizes="(max-width: 900px) 100vw, 560px"
+                              />
+                            </div>
                           )}
-                        </li>
-                      );
-                    })}
+                        </div>
+                      </li>
+                    ))}
                   </ol>
                 </div>
               ))}

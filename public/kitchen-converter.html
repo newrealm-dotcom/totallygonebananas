@@ -1,0 +1,1243 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Kitchen Conversion Calculator</title>
+  <style>
+    /* All styles scoped under .kcc so the widget stays theme-safe. */
+    .kcc, .kcc * { box-sizing: border-box; }
+    .kcc {
+      --kcc-cream: #FBF7EF;
+      --kcc-paper: #FFFCF7;
+      --kcc-tan: #EDE0CC;
+      --kcc-caramel: #8B5E3C;
+      --kcc-brown: #4A2F1F;
+      --kcc-ink: #2F1C12;
+      --kcc-muted: #6E4A3A;
+      --kcc-line: #4A2F1F;
+      --kcc-accent: #C47A3A;
+      --kcc-ok: #2F6B3A;
+      --kcc-radius: 18px;
+      --kcc-shadow: 4px 4px 0 var(--kcc-line);
+
+      color: var(--kcc-ink);
+      background:
+        linear-gradient(180deg, #FFFDF8 0%, var(--kcc-cream) 55%, #F3E7D4 100%);
+      border: 3px solid var(--kcc-line);
+      border-radius: 28px;
+      box-shadow: 6px 6px 0 var(--kcc-line);
+      padding: clamp(1.1rem, 3vw, 1.75rem);
+      font-family: Georgia, "Times New Roman", serif;
+      font-size: 16px;
+      line-height: 1.45;
+      max-width: 42rem;
+      margin: 0 auto;
+      -webkit-font-smoothing: antialiased;
+    }
+    .kcc button,
+    .kcc input,
+    .kcc select,
+    .kcc textarea {
+      font: inherit;
+      color: inherit;
+    }
+    .kcc :focus-visible {
+      outline: 3px solid var(--kcc-accent);
+      outline-offset: 3px;
+    }
+    .kcc-title {
+      margin: 0 0 .35rem;
+      font-size: clamp(1.55rem, 4vw, 2rem);
+      line-height: 1.15;
+      letter-spacing: -.01em;
+      color: var(--kcc-brown);
+    }
+    .kcc-lede {
+      margin: 0 0 1.1rem;
+      color: var(--kcc-muted);
+      font-size: 1rem;
+    }
+    .kcc-bar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: .65rem;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: .9rem;
+    }
+    .kcc-cup-toggle {
+      display: inline-flex;
+      align-items: center;
+      gap: .45rem;
+      background: var(--kcc-paper);
+      border: 2.5px solid var(--kcc-line);
+      border-radius: 999px;
+      padding: .25rem;
+      box-shadow: 3px 3px 0 var(--kcc-line);
+    }
+    .kcc-cup-toggle button {
+      appearance: none;
+      border: 0;
+      background: transparent;
+      border-radius: 999px;
+      padding: .45rem .85rem;
+      min-height: 40px;
+      font-weight: 700;
+      cursor: pointer;
+      color: var(--kcc-muted);
+    }
+    .kcc-cup-toggle button[aria-pressed="true"] {
+      background: var(--kcc-caramel);
+      color: #fff;
+    }
+    .kcc-modes {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: .45rem;
+      margin-bottom: 1rem;
+    }
+    @media (min-width: 560px) {
+      .kcc-modes { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+    }
+    .kcc-modes button {
+      appearance: none;
+      border: 2.5px solid var(--kcc-line);
+      background: var(--kcc-paper);
+      border-radius: 999px;
+      min-height: 46px;
+      padding: .55rem .7rem;
+      font-weight: 700;
+      font-size: .92rem;
+      cursor: pointer;
+      box-shadow: 3px 3px 0 var(--kcc-line);
+      color: var(--kcc-brown);
+    }
+    .kcc-modes button[aria-selected="true"] {
+      background: var(--kcc-brown);
+      color: #fff;
+    }
+    .kcc-panel {
+      display: none;
+      background: var(--kcc-paper);
+      border: 2.5px solid var(--kcc-line);
+      border-radius: var(--kcc-radius);
+      box-shadow: var(--kcc-shadow);
+      padding: 1rem;
+      gap: .85rem;
+    }
+    .kcc-panel.is-active { display: grid; }
+    .kcc-field { display: grid; gap: .35rem; }
+    .kcc-field > span,
+    .kcc-field > label {
+      font-weight: 700;
+      font-size: .95rem;
+      color: var(--kcc-brown);
+    }
+    .kcc-hint {
+      margin: 0;
+      color: var(--kcc-muted);
+      font-size: .9rem;
+    }
+    .kcc-row {
+      display: grid;
+      gap: .65rem;
+    }
+    @media (min-width: 560px) {
+      .kcc-row.two { grid-template-columns: 1.2fr .9fr; }
+      .kcc-row.amount { grid-template-columns: 1fr auto 1fr; align-items: end; }
+    }
+    .kcc input[type="text"],
+    .kcc input[type="number"],
+    .kcc input[type="search"],
+    .kcc select {
+      width: 100%;
+      min-height: 48px;
+      border: 2.5px solid var(--kcc-line);
+      border-radius: 14px;
+      background: #fff;
+      padding: .6rem .8rem;
+    }
+    .kcc input[type="number"] { font-variant-numeric: tabular-nums; }
+    .kcc-combo { position: relative; }
+    .kcc-combo-list {
+      position: absolute;
+      z-index: 5;
+      left: 0;
+      right: 0;
+      top: calc(100% + 4px);
+      max-height: 14rem;
+      overflow: auto;
+      margin: 0;
+      padding: .25rem;
+      list-style: none;
+      background: #fff;
+      border: 2.5px solid var(--kcc-line);
+      border-radius: 14px;
+      box-shadow: 4px 4px 0 var(--kcc-line);
+      display: none;
+    }
+    .kcc-combo-list.is-open { display: block; }
+    .kcc-combo-list button {
+      width: 100%;
+      text-align: left;
+      appearance: none;
+      border: 0;
+      background: transparent;
+      border-radius: 10px;
+      padding: .65rem .7rem;
+      min-height: 44px;
+      cursor: pointer;
+      color: var(--kcc-ink);
+    }
+    .kcc-combo-list button:hover,
+    .kcc-combo-list button[aria-selected="true"] {
+      background: var(--kcc-tan);
+    }
+    .kcc-swap {
+      appearance: none;
+      border: 2.5px solid var(--kcc-line);
+      background: var(--kcc-tan);
+      color: var(--kcc-brown);
+      border-radius: 50%;
+      width: 48px;
+      height: 48px;
+      font-size: 1.25rem;
+      font-weight: 700;
+      cursor: pointer;
+      box-shadow: 3px 3px 0 var(--kcc-line);
+      justify-self: center;
+    }
+    .kcc-results {
+      background: linear-gradient(180deg, #fff 0%, var(--kcc-tan) 100%);
+      border: 2.5px solid var(--kcc-line);
+      border-radius: 16px;
+      padding: .9rem 1rem;
+      display: grid;
+      gap: .35rem;
+    }
+    .kcc-precise {
+      margin: 0;
+      font-size: clamp(1.25rem, 3.5vw, 1.55rem);
+      font-weight: 700;
+      color: var(--kcc-brown);
+      font-variant-numeric: tabular-nums;
+    }
+    .kcc-friendly {
+      margin: 0;
+      font-size: 1.05rem;
+      color: var(--kcc-ink);
+    }
+    .kcc-note {
+      margin: 0;
+      color: var(--kcc-muted);
+      font-size: .9rem;
+    }
+    .kcc-footnote {
+      margin: 0;
+      color: var(--kcc-muted);
+      font-size: .85rem;
+      font-style: italic;
+      font-weight: 600;
+    }
+    .kcc-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: .55rem;
+    }
+    .kcc-copy {
+      appearance: none;
+      border: 2.5px solid var(--kcc-line);
+      background: var(--kcc-caramel);
+      color: #fff;
+      border-radius: 999px;
+      min-height: 44px;
+      padding: .55rem 1rem;
+      font-weight: 700;
+      cursor: pointer;
+      box-shadow: 3px 3px 0 var(--kcc-line);
+    }
+    .kcc-copy.is-done { background: var(--kcc-ok); }
+    .kcc-ref {
+      margin-top: 1.15rem;
+      padding-top: 1rem;
+      border-top: 2px dashed color-mix(in srgb, var(--kcc-line) 45%, transparent);
+    }
+    .kcc-ref h3 {
+      margin: 0 0 .55rem;
+      font-size: 1.1rem;
+      color: var(--kcc-brown);
+    }
+    .kcc-ref-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: .95rem;
+    }
+    .kcc-ref-table th,
+    .kcc-ref-table td {
+      text-align: left;
+      padding: .45rem .35rem;
+      border-bottom: 1px solid color-mix(in srgb, var(--kcc-line) 25%, transparent);
+      vertical-align: top;
+    }
+    .kcc-ref-table th {
+      color: var(--kcc-muted);
+      font-weight: 700;
+      width: 42%;
+    }
+    .kcc-sr {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      margin: -1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      white-space: nowrap;
+      border: 0;
+    }
+  </style>
+</head>
+<body>
+  <div class="kcc" id="kcc-root">
+    <h2 class="kcc-title">Kitchen Conversion Calculator</h2>
+    <p class="kcc-lede">Convert weights, volumes, temperatures, and ingredient amounts for cooking and baking.</p>
+
+    <div class="kcc-bar">
+      <div class="kcc-cup-toggle" role="group" aria-label="Cup standard">
+        <button type="button" id="kcc-cup-us" aria-pressed="true">US cup</button>
+        <button type="button" id="kcc-cup-metric" aria-pressed="false">Metric cup</button>
+      </div>
+      <p class="kcc-hint" id="kcc-cup-note">US cup = 236.588 mL</p>
+    </div>
+
+    <div class="kcc-modes" role="tablist" aria-label="Conversion mode">
+      <button type="button" role="tab" id="kcc-tab-ingredient" aria-controls="kcc-panel-ingredient" aria-selected="true">Ingredient</button>
+      <button type="button" role="tab" id="kcc-tab-weight" aria-controls="kcc-panel-weight" aria-selected="false">Weight</button>
+      <button type="button" role="tab" id="kcc-tab-volume" aria-controls="kcc-panel-volume" aria-selected="false">Volume</button>
+      <button type="button" role="tab" id="kcc-tab-temp" aria-controls="kcc-panel-temp" aria-selected="false">Temperature</button>
+    </div>
+
+    <!-- Ingredient weight ↔ volume -->
+    <section class="kcc-panel is-active" id="kcc-panel-ingredient" role="tabpanel" aria-labelledby="kcc-tab-ingredient">
+      <div class="kcc-field">
+        <label for="kcc-ingredient-search">Ingredient</label>
+        <div class="kcc-combo">
+          <input id="kcc-ingredient-search" type="search" autocomplete="off" placeholder="Search ingredients…" aria-autocomplete="list" aria-controls="kcc-ingredient-list" aria-expanded="false" />
+          <ul class="kcc-combo-list" id="kcc-ingredient-list" role="listbox"></ul>
+        </div>
+        <p class="kcc-hint" id="kcc-ingredient-density-note"></p>
+      </div>
+      <div class="kcc-field" id="kcc-custom-density-wrap" hidden>
+        <label for="kcc-custom-density">Custom grams per cup</label>
+        <input id="kcc-custom-density" type="number" min="1" step="1" inputmode="decimal" placeholder="e.g. 140" />
+      </div>
+      <div class="kcc-row amount">
+        <div class="kcc-field">
+          <label for="kcc-ing-amount">Amount</label>
+          <input id="kcc-ing-amount" type="number" min="0" step="any" inputmode="decimal" value="1" />
+        </div>
+        <button type="button" class="kcc-swap" id="kcc-ing-swap" title="Swap direction" aria-label="Swap conversion direction">⇄</button>
+        <div class="kcc-field">
+          <label for="kcc-ing-unit">Unit</label>
+          <select id="kcc-ing-unit"></select>
+        </div>
+      </div>
+      <div class="kcc-field">
+        <label for="kcc-ing-to">Convert to</label>
+        <select id="kcc-ing-to"></select>
+      </div>
+      <div class="kcc-results" aria-live="polite">
+        <p class="kcc-precise" id="kcc-ing-precise">—</p>
+        <p class="kcc-friendly" id="kcc-ing-friendly"></p>
+        <p class="kcc-note" id="kcc-ing-note"></p>
+      </div>
+      <div class="kcc-actions">
+        <button type="button" class="kcc-copy" data-copy="ing">Copy result</button>
+      </div>
+    </section>
+
+    <!-- Weight only -->
+    <section class="kcc-panel" id="kcc-panel-weight" role="tabpanel" aria-labelledby="kcc-tab-weight" hidden>
+      <div class="kcc-row amount">
+        <div class="kcc-field">
+          <label for="kcc-wt-amount">Amount</label>
+          <input id="kcc-wt-amount" type="number" min="0" step="any" inputmode="decimal" value="100" />
+        </div>
+        <button type="button" class="kcc-swap" id="kcc-wt-swap" title="Swap direction" aria-label="Swap conversion direction">⇄</button>
+        <div class="kcc-field">
+          <label for="kcc-wt-unit">From</label>
+          <select id="kcc-wt-unit">
+            <option value="g">grams (g)</option>
+            <option value="kg">kilograms (kg)</option>
+            <option value="oz">ounces (oz weight)</option>
+            <option value="lb">pounds (lb)</option>
+          </select>
+        </div>
+      </div>
+      <div class="kcc-field">
+        <label for="kcc-wt-to">To</label>
+        <select id="kcc-wt-to">
+          <option value="oz">ounces (oz weight)</option>
+          <option value="lb">pounds (lb)</option>
+          <option value="g">grams (g)</option>
+          <option value="kg">kilograms (kg)</option>
+        </select>
+      </div>
+      <div class="kcc-results" aria-live="polite">
+        <p class="kcc-precise" id="kcc-wt-precise">—</p>
+        <p class="kcc-friendly" id="kcc-wt-friendly"></p>
+        <p class="kcc-note">Ounces here are weight ounces, not fluid ounces.</p>
+      </div>
+      <div class="kcc-actions">
+        <button type="button" class="kcc-copy" data-copy="wt">Copy result</button>
+      </div>
+    </section>
+
+    <!-- Liquid volume -->
+    <section class="kcc-panel" id="kcc-panel-volume" role="tabpanel" aria-labelledby="kcc-tab-volume" hidden>
+      <div class="kcc-row amount">
+        <div class="kcc-field">
+          <label for="kcc-vol-amount">Amount</label>
+          <input id="kcc-vol-amount" type="number" min="0" step="any" inputmode="decimal" value="1" />
+        </div>
+        <button type="button" class="kcc-swap" id="kcc-vol-swap" title="Swap direction" aria-label="Swap conversion direction">⇄</button>
+        <div class="kcc-field">
+          <label for="kcc-vol-unit">From</label>
+          <select id="kcc-vol-unit"></select>
+        </div>
+      </div>
+      <div class="kcc-field">
+        <label for="kcc-vol-to">To</label>
+        <select id="kcc-vol-to"></select>
+      </div>
+      <div class="kcc-results" aria-live="polite">
+        <p class="kcc-precise" id="kcc-vol-precise">—</p>
+        <p class="kcc-friendly" id="kcc-vol-friendly"></p>
+        <p class="kcc-note" id="kcc-vol-note"></p>
+      </div>
+      <div class="kcc-actions">
+        <button type="button" class="kcc-copy" data-copy="vol">Copy result</button>
+      </div>
+    </section>
+
+    <!-- Temperature -->
+    <section class="kcc-panel" id="kcc-panel-temp" role="tabpanel" aria-labelledby="kcc-tab-temp" hidden>
+      <div class="kcc-row amount">
+        <div class="kcc-field">
+          <label for="kcc-temp-amount">Temperature</label>
+          <input id="kcc-temp-amount" type="number" step="any" inputmode="decimal" value="180" />
+        </div>
+        <button type="button" class="kcc-swap" id="kcc-temp-swap" title="Swap direction" aria-label="Swap conversion direction">⇄</button>
+        <div class="kcc-field">
+          <label for="kcc-temp-unit">From</label>
+          <select id="kcc-temp-unit">
+            <option value="c">Celsius (°C)</option>
+            <option value="f">Fahrenheit (°F)</option>
+          </select>
+        </div>
+      </div>
+      <div class="kcc-field">
+        <label for="kcc-temp-to">To</label>
+        <select id="kcc-temp-to">
+          <option value="f">Fahrenheit (°F)</option>
+          <option value="c">Celsius (°C)</option>
+        </select>
+      </div>
+      <div class="kcc-results" aria-live="polite">
+        <p class="kcc-precise" id="kcc-temp-precise">—</p>
+        <p class="kcc-friendly" id="kcc-temp-friendly"></p>
+        <p class="kcc-note" id="kcc-temp-note"></p>
+        <p class="kcc-footnote" id="kcc-temp-footnote"></p>
+      </div>
+      <div class="kcc-actions">
+        <button type="button" class="kcc-copy" data-copy="temp">Copy result</button>
+      </div>
+    </section>
+
+    <div class="kcc-ref">
+      <h3>Quick reference</h3>
+      <table class="kcc-ref-table">
+        <tbody id="kcc-ref-body"></tbody>
+      </table>
+    </div>
+    <span class="kcc-sr" id="kcc-live" aria-live="polite"></span>
+  </div>
+
+  <script>
+(function () {
+  "use strict";
+
+  /* ============================================================
+     INGREDIENT DENSITY TABLE
+     Values are grams per US cup (236.588 mL).
+     To add an ingredient: copy a line and edit the key + gPerCup.
+     Optional: note (shown under results), stickG (butter stick).
+     ============================================================ */
+  const INGREDIENTS = {
+    water: { name: "Water", gPerCup: 236, note: "1 US cup water ≈ 236 g." },
+    milk: { name: "Milk", gPerCup: 240, note: "Whole milk, about 240 g per cup." },
+    "heavy-cream": { name: "Heavy cream", gPerCup: 238, note: "Heavy / whipping cream, about 238 g per cup." },
+    buttermilk: { name: "Buttermilk", gPerCup: 242, note: "Cultured buttermilk, about 242 g per cup." },
+    "vegetable-oil": { name: "Vegetable / olive oil", gPerCup: 218, note: "Typical cooking oil density, about 218 g per cup." },
+    honey: { name: "Honey", gPerCup: 340, note: "Honey is dense — about 340 g per cup." },
+    "maple-syrup": { name: "Maple syrup", gPerCup: 315, note: "Pure maple syrup, about 315 g per cup." },
+    molasses: { name: "Molasses", gPerCup: 337, note: "Unsulphured molasses, about 337 g per cup." },
+    butter: {
+      name: "Butter",
+      gPerCup: 227,
+      stickG: 113,
+      note: "Butter at 227 g per cup. 1 stick = 113 g = ½ cup.",
+    },
+    "ap-flour": {
+      name: "All-purpose flour",
+      gPerCup: 125,
+      note: "Based on spooned-and-leveled all-purpose flour, 125 g per cup.",
+    },
+    "bread-flour": { name: "Bread flour", gPerCup: 127, note: "Bread flour, about 127 g per spooned-and-leveled cup." },
+    "cake-flour": { name: "Cake flour", gPerCup: 114, note: "Cake flour, about 114 g per spooned-and-leveled cup." },
+    "ww-flour": { name: "Whole wheat flour", gPerCup: 120, note: "Whole wheat flour, about 120 g per cup." },
+    "almond-flour": { name: "Almond flour", gPerCup: 96, note: "Blanched almond flour, about 96 g per cup." },
+    "granulated-sugar": { name: "Granulated sugar", gPerCup: 200, note: "White granulated sugar, 200 g per cup." },
+    "brown-sugar": { name: "Brown sugar (packed)", gPerCup: 213, note: "Firmly packed brown sugar, about 213 g per cup." },
+    "powdered-sugar": { name: "Powdered sugar", gPerCup: 120, note: "Unsifted powdered sugar, about 120 g per cup." },
+    cocoa: { name: "Cocoa powder", gPerCup: 85, note: "Unsweetened cocoa powder, about 85 g per cup." },
+    "rolled-oats": { name: "Rolled oats", gPerCup: 90, note: "Old-fashioned rolled oats, about 90 g per cup." },
+    rice: { name: "Rice (uncooked)", gPerCup: 185, note: "Uncooked white rice, about 185 g per cup." },
+    cornstarch: { name: "Cornstarch", gPerCup: 128, note: "Cornstarch / cornflour, about 128 g per cup." },
+    salt: { name: "Salt (table)", gPerCup: 292, note: "Fine table salt, about 292 g per cup — measure carefully." },
+    "baking-soda": { name: "Baking soda", gPerCup: 220, note: "Baking soda, about 220 g per cup." },
+    "baking-powder": { name: "Baking powder", gPerCup: 192, note: "Baking powder, about 192 g per cup." },
+    "chocolate-chips": { name: "Chocolate chips", gPerCup: 170, note: "Standard chocolate chips, about 170 g per cup." },
+    "chopped-nuts": { name: "Chopped nuts", gPerCup: 120, note: "Chopped nuts, about 120 g per cup." },
+    "sour-cream": { name: "Sour cream", gPerCup: 242, note: "Full-fat sour cream, about 242 g per cup." },
+    "greek-yogurt": { name: "Greek yogurt", gPerCup: 245, note: "Thick Greek yogurt, about 245 g per cup." },
+    "cream-cheese": { name: "Cream cheese", gPerCup: 232, note: "Block cream cheese, about 232 g per cup." },
+    "peanut-butter": { name: "Peanut butter", gPerCup: 258, note: "Creamy peanut butter, about 258 g per cup." },
+    "mashed-banana": { name: "Mashed banana", gPerCup: 225, note: "Mashed ripe banana, about 225 g per cup." },
+    "shredded-cheese": { name: "Shredded cheese", gPerCup: 113, note: "Loosely packed shredded cheese, about 113 g per cup." },
+    custom: { name: "Custom…", gPerCup: null, note: "Enter your own grams-per-cup value." },
+  };
+
+  /* Exact constants */
+  const US_CUP_ML = 236.588;
+  const METRIC_CUP_ML = 250;
+  const TBSP_ML = 14.787;
+  const TSP_ML = 4.929;
+  const OZ_G = 28.3495;
+  const FLOZ_ML = 29.5735;
+  const LB_G = 453.592;
+  const PINT_ML = US_CUP_ML * 2;
+  const QUART_ML = US_CUP_ML * 4;
+  const GALLON_ML = US_CUP_ML * 16;
+
+  const FRACTIONS = [
+    { v: 0, label: "" },
+    { v: 1 / 8, label: "⅛" },
+    { v: 1 / 4, label: "¼" },
+    { v: 1 / 3, label: "⅓" },
+    { v: 1 / 2, label: "½" },
+    { v: 2 / 3, label: "⅔" },
+    { v: 3 / 4, label: "¾" },
+  ];
+
+  const root = document.getElementById("kcc-root");
+  const state = {
+    cupStandard: "us", // us | metric
+    ingredientKey: "ap-flour",
+    mode: "ingredient",
+  };
+
+  function cupMl() {
+    return state.cupStandard === "metric" ? METRIC_CUP_ML : US_CUP_ML;
+  }
+
+  function gPerSelectedCup(gPerUsCup) {
+    // Densities are stored per US cup; scale for metric cup by volume ratio.
+    return gPerUsCup * (cupMl() / US_CUP_ML);
+  }
+
+  function currentDensity() {
+    const ing = INGREDIENTS[state.ingredientKey];
+    if (!ing) return null;
+    if (state.ingredientKey === "custom") {
+      const custom = Number(document.getElementById("kcc-custom-density").value);
+      return Number.isFinite(custom) && custom > 0 ? custom : null;
+    }
+    return gPerSelectedCup(ing.gPerCup);
+  }
+
+  /* ---------- formatting helpers ---------- */
+  function nearestFraction(x) {
+    let best = FRACTIONS[0];
+    let bestDiff = Infinity;
+    for (const f of FRACTIONS) {
+      const d = Math.abs(x - f.v);
+      if (d < bestDiff) {
+        best = f;
+        bestDiff = d;
+      }
+    }
+    // Prefer whole number if very close
+    if (Math.abs(x - 1) < bestDiff && x > 0.9) return { v: 1, label: "" };
+    return best;
+  }
+
+  function formatMixedNumber(value) {
+    if (!Number.isFinite(value) || value === 0) return "0";
+    const sign = value < 0 ? "-" : "";
+    const abs = Math.abs(value);
+    const whole = Math.floor(abs + 1e-9);
+    const fracPart = abs - whole;
+    const frac = nearestFraction(fracPart);
+    // If fraction rounds up to 1
+    let w = whole;
+    let label = frac.label;
+    if (frac.v === 1 || (fracPart > 0.9 && !label)) {
+      w += 1;
+      label = "";
+    } else if (Math.abs(fracPart - frac.v) > 0.07 && fracPart > 0.02) {
+      // Too far from a clean fraction — use one decimal
+      return sign + abs.toFixed(1).replace(/\.0$/, "");
+    }
+    if (w === 0 && label) return sign + label;
+    if (w === 0) return sign + "0";
+    if (!label) return sign + String(w);
+    return sign + w + " " + label;
+  }
+
+  function roundGrams(g) {
+    return Math.round(g);
+  }
+  function roundOz(oz) {
+    return Math.round(oz * 10) / 10;
+  }
+
+  function formatNumber(n, digits) {
+    if (!Number.isFinite(n)) return "—";
+    const s = n.toFixed(digits);
+    return s.replace(/\.?0+$/, "") || "0";
+  }
+
+  /* Volume unit defs in mL (US-based cups use current cup standard via cupMl) */
+  function volUnits() {
+    const cup = cupMl();
+    return {
+      ml: { label: "milliliters (mL)", toMl: 1, kind: "metric" },
+      l: { label: "liters (L)", toMl: 1000, kind: "metric" },
+      tsp: { label: "teaspoons (tsp)", toMl: TSP_ML, kind: "us" },
+      tbsp: { label: "tablespoons (tbsp)", toMl: TBSP_ML, kind: "us" },
+      floz: { label: "fluid ounces (fl oz)", toMl: FLOZ_ML, kind: "us" },
+      cup: { label: state.cupStandard === "metric" ? "cups (metric 250 mL)" : "cups (US)", toMl: cup, kind: "cup" },
+      pint: { label: "pints (US)", toMl: PINT_ML, kind: "us" },
+      quart: { label: "quarts (US)", toMl: QUART_ML, kind: "us" },
+      gallon: { label: "gallons (US)", toMl: GALLON_ML, kind: "us" },
+    };
+  }
+
+  function weightUnits() {
+    return {
+      g: { label: "grams (g)", toG: 1 },
+      kg: { label: "kilograms (kg)", toG: 1000 },
+      oz: { label: "ounces (oz weight)", toG: OZ_G },
+      lb: { label: "pounds (lb)", toG: LB_G },
+    };
+  }
+
+  function ingredientUnits() {
+    return {
+      g: { label: "grams (g)", type: "weight" },
+      kg: { label: "kilograms (kg)", type: "weight" },
+      oz: { label: "ounces (oz weight)", type: "weight" },
+      lb: { label: "pounds (lb)", type: "weight" },
+      ml: { label: "milliliters (mL)", type: "volume" },
+      floz: { label: "fluid ounces (fl oz)", type: "volume" },
+      tsp: { label: "teaspoons (tsp)", type: "volume" },
+      tbsp: { label: "tablespoons (tbsp)", type: "volume" },
+      cup: { label: state.cupStandard === "metric" ? "cups (metric)" : "cups (US)", type: "volume" },
+      stick: { label: "sticks (butter)", type: "special" },
+    };
+  }
+
+  function fillSelect(sel, units, preferred) {
+    const prev = preferred || sel.value;
+    sel.innerHTML = "";
+    Object.keys(units).forEach(function (key) {
+      const opt = document.createElement("option");
+      opt.value = key;
+      opt.textContent = units[key].label;
+      sel.appendChild(opt);
+    });
+    if (units[prev]) sel.value = prev;
+  }
+
+  /* Convert ingredient amount → grams */
+  function ingredientToGrams(amount, unit, densityGPerCup) {
+    if (!Number.isFinite(amount) || amount < 0) return NaN;
+    const cup = cupMl();
+    const gPerMl = densityGPerCup / cup;
+    switch (unit) {
+      case "g": return amount;
+      case "kg": return amount * 1000;
+      case "oz": return amount * OZ_G;
+      case "lb": return amount * LB_G;
+      case "ml": return amount * gPerMl;
+      case "floz": return amount * FLOZ_ML * gPerMl;
+      case "tsp": return amount * TSP_ML * gPerMl;
+      case "tbsp": return amount * TBSP_ML * gPerMl;
+      case "cup": return amount * densityGPerCup;
+      case "stick": {
+        const stickG = INGREDIENTS.butter.stickG || 113;
+        return amount * stickG;
+      }
+      default: return NaN;
+    }
+  }
+
+  function gramsToIngredientUnit(grams, unit, densityGPerCup) {
+    if (!Number.isFinite(grams)) return NaN;
+    const cup = cupMl();
+    const gPerMl = densityGPerCup / cup;
+    switch (unit) {
+      case "g": return grams;
+      case "kg": return grams / 1000;
+      case "oz": return grams / OZ_G;
+      case "lb": return grams / LB_G;
+      case "ml": return grams / gPerMl;
+      case "floz": return grams / (FLOZ_ML * gPerMl);
+      case "tsp": return grams / (TSP_ML * gPerMl);
+      case "tbsp": return grams / (TBSP_ML * gPerMl);
+      case "cup": return grams / densityGPerCup;
+      case "stick": return grams / (INGREDIENTS.butter.stickG || 113);
+      default: return NaN;
+    }
+  }
+
+  /* Kitchen-friendly volume breakdown from mL */
+  function friendlyFromMl(ml) {
+    if (!Number.isFinite(ml) || ml === 0) return "0";
+    const abs = Math.abs(ml);
+    const sign = ml < 0 ? "-" : "";
+    const cup = cupMl();
+
+    if (abs < TSP_ML * 0.4) {
+      return sign + formatNumber(abs, 1) + " mL";
+    }
+    if (abs < TBSP_ML * 0.75) {
+      const tsp = abs / TSP_ML;
+      return sign + formatMixedNumber(tsp) + " tsp";
+    }
+    if (abs < cup * 0.2) {
+      const tbsp = abs / TBSP_ML;
+      const whole = Math.floor(tbsp);
+      const remTsp = (abs - whole * TBSP_ML) / TSP_ML;
+      let out = sign;
+      if (whole > 0) out += whole + " tbsp";
+      if (remTsp >= 0.4) {
+        if (whole > 0) out += " + ";
+        out += formatMixedNumber(remTsp) + " tsp";
+      }
+      if (out === sign) out += formatMixedNumber(tbsp) + " tbsp";
+      return out;
+    }
+
+    const cups = abs / cup;
+    const wholeCups = Math.floor(cups + 1e-9);
+    let rem = abs - wholeCups * cup;
+    // Snap remainder to common cup fractions
+    const fracCup = rem / cup;
+    const snapped = nearestFraction(fracCup);
+    let parts = sign;
+    let usedCups = wholeCups;
+    if (Math.abs(fracCup - snapped.v) <= 0.07) {
+      rem = abs - (wholeCups + snapped.v) * cup;
+      if (snapped.v === 1) {
+        usedCups += 1;
+        parts += usedCups + (usedCups === 1 ? " cup" : " cups");
+      } else if (usedCups > 0 && snapped.label) {
+        parts += usedCups + " " + snapped.label + " cups";
+        rem = Math.max(0, rem);
+      } else if (usedCups === 0 && snapped.label) {
+        parts += snapped.label + " cup";
+        rem = Math.max(0, rem);
+      } else if (usedCups > 0) {
+        parts += usedCups + (usedCups === 1 ? " cup" : " cups");
+      }
+    } else if (usedCups > 0) {
+      parts += usedCups + (usedCups === 1 ? " cup" : " cups");
+    }
+
+    if (rem >= TBSP_ML * 0.45) {
+      const tbsp = Math.round(rem / TBSP_ML);
+      if (tbsp > 0) {
+        if (parts !== sign) parts += " + ";
+        parts += tbsp + " tbsp";
+        rem -= tbsp * TBSP_ML;
+      }
+    }
+    if (rem >= TSP_ML * 0.45) {
+      const tsp = Math.round(rem / TSP_ML);
+      if (tsp > 0) {
+        if (parts !== sign) parts += " + ";
+        parts += tsp + " tsp";
+      }
+    }
+    if (parts === sign) {
+      return sign + formatMixedNumber(cups) + (Math.abs(cups - 1) < 0.05 ? " cup" : " cups");
+    }
+    return parts;
+  }
+
+  function friendlyWeight(grams) {
+    if (!Number.isFinite(grams)) return "—";
+    const abs = Math.abs(grams);
+    const sign = grams < 0 ? "-" : "";
+    if (abs >= LB_G) {
+      const lb = abs / LB_G;
+      const whole = Math.floor(lb);
+      const remOz = (abs - whole * LB_G) / OZ_G;
+      let out = sign;
+      if (whole > 0) out += whole + (whole === 1 ? " lb" : " lb");
+      if (remOz >= 0.15) {
+        if (whole > 0) out += " ";
+        out += roundOz(remOz) + " oz";
+      }
+      return out || sign + roundOz(abs / OZ_G) + " oz";
+    }
+    if (abs >= OZ_G * 0.5) return sign + roundOz(abs / OZ_G) + " oz";
+    return sign + roundGrams(abs) + " g";
+  }
+
+  function unitLabelShort(unit) {
+    const map = {
+      g: "g", kg: "kg", oz: "oz", lb: "lb",
+      ml: "mL", l: "L", tsp: "tsp", tbsp: "tbsp",
+      floz: "fl oz", cup: "cups", pint: "pt", quart: "qt", gallon: "gal",
+      stick: "sticks", c: "°C", f: "°F",
+    };
+    return map[unit] || unit;
+  }
+
+  /* ---------- Ingredient UI ---------- */
+  const ingSearch = document.getElementById("kcc-ingredient-search");
+  const ingList = document.getElementById("kcc-ingredient-list");
+  const ingAmount = document.getElementById("kcc-ing-amount");
+  const ingUnit = document.getElementById("kcc-ing-unit");
+  const ingTo = document.getElementById("kcc-ing-to");
+  const customWrap = document.getElementById("kcc-custom-density-wrap");
+  const customDensity = document.getElementById("kcc-custom-density");
+
+  function ingredientEntries() {
+    return Object.keys(INGREDIENTS).map(function (key) {
+      return { key: key, name: INGREDIENTS[key].name };
+    });
+  }
+
+  function setIngredient(key) {
+    if (!INGREDIENTS[key]) return;
+    state.ingredientKey = key;
+    ingSearch.value = INGREDIENTS[key].name;
+    customWrap.hidden = key !== "custom";
+    document.getElementById("kcc-ingredient-density-note").textContent =
+      key === "custom"
+        ? "Enter grams per " + (state.cupStandard === "metric" ? "metric cup (250 mL)" : "US cup") + "."
+        : "Density: " + formatNumber(currentDensity(), 1) + " g per cup.";
+    refreshIngredientUnits();
+    closeIngredientList();
+    updateIngredient();
+  }
+
+  function refreshIngredientUnits() {
+    const units = ingredientUnits();
+    if (state.ingredientKey !== "butter") delete units.stick;
+    fillSelect(ingUnit, units);
+    fillSelect(ingTo, units);
+    // Sensible defaults
+    if (!ingUnit.value) ingUnit.value = "cup";
+    if (!ingTo.value || ingTo.value === ingUnit.value) {
+      ingTo.value = ingUnit.value === "cup" ? "g" : "cup";
+    }
+  }
+
+  function openIngredientList(filter) {
+    const q = (filter || "").trim().toLowerCase();
+    const items = ingredientEntries().filter(function (e) {
+      return !q || e.name.toLowerCase().indexOf(q) !== -1 || e.key.indexOf(q) !== -1;
+    });
+    ingList.innerHTML = "";
+    items.forEach(function (e, i) {
+      const li = document.createElement("li");
+      const btn = document.createElement("button");
+      btn.type = "button";
+      btn.setAttribute("role", "option");
+      btn.setAttribute("aria-selected", e.key === state.ingredientKey ? "true" : "false");
+      btn.textContent = e.name;
+      btn.addEventListener("click", function () { setIngredient(e.key); });
+      li.appendChild(btn);
+      ingList.appendChild(li);
+    });
+    ingList.classList.add("is-open");
+    ingSearch.setAttribute("aria-expanded", "true");
+  }
+
+  function closeIngredientList() {
+    ingList.classList.remove("is-open");
+    ingSearch.setAttribute("aria-expanded", "false");
+  }
+
+  function updateIngredient() {
+    const density = currentDensity();
+    const amount = Number(ingAmount.value);
+    const from = ingUnit.value;
+    const to = ingTo.value;
+    const preciseEl = document.getElementById("kcc-ing-precise");
+    const friendlyEl = document.getElementById("kcc-ing-friendly");
+    const noteEl = document.getElementById("kcc-ing-note");
+    const ing = INGREDIENTS[state.ingredientKey];
+
+    if (!density) {
+      preciseEl.textContent = "Enter a density";
+      friendlyEl.textContent = "";
+      noteEl.textContent = "Custom mode needs grams per cup.";
+      return;
+    }
+    if (!Number.isFinite(amount) || amount < 0) {
+      preciseEl.textContent = "—";
+      friendlyEl.textContent = "";
+      noteEl.textContent = "";
+      return;
+    }
+
+    const grams = ingredientToGrams(amount, from, density);
+    let result = gramsToIngredientUnit(grams, to, density);
+    let digits = (to === "g") ? 0 : (to === "oz" || to === "floz" ? 1 : 2);
+    if (to === "g") result = roundGrams(result);
+    if (to === "oz") result = roundOz(result);
+
+    // Avoid awkward tiny cup displays
+    let displayUnit = to;
+    let displayVal = result;
+    if (to === "cup" && Math.abs(result) > 0 && Math.abs(result) < 0.125) {
+      displayUnit = Math.abs(result) * cupMl() < TBSP_ML ? "tsp" : "tbsp";
+      displayVal = gramsToIngredientUnit(grams, displayUnit, density);
+      digits = 2;
+    }
+
+    const preciseText =
+      (digits === 0 ? String(Math.round(displayVal)) : formatNumber(displayVal, digits)) +
+      " " + unitLabelShort(displayUnit);
+    preciseEl.textContent = preciseText;
+
+    // Friendly line
+    let friendly = "";
+    if (displayUnit === "cup" || displayUnit === "tbsp" || displayUnit === "tsp" || displayUnit === "ml" || displayUnit === "floz") {
+      const ml = grams / (density / cupMl());
+      friendly = "≈ " + friendlyFromMl(ml);
+      if (displayUnit === "cup" && Math.abs(result - Math.round(result * 8) / 8) > 0.02) {
+        friendly = formatNumber(result, 2) + " cups ≈ " + friendlyFromMl(ml);
+      } else if (displayUnit === "cup") {
+        friendly = "≈ " + formatMixedNumber(result) + (Math.abs(result - 1) < 0.05 ? " cup" : " cups");
+      }
+    } else if (displayUnit === "g" || displayUnit === "kg" || displayUnit === "oz" || displayUnit === "lb") {
+      friendly = "≈ " + friendlyWeight(grams);
+    } else if (displayUnit === "stick") {
+      friendly = "≈ " + formatMixedNumber(displayVal) + (Math.abs(displayVal - 1) < 0.05 ? " stick" : " sticks");
+    }
+    friendlyEl.textContent = friendly;
+
+    let note = ing.note || "";
+    if (state.cupStandard === "metric" && state.ingredientKey !== "custom") {
+      note += " Scaled to a 250 mL metric cup.";
+    }
+    noteEl.textContent = note;
+  }
+
+  /* ---------- Weight mode ---------- */
+  const wtAmount = document.getElementById("kcc-wt-amount");
+  const wtUnit = document.getElementById("kcc-wt-unit");
+  const wtTo = document.getElementById("kcc-wt-to");
+
+  function toGrams(amount, unit) {
+    const u = weightUnits()[unit];
+    return amount * u.toG;
+  }
+  function fromGrams(grams, unit) {
+    const u = weightUnits()[unit];
+    return grams / u.toG;
+  }
+
+  function updateWeight() {
+    const amount = Number(wtAmount.value);
+    const preciseEl = document.getElementById("kcc-wt-precise");
+    const friendlyEl = document.getElementById("kcc-wt-friendly");
+    if (!Number.isFinite(amount) || amount < 0) {
+      preciseEl.textContent = "—";
+      friendlyEl.textContent = "";
+      return;
+    }
+    const g = toGrams(amount, wtUnit.value);
+    let result = fromGrams(g, wtTo.value);
+    if (wtTo.value === "g") result = roundGrams(result);
+    if (wtTo.value === "oz") result = roundOz(result);
+    const digits = wtTo.value === "g" ? 0 : wtTo.value === "oz" ? 1 : 3;
+    preciseEl.textContent = formatNumber(result, digits) + " " + unitLabelShort(wtTo.value);
+    friendlyEl.textContent = "≈ " + friendlyWeight(g);
+  }
+
+  /* ---------- Volume mode ---------- */
+  const volAmount = document.getElementById("kcc-vol-amount");
+  const volUnit = document.getElementById("kcc-vol-unit");
+  const volTo = document.getElementById("kcc-vol-to");
+
+  function refreshVolumeUnits() {
+    const units = volUnits();
+    fillSelect(volUnit, units);
+    fillSelect(volTo, units);
+    if (!volUnit.value) volUnit.value = "cup";
+    if (!volTo.value) volTo.value = "ml";
+  }
+
+  function updateVolume() {
+    const amount = Number(volAmount.value);
+    const preciseEl = document.getElementById("kcc-vol-precise");
+    const friendlyEl = document.getElementById("kcc-vol-friendly");
+    const noteEl = document.getElementById("kcc-vol-note");
+    const units = volUnits();
+    if (!Number.isFinite(amount) || amount < 0) {
+      preciseEl.textContent = "—";
+      friendlyEl.textContent = "";
+      return;
+    }
+    const ml = amount * units[volUnit.value].toMl;
+    let result = ml / units[volTo.value].toMl;
+    let unit = volTo.value;
+    // Avoid 0.07 cups etc.
+    if (unit === "cup" && result > 0 && result < 0.125) {
+      unit = ml < TBSP_ML ? "tsp" : "tbsp";
+      result = ml / units[unit].toMl;
+    }
+    const digits = unit === "ml" ? 0 : 2;
+    preciseEl.textContent = formatNumber(result, digits) + " " + unitLabelShort(unit);
+    friendlyEl.textContent = "≈ " + friendlyFromMl(ml);
+    noteEl.textContent =
+      "Fluid ounces (fl oz) are volume. Cup size: " +
+      (state.cupStandard === "metric" ? "250 mL metric." : "236.588 mL US.");
+  }
+
+  /* ---------- Temperature ---------- */
+  const tempAmount = document.getElementById("kcc-temp-amount");
+  const tempUnit = document.getElementById("kcc-temp-unit");
+  const tempTo = document.getElementById("kcc-temp-to");
+
+  function cToGasMark(c) {
+    // Approximate domestic oven gas marks
+    const table = [
+      [135, "1"], [150, "2"], [160, "3"], [180, "4"],
+      [190, "5"], [200, "6"], [220, "7"], [230, "8"], [240, "9"],
+    ];
+    let best = table[0];
+    let bestDiff = Infinity;
+    table.forEach(function (row) {
+      const d = Math.abs(row[0] - c);
+      if (d < bestDiff) { best = row; bestDiff = d; }
+    });
+    if (c < 130) return "below Gas Mark 1";
+    if (c > 250) return "above Gas Mark 9";
+    return "about Gas Mark " + best[1];
+  }
+
+  function updateTemp() {
+    const amount = Number(tempAmount.value);
+    const preciseEl = document.getElementById("kcc-temp-precise");
+    const friendlyEl = document.getElementById("kcc-temp-friendly");
+    const noteEl = document.getElementById("kcc-temp-note");
+    const footEl = document.getElementById("kcc-temp-footnote");
+    if (!Number.isFinite(amount)) {
+      preciseEl.textContent = "—";
+      friendlyEl.textContent = "";
+      noteEl.textContent = "";
+      if (footEl) footEl.textContent = "";
+      return;
+    }
+    let c = tempUnit.value === "c" ? amount : (amount - 32) * 5 / 9;
+    let result = tempTo.value === "c" ? c : c * 9 / 5 + 32;
+    const toLabel = tempTo.value === "c" ? "°C" : "°F";
+    preciseEl.textContent = formatNumber(result, 0) + " " + toLabel;
+    friendlyEl.textContent = "";
+    noteEl.textContent = cToGasMark(c) + ". Conventional ovens vary — use as a guide.";
+    if (footEl) {
+      footEl.textContent = "* Gas Mark is the British oven dial scale (Mark 1 ≈ 135 °C / 275 °F up to Mark 9 ≈ 240 °C / 475 °F).";
+    }
+  }
+
+  /* ---------- Tabs ---------- */
+  function showMode(mode) {
+    state.mode = mode;
+    ["ingredient", "weight", "volume", "temp"].forEach(function (m) {
+      const panel = document.getElementById("kcc-panel-" + m);
+      const tab = document.getElementById("kcc-tab-" + m);
+      const on = m === mode;
+      panel.classList.toggle("is-active", on);
+      panel.hidden = !on;
+      tab.setAttribute("aria-selected", on ? "true" : "false");
+    });
+  }
+
+  /* ---------- Cup toggle ---------- */
+  function setCupStandard(std) {
+    state.cupStandard = std;
+    document.getElementById("kcc-cup-us").setAttribute("aria-pressed", std === "us" ? "true" : "false");
+    document.getElementById("kcc-cup-metric").setAttribute("aria-pressed", std === "metric" ? "true" : "false");
+    document.getElementById("kcc-cup-note").textContent =
+      std === "metric" ? "Metric cup = 250 mL" : "US cup = 236.588 mL";
+    refreshIngredientUnits();
+    refreshVolumeUnits();
+    updateAll();
+    renderReference();
+  }
+
+  /* ---------- Swap helpers ---------- */
+  function swapSelects(a, b) {
+    const tmp = a.value;
+    a.value = b.value;
+    b.value = tmp;
+  }
+
+  /* ---------- Copy ---------- */
+  function copyText(which) {
+    const map = {
+      ing: ["kcc-ing-precise", "kcc-ing-friendly"],
+      wt: ["kcc-wt-precise", "kcc-wt-friendly"],
+      vol: ["kcc-vol-precise", "kcc-vol-friendly"],
+      temp: ["kcc-temp-precise", "kcc-temp-friendly"],
+    };
+    const ids = map[which];
+    const text = ids.map(function (id) {
+      return document.getElementById(id).textContent;
+    }).filter(Boolean).join(" · ");
+    const btn = root.querySelector('.kcc-copy[data-copy="' + which + '"]');
+    function done() {
+      if (!btn) return;
+      btn.classList.add("is-done");
+      btn.textContent = "Copied!";
+      setTimeout(function () {
+        btn.classList.remove("is-done");
+        btn.textContent = "Copy result";
+      }, 1400);
+    }
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(text).then(done).catch(function () {
+        window.prompt("Copy result:", text);
+      });
+    } else {
+      window.prompt("Copy result:", text);
+      done();
+    }
+  }
+
+  /* ---------- Quick reference ---------- */
+  function renderReference() {
+    const body = document.getElementById("kcc-ref-body");
+    const cupName = state.cupStandard === "metric" ? "metric cup" : "US cup";
+    const flour = gPerSelectedCup(INGREDIENTS["ap-flour"].gPerCup);
+    const sugar = gPerSelectedCup(INGREDIENTS["granulated-sugar"].gPerCup);
+    const butterCup = gPerSelectedCup(INGREDIENTS.butter.gPerCup);
+    const rows = [
+      ["1 " + cupName + " all-purpose flour", roundGrams(flour) + " g"],
+      ["1 " + cupName + " granulated sugar", roundGrams(sugar) + " g"],
+      ["1 stick butter", "113 g = ½ US cup"],
+      ["1 " + cupName + " butter", roundGrams(butterCup) + " g"],
+      ["1 oz (weight)", formatNumber(OZ_G, 2) + " g"],
+      ["1 fl oz (volume)", formatNumber(FLOZ_ML, 2) + " mL"],
+      ["1 tbsp", formatNumber(TBSP_ML, 2) + " mL"],
+      ["1 tsp", formatNumber(TSP_ML, 2) + " mL"],
+      ["Oven 180 °C", "356 °F · Gas Mark 4 · fan ≈ 160 °C"],
+      ["Oven 350 °F", "177 °C · Gas Mark 4 · fan ≈ 325 °F"],
+      ["Oven 200 °C", "392 °F · Gas Mark 6 · fan ≈ 180 °C"],
+    ];
+    body.innerHTML = rows.map(function (r) {
+      return "<tr><th>" + r[0] + "</th><td>" + r[1] + "</td></tr>";
+    }).join("");
+  }
+
+  function updateAll() {
+    updateIngredient();
+    updateWeight();
+    updateVolume();
+    updateTemp();
+  }
+
+  /* ---------- Wire events ---------- */
+  document.getElementById("kcc-tab-ingredient").addEventListener("click", function () { showMode("ingredient"); });
+  document.getElementById("kcc-tab-weight").addEventListener("click", function () { showMode("weight"); });
+  document.getElementById("kcc-tab-volume").addEventListener("click", function () { showMode("volume"); });
+  document.getElementById("kcc-tab-temp").addEventListener("click", function () { showMode("temp"); });
+
+  document.getElementById("kcc-cup-us").addEventListener("click", function () { setCupStandard("us"); });
+  document.getElementById("kcc-cup-metric").addEventListener("click", function () { setCupStandard("metric"); });
+
+  ingSearch.addEventListener("focus", function () { openIngredientList(ingSearch.value); });
+  ingSearch.addEventListener("input", function () { openIngredientList(ingSearch.value); });
+  ingSearch.addEventListener("keydown", function (e) {
+    if (e.key === "Escape") closeIngredientList();
+  });
+  document.addEventListener("click", function (e) {
+    if (!root.contains(e.target)) return;
+    if (!ingSearch.contains(e.target) && !ingList.contains(e.target)) closeIngredientList();
+  });
+
+  [ingAmount, ingUnit, ingTo, customDensity].forEach(function (el) {
+    el.addEventListener("input", updateIngredient);
+    el.addEventListener("change", updateIngredient);
+  });
+  document.getElementById("kcc-ing-swap").addEventListener("click", function () {
+    swapSelects(ingUnit, ingTo);
+    updateIngredient();
+  });
+
+  [wtAmount, wtUnit, wtTo].forEach(function (el) {
+    el.addEventListener("input", updateWeight);
+    el.addEventListener("change", updateWeight);
+  });
+  document.getElementById("kcc-wt-swap").addEventListener("click", function () {
+    swapSelects(wtUnit, wtTo);
+    updateWeight();
+  });
+
+  [volAmount, volUnit, volTo].forEach(function (el) {
+    el.addEventListener("input", updateVolume);
+    el.addEventListener("change", updateVolume);
+  });
+  document.getElementById("kcc-vol-swap").addEventListener("click", function () {
+    swapSelects(volUnit, volTo);
+    updateVolume();
+  });
+
+  [tempAmount, tempUnit, tempTo].forEach(function (el) {
+    el.addEventListener("input", updateTemp);
+    el.addEventListener("change", updateTemp);
+  });
+  document.getElementById("kcc-temp-swap").addEventListener("click", function () {
+    swapSelects(tempUnit, tempTo);
+    updateTemp();
+  });
+
+  root.querySelectorAll(".kcc-copy").forEach(function (btn) {
+    btn.addEventListener("click", function () {
+      copyText(btn.getAttribute("data-copy"));
+    });
+  });
+
+  /* Init */
+  refreshVolumeUnits();
+  setIngredient("ap-flour");
+  ingUnit.value = "cup";
+  ingTo.value = "g";
+  showMode("ingredient");
+  setCupStandard("us");
+  updateAll();
+  renderReference();
+})();
+  </script>
+</body>
+</html>
