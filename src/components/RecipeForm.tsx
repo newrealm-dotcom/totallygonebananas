@@ -490,6 +490,8 @@ export function RecipeForm({ userId, isEditor, categories, recipeId, initial }: 
 
       {restoredAt && (
         <div className="notice-inline" role="status">
+          {/* eslint-disable-next-line @next/next/no-img-element -- small static mascot asset */}
+          <img className="notice-inline-mascot" src="/upload-complete.png" alt="" width={52} height={52} />
           <span>We restored your unsaved work from {new Date(restoredAt).toLocaleString()}.</span>
           <button type="button" className="linkbtn" onClick={startOver}>Start fresh</button>
         </div>

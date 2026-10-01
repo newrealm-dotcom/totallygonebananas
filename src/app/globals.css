@@ -583,12 +583,18 @@ textarea.field { resize: vertical; line-height: 1.45; }
 .notice-inline { display: flex; gap: 1rem; align-items: center; flex-wrap: wrap; background: #C7E7D7; color: var(--brown); border: 3px solid var(--brown); border-radius: 18px; padding: .7rem 1rem; font-weight: 800; margin: 1.2rem 0 0; }
 .notice-inline.warn { background: var(--yellow); }
 .notice-inline .linkbtn { color: var(--brown); }
+.notice-inline-mascot {
+  width: 52px;
+  height: 52px;
+  object-fit: contain;
+  flex-shrink: 0;
+}
 .or { display: flex; align-items: center; gap: .8rem; color: var(--muted); font-weight: 800; margin: 0; }
 .or::before, .or::after { content: ""; flex: 1; height: 2px; background: var(--line); opacity: .25; }
 
 /* ---------- recipe form ---------- */
 .rf { padding-bottom: 1rem; }
-.rf-toc { position: sticky; top: 82px; z-index: 5; display: flex; gap: .4rem; overflow-x: auto; scrollbar-width: none; padding: .6rem 0; background: var(--bg); margin-bottom: .5rem; }
+.rf-toc { position: sticky; top: 82px; z-index: 5; display: flex; gap: .4rem; overflow-x: auto; scrollbar-width: none; padding: .6rem 0; background: transparent; margin-bottom: .5rem; }
 .rf-toc a { display: inline-flex; align-items: center; gap: .45rem; white-space: nowrap; font-weight: 800; font-size: .88rem; text-decoration: none; border: 2.5px solid var(--line); border-radius: 999px; padding: .25rem .8rem .25rem .3rem; background: var(--paper); }
 .rf-toc a span { width: 24px; height: 24px; border-radius: 50%; display: grid; place-items: center; background: var(--yellow); color: var(--on-yellow); border: 2px solid var(--brown); font-size: .8rem; }
 .rf-sec { background: var(--panel); border: 3px solid var(--line); border-radius: 28px; box-shadow: 6px 6px 0 var(--line); padding: 1.4rem clamp(1rem, 3vw, 1.8rem) .6rem; margin: 1.4rem 0; }
@@ -1554,6 +1560,19 @@ html[data-theme="dark"] .print-preview-sheet {
   color: var(--muted);
   font-weight: 600;
   font-size: 1.05rem;
+}
+.print-preview-facts .recipe-facts {
+  margin-top: .35rem;
+}
+.print-preview-equipment {
+  margin: 0;
+  padding-left: 1.25rem;
+  display: grid;
+  gap: .35rem;
+}
+.print-preview-equipment li {
+  font-weight: 600;
+  line-height: 1.4;
 }
 .print-preview-section {
   margin-top: 1.15rem;
@@ -2679,6 +2698,12 @@ header.top.is-compact .top-actions { margin-left: 0; }
     display: none !important;
   }
   html.print-preview-no-blurb .print-preview-blurb {
+    display: none !important;
+  }
+  html.print-preview-no-facts .print-preview-facts {
+    display: none !important;
+  }
+  html.print-preview-no-equipment .print-preview-equipment-sec {
     display: none !important;
   }
   html.print-preview .print-preview-title {

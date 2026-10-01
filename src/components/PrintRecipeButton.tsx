@@ -3,12 +3,17 @@
 import { useEffect, useId, useState } from "react";
 import { createPortal } from "react-dom";
 import type { IngredientGroup } from "@/lib/ingredients";
+import { RecipeFacts } from "@/components/RecipeFacts";
 
 export interface PrintRecipePayload {
   title: string;
   description: string | null;
   imageUrl: string | null;
   imageAlt: string;
+  difficulty: number | null;
+  servings: string | null;
+  totalMinutes: number | null;
+  equipment: string[];
   ingredients: IngredientGroup[];
   steps: { title: string; steps: string[] }[];
 }
@@ -17,9 +22,18 @@ export function PrintRecipeButton({ recipe }: { recipe: PrintRecipePayload }) {
   const [open, setOpen] = useState(false);
   const [omitImage, setOmitImage] = useState(false);
   const [omitBlurb, setOmitBlurb] = useState(false);
+  const [omitFacts, setOmitFacts] = useState(false);
+  const [omitEquipment, setOmitEquipment] = useState(false);
   const titleId = useId();
   const hasImage = !!recipe.imageUrl;
   const hasBlurb = !!recipe.description?.trim();
+  const hasFacts =
+    (typeof recipe.difficulty === "number" && recipe.difficulty >= 1 && recipe.difficulty <= 5) ||
+    !!recipe.servings?.trim() ||
+    (typeof recipe.totalMinutes === "number" && recipe.totalMinutes > 0);
+  const equipment = recipe.equipment.map((item) => item.trim()).filter(Boolean);
+  const hasEquipment = equipment.length > 0;
+  const hasOpts = hasImage || hasBlurb || hasFacts || hasEquipment;
 
   useEffect(() => {
     if (!open) return;
@@ -39,11 +53,15 @@ export function PrintRecipeButton({ recipe }: { recipe: PrintRecipePayload }) {
     document.documentElement.classList.add("print-preview");
     document.documentElement.classList.toggle("print-preview-no-image", omitImage || !hasImage);
     document.documentElement.classList.toggle("print-preview-no-blurb", omitBlurb || !hasBlurb);
+    document.documentElement.classList.toggle("print-preview-no-facts", omitFacts || !hasFacts);
+    document.documentElement.classList.toggle("print-preview-no-equipment", omitEquipment || !hasEquipment);
     const cleanup = () => {
       document.documentElement.classList.remove(
         "print-preview",
         "print-preview-no-image",
         "print-preview-no-blurb",
+        "print-preview-no-facts",
+        "print-preview-no-equipment",
       );
       window.removeEventListener("afterprint", cleanup);
     };
@@ -71,7 +89,7 @@ export function PrintRecipeButton({ recipe }: { recipe: PrintRecipePayload }) {
                     Close
                   </button>
                 </div>
-                {(hasImage || hasBlurb) && (
+                {hasOpts && (
                   <div className="print-preview-opts" role="group" aria-label="Print options">
                     {hasImage && (
                       <label className="print-recipe-opt">
@@ -93,6 +111,26 @@ export function PrintRecipeButton({ recipe }: { recipe: PrintRecipePayload }) {
                         <span>Remove blurb</span>
                       </label>
                     )}
+                    {hasFacts && (
+                      <label className="print-recipe-opt">
+                        <input
+                          type="checkbox"
+                          checked={omitFacts}
+                          onChange={(e) => setOmitFacts(e.target.checked)}
+                        />
+                        <span>Remove details</span>
+                      </label>
+                    )}
+                    {hasEquipment && (
+                      <label className="print-recipe-opt">
+                        <input
+                          type="checkbox"
+                          checked={omitEquipment}
+                          onChange={(e) => setOmitEquipment(e.target.checked)}
+                        />
+                        <span>Remove equipment</span>
+                      </label>
+                    )}
                   </div>
                 )}
                 <div className="print-preview-actions">
@@ -112,8 +150,28 @@ export function PrintRecipeButton({ recipe }: { recipe: PrintRecipePayload }) {
                   />
                 )}
                 <h1 className="print-preview-title">{recipe.title}</h1>
+                {hasFacts && !omitFacts && (
+                  <div className="print-preview-facts">
+                    <RecipeFacts
+                      difficulty={recipe.difficulty}
+                      servings={recipe.servings}
+                      totalMinutes={recipe.totalMinutes}
+                    />
+                  </div>
+                )}
                 {hasBlurb && !omitBlurb && recipe.description && (
                   <p className="print-preview-blurb">{recipe.description}</p>
+                )}
+
+                {hasEquipment && !omitEquipment && (
+                  <section className="print-preview-section print-preview-equipment-sec" aria-labelledby="print-equip-title">
+                    <h2 id="print-equip-title">Equipment</h2>
+                    <ol className="print-preview-equipment">
+                      {equipment.map((item, i) => (
+                        <li key={i}>{item}</li>
+                      ))}
+                    </ol>
+                  </section>
                 )}
 
                 <section className="print-preview-section" aria-labelledby="print-ing-title">

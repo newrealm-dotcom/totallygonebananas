@@ -56,7 +56,13 @@ export default async function RecipePage({ params, searchParams }: PageProps<"/r
 
   return (
     <div className="wrap">
-      {savedMsg && <p className="notice-inline" role="status">{savedMsg}</p>}
+      {savedMsg && (
+        <div className="notice-inline" role="status">
+          {/* eslint-disable-next-line @next/next/no-img-element -- small static mascot asset */}
+          <img className="notice-inline-mascot" src="/upload-complete.png" alt="" width={52} height={52} />
+          <span>{savedMsg}</span>
+        </div>
+      )}
       {r.status !== "published" && (
         <p className="notice-inline warn" role="status">
           {r.status === "pending" && "This recipe is waiting for review. Only you and the editors can see it."}
@@ -84,6 +90,10 @@ export default async function RecipePage({ params, searchParams }: PageProps<"/r
                 description: r.description,
                 imageUrl: hero && hero.kind !== "video" ? publicUrl(hero.path) : null,
                 imageAlt: hero?.caption || r.title,
+                difficulty: r.difficulty,
+                servings: r.servings,
+                totalMinutes: r.total_minutes,
+                equipment: r.equipment ?? [],
                 ingredients: r.ingredients,
                 steps: r.steps.map((group) => ({
                   title: group.title || "",
