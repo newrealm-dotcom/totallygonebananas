@@ -938,9 +938,17 @@ video.media-fill { background: #000; }
 .d-hero .lede { margin-bottom: .4rem; }
 .byline { font-weight: 700; color: var(--muted); margin: 0; }
 .adapted-from {
-  margin: 0;
+  margin: .55rem 0 0;
+  padding: .7rem 1rem;
   font-weight: 700;
   color: var(--muted);
+  background: linear-gradient(180deg, #fff 0%, var(--panel) 100%);
+  border: 3px solid var(--line);
+  border-radius: 18px;
+  box-shadow: 6px 6px 0 var(--line);
+}
+html[data-theme="dark"] .adapted-from {
+  background: linear-gradient(180deg, var(--paper) 0%, var(--panel) 100%);
 }
 .adapted-from-source { display: inline; }
 .adapted-from a {
