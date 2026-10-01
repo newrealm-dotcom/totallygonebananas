@@ -7,6 +7,7 @@ import { createClient } from "@/lib/supabase/server";
 import { AVATAR_BUCKET, isLocalUrl, publicUrl } from "@/lib/media";
 import { RecipeGrid } from "@/components/RecipeGrid";
 import { HeroSlide } from "@/components/HeroSlide";
+import { MediaView } from "@/components/MediaView";
 import { CopyLinkButton, DeleteRecipeButton } from "@/components/OwnerTools";
 import { plural, shortDate, siteUrlSafe } from "@/app/profile/helpers";
 import { getDarkMainSliderImages, getMainSliderImages, pickRandomSlide } from "@/lib/main-slider";
@@ -18,6 +19,32 @@ export const metadata: Metadata = { title: "My Banana Stand" };
 
 const STATUS_LABEL: Record<RecipeStatus, string> = { draft: "Draft", pending: "In review", published: "Published", rejected: "Sent back" };
 
+function ProfileRecipeThumb({
+  href,
+  coverPath,
+  emoji,
+}: {
+  href?: string;
+  coverPath: string | null | undefined;
+  emoji?: string | null;
+}) {
+  const thumb = (
+    <span className="row-thumb">
+      {coverPath ? (
+        <MediaView path={coverPath} alt="" sizes="140px" />
+      ) : (
+        <span aria-hidden="true">{emoji || "🍌"}</span>
+      )}
+    </span>
+  );
+  if (!href) return thumb;
+  return (
+    <Link href={href} className="row-thumb-link" tabIndex={-1} aria-hidden="true">
+      {thumb}
+    </Link>
+  );
+}
+
 export default async function ProfilePage({ searchParams }: PageProps<"/profile">) {
   const { userId, profile } = await getViewer();
   if (!userId || !profile) redirect("/login?next=/profile");
@@ -27,14 +54,20 @@ export default async function ProfilePage({ searchParams }: PageProps<"/profile"
 
   const [savesRes, mineRes, logsRes, lightSlides, darkSlides] = await Promise.all([
     supabase.from("saves").select("created_at, recipe:recipes(id, slug, title, description, category_id, emoji, total_minutes, time_note, servings, difficulty, tags, cover_path, status, published_at, created_at)").eq("user_id", userId).order("created_at", { ascending: false }),
-    supabase.from("recipes").select("id, slug, title, status, review_note, updated_at").eq("author_id", userId).order("updated_at", { ascending: false }),
-    supabase.from("cook_logs").select("id, rating, tip, created_at, recipe:recipes(slug, title)").eq("user_id", userId).order("created_at", { ascending: false }).limit(50),
+    supabase.from("recipes").select("id, slug, title, status, review_note, updated_at, cover_path, emoji").eq("author_id", userId).order("updated_at", { ascending: false }),
+    supabase.from("cook_logs").select("id, rating, tip, created_at, recipe:recipes(slug, title, cover_path, emoji)").eq("user_id", userId).order("created_at", { ascending: false }).limit(50),
     getMainSliderImages(),
     getDarkMainSliderImages(),
   ]);
   const saved = (savesRes.data ?? []).map((s) => s.recipe as unknown as RecipeCardData | null).filter((r): r is RecipeCardData => !!r);
   const mine = mineRes.data ?? [];
-  const logs = (logsRes.data ?? []) as unknown as { id: string; rating: number; tip: string | null; created_at: string; recipe: { slug: string; title: string } | null }[];
+  const logs = (logsRes.data ?? []) as unknown as {
+    id: string;
+    rating: number;
+    tip: string | null;
+    created_at: string;
+    recipe: { slug: string; title: string; cover_path: string | null; emoji: string | null } | null;
+  }[];
 
   const { points, level, name: rankName, next } = standingsFor(
     pointsFromCounts({
@@ -108,9 +141,12 @@ export default async function ProfilePage({ searchParams }: PageProps<"/profile"
           <ul className="rows">
             {mine.map((m) => (
               <li key={m.id} className="row">
-                <div>
-                  <h3><Link href={`/recipes/${m.slug}`}>{m.title}</Link></h3>
-                  <p>Updated {shortDate(m.updated_at)}{m.status === "rejected" && m.review_note ? `. Editor's note: “${m.review_note}”` : ""}</p>
+                <div className="row-main">
+                  <ProfileRecipeThumb href={`/recipes/${m.slug}`} coverPath={m.cover_path} emoji={m.emoji} />
+                  <div className="row-copy">
+                    <h3><Link href={`/recipes/${m.slug}`}>{m.title}</Link></h3>
+                    <p>Updated {shortDate(m.updated_at)}{m.status === "rejected" && m.review_note ? `. Editor's note: “${m.review_note}”` : ""}</p>
+                  </div>
                 </div>
                 <div className="end">
                   <span className={`status s-${m.status}`}>{STATUS_LABEL[m.status as RecipeStatus]}</span>
@@ -131,9 +167,16 @@ export default async function ProfilePage({ searchParams }: PageProps<"/profile"
           <ul className="rows">
             {logs.map((l) => (
               <li key={l.id} className="row">
-                <div>
-                  <h3>{l.recipe ? <Link href={`/recipes/${l.recipe.slug}`}>{l.recipe.title}</Link> : "A removed recipe"}</h3>
-                  <p>{shortDate(l.created_at)}: <span role="img" aria-label={`${l.rating} out of 5`}>{"🍌".repeat(l.rating)}</span>{l.tip ? ` “${l.tip}”` : ""}</p>
+                <div className="row-main">
+                  <ProfileRecipeThumb
+                    href={l.recipe ? `/recipes/${l.recipe.slug}` : undefined}
+                    coverPath={l.recipe?.cover_path}
+                    emoji={l.recipe?.emoji}
+                  />
+                  <div className="row-copy">
+                    <h3>{l.recipe ? <Link href={`/recipes/${l.recipe.slug}`}>{l.recipe.title}</Link> : "A removed recipe"}</h3>
+                    <p>{shortDate(l.created_at)}: <span role="img" aria-label={`${l.rating} out of 5`}>{"🍌".repeat(l.rating)}</span>{l.tip ? ` “${l.tip}”` : ""}</p>
+                  </div>
                 </div>
               </li>
             ))}

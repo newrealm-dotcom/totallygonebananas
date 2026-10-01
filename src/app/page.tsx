@@ -53,7 +53,7 @@ export default async function HomePage({ searchParams }: PageProps<"/">) {
         <div className="wrap hero-grid">
           <div>
             <h1>What are we going bananas for today?</h1>
-            <p className="lede">Pick a craving and dig in. New recipes land here all the time, so check back often.</p>
+            <p className="lede">Pick a craving and dig in. Whether you&apos;re after something chocolatey, something fruity, or an easy bake for a slow Sunday morning, there&apos;s a recipe here for it. New ones go up all the time, so check back often to see what just came out of the oven.</p>
             <CategoryStickers categories={categories.filter((c) => counts.get(c.id))} counts={counts} active={active} hrefFor={(id) => (id ? `/?category=${id}#latest` : "/#latest")} />
           </div>
           <div className="mascot-wrap">
@@ -71,7 +71,7 @@ export default async function HomePage({ searchParams }: PageProps<"/">) {
           <div className="sec-head">
             <div>
               <h2 id="latest-h">{cat ? cat.name : "Fresh from the kitchen"}</h2>
-              <p>{cat ? cat.tagline : "The newest recipes on the site."}</p>
+              <p className="home-latest-lede">{cat ? cat.tagline : "The newest recipes on the site, tested in my own kitchen and ready for yours. Start here to see what I've been baking lately, from quick weeknight treats to weekend projects that are worth the extra time."}</p>
             </div>
           </div>
           <div className="home-latest">

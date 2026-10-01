@@ -20,6 +20,7 @@ import {
   type Upload,
 } from "@/lib/recipe-form-values";
 import { PostBodyEditor } from "@/components/PostBodyEditor";
+import { titleCase } from "@/lib/format";
 
 export type { RecipeFormValues, Upload };
 export { blankValues, valuesFromRecipe } from "@/lib/recipe-form-values";
@@ -350,7 +351,7 @@ export function RecipeForm({ userId, isEditor, categories, activeTags = [...TAGS
           groups.map((g) => {
             if (g.id !== groupId) return g;
             const existing = g.items.filter((r) => r.text.trim());
-            const added = lines.map((text) => ({ id: uid(), text }));
+            const added = lines.map((text) => ({ id: uid(), text: titleCase(text) }));
             return { ...g, items: [...existing, ...added] };
           }),
         );
@@ -432,8 +433,8 @@ export function RecipeForm({ userId, isEditor, categories, activeTags = [...TAGS
     const num = (s: string) => (s.trim() ? Math.round(Number(s)) : null);
     const ingredientGroups = v.ingredientGroups
       .map((g) => ({
-        title: g.title.trim(),
-        items: g.items.map((r) => r.text.trim()).filter(Boolean),
+        title: titleCase(g.title.trim()),
+        items: g.items.map((r) => titleCase(r.text.trim())).filter(Boolean),
       }))
       .filter((g) => g.items.length > 0 || g.title);
     const stepGroups = v.stepGroups
@@ -731,8 +732,9 @@ export function RecipeForm({ userId, isEditor, categories, activeTags = [...TAGS
                     className="field"
                     value={group.title}
                     maxLength={80}
-                    placeholder={gi === 0 ? "Banana bread batter" : "Blueberry cream cheese frosting"}
+                    placeholder={gi === 0 ? "Banana Bread Batter" : "Blueberry Cream Cheese Frosting"}
                     onChange={(e) => setIngredientGroupTitle(group.id, e.target.value)}
+                    onBlur={(e) => setIngredientGroupTitle(group.id, titleCase(e.target.value))}
                   />
                   {v.ingredientGroups.length > 1 && (
                     <button
@@ -753,10 +755,11 @@ export function RecipeForm({ userId, isEditor, categories, activeTags = [...TAGS
                       className="field"
                       value={r.text}
                       maxLength={200}
-                      placeholder={i === 0 ? "3 very ripe bananas" : i === 1 ? "1 1/2 cups flour" : "Another ingredient"}
+                      placeholder={i === 0 ? "3 Very Ripe Bananas" : i === 1 ? "1 1/2 Cups Flour" : "Another Ingredient"}
                       aria-label={`${group.title || "Ingredients"} item ${i + 1}`}
                       aria-invalid={!!errors[`ingredients.${gi}.items.${i}`]}
                       onChange={(e) => setIngredientText(group.id, r.id, e.target.value)}
+                      onBlur={(e) => setIngredientText(group.id, r.id, titleCase(e.target.value))}
                       onKeyDown={(e) => {
                         if (e.key === "Enter") { e.preventDefault(); addIngredientAfter(group.id, i); }
                         if (e.key === "Backspace" && !r.text && group.items.length > 1) {
