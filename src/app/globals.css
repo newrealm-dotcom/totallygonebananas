@@ -519,7 +519,7 @@ footer nav a:hover {
 .blog-index .lede { max-width: none; width: 100%; }
 .our-faves-page .lede { max-width: none; width: 100%; }
 .hero .lede { max-width: none; width: 100%; }
-h2 { font-family: var(--display); font-weight: 400; font-size: clamp(1.6rem, 3.2vw, 2.3rem); line-height: 1.05; margin: 0; letter-spacing: .02em; text-wrap: balance; }
+h2 { font-family: var(--display); font-weight: 400; font-size: clamp(1.6rem, 3.2vw, 36px); line-height: 1.05; margin: 0; letter-spacing: .02em; text-wrap: balance; }
 section.block { padding: clamp(2rem, 5vw, 3.5rem) 0; }
 .sec-head { display: flex; flex-wrap: wrap; align-items: end; justify-content: space-between; gap: 1rem; margin-bottom: 1.5rem; }
 .sec-head p { margin: .35rem 0 0; color: var(--muted); font-weight: 600; }
@@ -3012,6 +3012,30 @@ header.top.is-compact .top-actions { margin-left: 0; }
 }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: .001ms !important; transition-duration: .001ms !important; scroll-behavior: auto !important; }
+}
+
+/* Desktop: unify all section H2s at 36px (overrides local clamps / fixed sizes). */
+@media (min-width: 901px) {
+  h2,
+  .rf-sec h2,
+  .panel h2,
+  .d-engage .panel h2,
+  .d-cooks h2,
+  .d-intro .ing-panel > h2,
+  .equip-panel > h2,
+  .recipe-notes h2,
+  .wysiwyg .tiptap h2,
+  .wysiwyg-content h2,
+  .blog-body h2,
+  .blog-more-head h2,
+  .blog-featured-copy h2,
+  .blog-card-body h2,
+  .about h2,
+  .home-band-inner h2,
+  .home-band-inner .home-band-title,
+  .sec-head h2 {
+    font-size: 36px;
+  }
 }
 
 /* Recipe print preview sheet */
