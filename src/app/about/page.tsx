@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { ContactForm } from "@/components/ContactForm";
 import { HeroSlide } from "@/components/HeroSlide";
 import { getDarkMainSliderImages, getMainSliderImages, pickRandomSlide } from "@/lib/main-slider";
 
@@ -24,6 +25,15 @@ export default async function AboutPage() {
           <p>Sign in to save favorites to your Banana Stand, rate what you cook, and share your own recipes.</p>
           <p className="about-note">* Editors give new submissions a quick look before they go live.</p>
           <p><Link className="btn" href="/recipes/new">Share a recipe</Link></p>
+
+          <section className="about-contact" aria-labelledby="contact-h">
+            <h2 id="contact-h">Contact Us</h2>
+            <p>
+              Say Hello! Questions, ideas, or banana confessions? Send us a message using the form below,
+              and we&apos;ll peel back a reply soon.
+            </p>
+            <ContactForm />
+          </section>
         </div>
         <div className="mascot-wrap about-slide">
           <HeroSlide lightSrc={heroLight} darkSrc={heroDark} />

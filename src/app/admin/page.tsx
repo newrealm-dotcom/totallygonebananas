@@ -11,12 +11,13 @@ export default async function AdminHomePage() {
     <>
       <ul className="admin-stats">
         <li className="stat"><b>{counts.recipes}</b><span>Recipes</span></li>
-        <li className="stat"><b>{counts.pending}</b><span>Pending review</span></li>
+        <li className={`stat${counts.pending > 0 ? " is-alert" : ""}`}><b>{counts.pending}</b><span>Pending review</span></li>
         <li className="stat"><b>{counts.posts}</b><span>Blog posts</span></li>
         <li className="stat"><b>{counts.categories}</b><span>Recipe categories</span></li>
         <li className="stat"><b>{counts.tags}</b><span>Tags</span></li>
         <li className="stat"><b>{counts.blogCategories}</b><span>Blog categories</span></li>
         <li className="stat"><b>{counts.profiles}</b><span>Members</span></li>
+        <li className={`stat${counts.referralsRecent > 0 ? " is-alert" : ""}`}><b>{counts.referralsRecent}</b><span>New referrals</span></li>
       </ul>
       <div className="admin-actions">
         <Link className="btn" href="/recipes/new">New recipe</Link>

@@ -2052,6 +2052,38 @@ ol.steps > li > div > p:first-child { margin-top: 0; }
 .admin-nav-more-btn[aria-expanded="true"] {
   background: var(--panel);
 }
+.admin-nav-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 1.35rem;
+  height: 1.35rem;
+  padding: 0 .35rem;
+  border-radius: 999px;
+  background: var(--brown);
+  color: #fff;
+  font-size: .72rem;
+  font-weight: 900;
+  line-height: 1;
+}
+.admin-nav a.admin-nav-link[aria-current="page"] .admin-nav-badge,
+.admin-nav-more-btn[aria-current="true"] .admin-nav-badge {
+  background: var(--on-yellow);
+  color: var(--yellow);
+}
+.admin-alerts {
+  display: grid;
+  gap: .8rem;
+  margin: 0 0 1.4rem;
+}
+.admin-alerts .notice-inline {
+  margin: 0;
+  justify-content: space-between;
+}
+.admin-stats .stat.is-alert {
+  background: color-mix(in srgb, var(--yellow) 55%, var(--paper));
+  box-shadow: 4px 4px 0 var(--line);
+}
 .admin-nav-more {
   position: relative;
   flex-shrink: 0;
@@ -2611,13 +2643,24 @@ ol.steps > li > div > p:first-child { margin-top: 0; }
 }
 
 /* ---------- about / login ---------- */
-.about { display: grid; grid-template-columns: minmax(0, 3fr) minmax(0, 2fr); gap: 2.5rem; align-items: center; padding: clamp(1.8rem, 4vw, 3rem) 0 2rem; }
+.about { display: grid; grid-template-columns: minmax(0, 3fr) minmax(0, 2fr); gap: 2.5rem; align-items: start; padding: clamp(1.8rem, 4vw, 3rem) 0 2rem; }
 .about-copy { min-width: 0; }
 .about-copy .h1 { margin-bottom: .9rem; }
 .about p, .about .lede { font-weight: 600; max-width: none; }
 .about p:has(+ .about-note) { margin-bottom: 0; }
 .about-note { font-size: .92rem; font-style: italic; font-weight: 600; color: var(--muted); margin: 0; }
 .about h2 { margin: 1.8rem 0 .6rem; font-size: 1.7rem; }
+.about-contact { margin-top: 2.2rem; }
+.about-contact-form { margin-top: 1rem; max-width: 34rem; }
+.about-contact-thanks {
+  margin: 1rem 0 0;
+  padding: 1rem 1.1rem;
+  background: #C7E7D7;
+  border: 3px solid var(--brown);
+  border-radius: 18px;
+  font-weight: 800;
+  color: var(--brown);
+}
 .about-slide {
   position: sticky;
   top: 5rem;

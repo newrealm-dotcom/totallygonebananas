@@ -252,6 +252,22 @@ export const homepagePromoInput = z.object({
 
 export type HomepagePromoInput = z.input<typeof homepagePromoInput>;
 
+export const contactInput = z.object({
+  name: z.string().trim().min(2, "Add your name").max(80, "Keep your name under 80 characters"),
+  email: z
+    .string()
+    .trim()
+    .email("Enter a valid email address")
+    .max(120, "Keep your email under 120 characters"),
+  comments: z
+    .string()
+    .trim()
+    .min(10, "Say a little more — at least 10 characters")
+    .max(5000, "Keep your comments under 5,000 characters"),
+});
+
+export type ContactInput = z.input<typeof contactInput>;
+
 /** Turns zod issues into { "steps.2.text": "message" } for inline form errors. */
 export function fieldErrors(error: z.ZodError): Record<string, string> {
   const out: Record<string, string> = {};

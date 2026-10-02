@@ -8,9 +8,18 @@ interface AdminLink {
   href: string;
   label: string;
   match: (p: string) => boolean;
+  badge?: number;
 }
 
-export function AdminNav({ isAdmin }: { isAdmin: boolean }) {
+export function AdminNav({
+  isAdmin,
+  pendingReview = 0,
+  referralsRecent = 0,
+}: {
+  isAdmin: boolean;
+  pendingReview?: number;
+  referralsRecent?: number;
+}) {
   const path = usePathname();
   const menuId = useId();
   const navRef = useRef<HTMLElement>(null);
@@ -30,11 +39,21 @@ export function AdminNav({ isAdmin }: { isAdmin: boolean }) {
       { href: "/admin/blog-categories", label: "Blog Categories", match: (p) => p.startsWith("/admin/blog-categories") },
       { href: "/admin/tags", label: "Tags", match: (p) => p.startsWith("/admin/tags") },
       { href: "/admin/our-faves", label: "Our Faves", match: (p) => p.startsWith("/admin/our-faves") },
-      { href: "/admin/review", label: "Review queue", match: (p) => p.startsWith("/admin/review") },
-      { href: "/admin/referrals", label: "Referrals", match: (p) => p.startsWith("/admin/referrals") },
+      {
+        href: "/admin/review",
+        label: "Review queue",
+        match: (p) => p.startsWith("/admin/review"),
+        badge: pendingReview > 0 ? pendingReview : undefined,
+      },
+      {
+        href: "/admin/referrals",
+        label: "Referrals",
+        match: (p) => p.startsWith("/admin/referrals"),
+        badge: referralsRecent > 0 ? referralsRecent : undefined,
+      },
       ...(isAdmin ? [{ href: "/admin/users", label: "Users", match: (p: string) => p.startsWith("/admin/users") }] : []),
     ],
-    [isAdmin],
+    [isAdmin, pendingReview, referralsRecent],
   );
 
   const measure = useCallback(() => {
@@ -68,7 +87,7 @@ export function AdminNav({ isAdmin }: { isAdmin: boolean }) {
       }
     }
     setVisibleCount(Math.max(1, count));
-  }, [links.length]);
+  }, [links]);
 
   useLayoutEffect(() => {
     measure();
@@ -102,22 +121,40 @@ export function AdminNav({ isAdmin }: { isAdmin: boolean }) {
   const overflow = links.slice(shown);
   const overflowActive = overflow.some((l) => l.match(path));
 
+  function linkLabel(l: AdminLink) {
+    return (
+      <>
+        {l.label}
+        {l.badge != null ? (
+          <span className="admin-nav-badge" aria-label={`${l.badge} new`}>
+            {l.badge}
+          </span>
+        ) : null}
+      </>
+    );
+  }
+
   return (
     <nav className="admin-nav" aria-label="Admin" ref={navRef}>
       <div className="admin-nav-measure" ref={measureRef} aria-hidden="true">
         {links.map((l) => (
           <span key={l.href} className="admin-nav-link" data-measure-link>
-            {l.label}
+            {linkLabel(l)}
           </span>
         ))}
         <span className="admin-nav-more-btn" data-measure-more>
           More
+          {pendingReview > 0 || referralsRecent > 0 ? (
+            <span className="admin-nav-badge" aria-hidden="true">
+              9
+            </span>
+          ) : null}
         </span>
       </div>
 
       {primary.map((l) => (
         <Link key={l.href} href={l.href} className="admin-nav-link" aria-current={l.match(path) ? "page" : undefined}>
-          {l.label}
+          {linkLabel(l)}
         </Link>
       ))}
 
@@ -133,6 +170,11 @@ export function AdminNav({ isAdmin }: { isAdmin: boolean }) {
             onClick={() => setOpenForPath(open ? null : path)}
           >
             More
+            {overflow.some((l) => l.badge) ? (
+              <span className="admin-nav-badge" aria-label="Items need attention">
+                {overflow.reduce((sum, l) => sum + (l.badge ?? 0), 0)}
+              </span>
+            ) : null}
             <span aria-hidden="true">{open ? "▴" : "▾"}</span>
           </button>
           {open && (
@@ -145,7 +187,7 @@ export function AdminNav({ isAdmin }: { isAdmin: boolean }) {
                     aria-current={l.match(path) ? "page" : undefined}
                     onClick={() => setOpenForPath(null)}
                   >
-                    {l.label}
+                    {linkLabel(l)}
                   </Link>
                 </li>
               ))}
