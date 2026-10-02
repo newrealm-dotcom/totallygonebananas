@@ -104,7 +104,7 @@ export default async function BlogPage({ searchParams }: PageProps<"/blog">) {
           {browseCategories.length > 0 && !author && !date ? (
             <div className="blog-topic-row">
               <span className="blog-topic-label">Categories:</span>
-              <FilterPillsScroller label="categories">
+              <FilterPillsScroller label="categories" moreText="more">
                 <nav className="blog-topic-nav" aria-label="Browse by topic">
                   <Link
                     className="blog-topic"

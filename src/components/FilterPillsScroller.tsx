@@ -2,7 +2,16 @@
 
 import { useCallback, useEffect, useId, useRef, useState, type ReactNode } from "react";
 
-export function FilterPillsScroller({ children, label }: { children: ReactNode; label: string }) {
+export function FilterPillsScroller({
+  children,
+  label,
+  moreText,
+}: {
+  children: ReactNode;
+  label: string;
+  /** When set, the overflow toggle shows this word beside the arrow (e.g. "more"). */
+  moreText?: string;
+}) {
   const bodyRef = useRef<HTMLDivElement>(null);
   const contentRef = useRef<HTMLDivElement>(null);
   const [expanded, setExpanded] = useState(false);
@@ -61,12 +70,17 @@ export function FilterPillsScroller({ children, label }: { children: ReactNode; 
       {hasMore && (
         <button
           type="button"
-          className="filter-pills-toggle"
+          className={`filter-pills-toggle${moreText ? " has-label" : ""}`}
           aria-expanded={expanded}
           aria-controls={panelId}
           aria-label={expanded ? `Show fewer ${label}` : `Show more ${label}`}
           onClick={() => setExpanded((v) => !v)}
         >
+          {moreText ? (
+            <span className="filter-pills-toggle-text" aria-hidden="true">
+              {expanded ? "less" : moreText}
+            </span>
+          ) : null}
           <span aria-hidden="true">{expanded ? "▴" : "▾"}</span>
         </button>
       )}
