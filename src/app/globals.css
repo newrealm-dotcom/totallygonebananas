@@ -963,6 +963,7 @@ video.media-fill { background: #000; }
 .review-tools { flex: 1 1 280px; max-width: 420px; }
 
 /* ---------- browse ---------- */
+.profile-collection-filters { margin-top: .15rem; }
 .filters { display: flex; flex-wrap: wrap; gap: .8rem; align-items: end; margin-bottom: 1.1rem; }
 .filters .f { margin: 0; }
 .filters .search-f { flex: 1 1 260px; }
