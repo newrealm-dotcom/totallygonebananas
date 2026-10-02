@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { getBlogCategories } from "@/lib/queries";
+import { getBlogCategories, getRecipeTags } from "@/lib/queries";
 import { PostForm } from "@/components/PostForm";
 
 export const metadata: Metadata = { title: "Admin · New fave" };
@@ -7,7 +7,7 @@ export const metadata: Metadata = { title: "Admin · New fave" };
 const FAVORITES_CATEGORY = "favorites";
 
 export default async function NewOurFavePage() {
-  const blogCategories = await getBlogCategories();
+  const [blogCategories, recipeTags] = await Promise.all([getBlogCategories(), getRecipeTags()]);
   return (
     <>
       <div className="sec-head">
@@ -18,6 +18,7 @@ export default async function NewOurFavePage() {
       </div>
       <PostForm
         blogCategories={blogCategories}
+        activeTags={recipeTags.map((t) => t.name)}
         defaultCategories={[FAVORITES_CATEGORY]}
         listHref="/admin/our-faves"
       />

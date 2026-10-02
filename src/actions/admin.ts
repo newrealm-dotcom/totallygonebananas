@@ -152,6 +152,7 @@ export async function adminClonePost(postId: string): Promise<Result> {
       seo_title: post.seo_title,
       meta_description: post.meta_description,
       categories: post.categories ?? [],
+      tags: post.tags ?? [],
       status: "draft",
       author_id: gate.userId,
       published_at: null,

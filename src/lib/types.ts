@@ -133,6 +133,7 @@ export interface Post {
   meta_description: string | null;
   /** Blog category ids from `blog_categories` — not recipe category ids. */
   categories: string[];
+  tags: string[];
   status: PostStatus;
   author_id: string | null;
   created_at: string;
@@ -152,10 +153,11 @@ export interface RecipeTag {
   created_at: string;
 }
 
-/** Admin tags list: active tags plus every tag used on recipes. */
+/** Admin tags list: active tags plus every tag used on recipes or posts. */
 export interface AdminRecipeTag {
   name: string;
   recipeCount: number;
+  postCount: number;
   sort_order: number;
 }
 

@@ -1,13 +1,17 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { getBlogCategories, getPostById } from "@/lib/queries";
+import { getBlogCategories, getPostById, getRecipeTags } from "@/lib/queries";
 import { PostForm } from "@/components/PostForm";
 
 export const metadata: Metadata = { title: "Admin · Edit post" };
 
 export default async function EditPostPage({ params }: PageProps<"/admin/posts/[id]/edit">) {
   const { id } = await params;
-  const [post, blogCategories] = await Promise.all([getPostById(id), getBlogCategories()]);
+  const [post, blogCategories, recipeTags] = await Promise.all([
+    getPostById(id),
+    getBlogCategories(),
+    getRecipeTags(),
+  ]);
   if (!post) notFound();
 
   const listHref = (post.categories ?? []).includes("favorites")
@@ -26,6 +30,7 @@ export default async function EditPostPage({ params }: PageProps<"/admin/posts/[
         key={`${post.id}:${post.categories.join(",")}`}
         post={post}
         blogCategories={blogCategories}
+        activeTags={recipeTags.map((t) => t.name)}
         listHref={listHref}
       />
     </>

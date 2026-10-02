@@ -135,6 +135,20 @@ export const postInput = z.object({
     .array(z.string().trim().min(1).max(40, "Keep category names under 40 characters"))
     .max(12, "Up to 12 blog categories")
     .default([]),
+  tags: z
+    .array(
+      z
+        .string()
+        .trim()
+        .transform(normalizeTag)
+        .superRefine((val, ctx) => {
+          const issue = tagIssue(val);
+          if (issue) ctx.addIssue({ code: "custom", message: issue });
+        }),
+    )
+    .max(MAX_TAGS, `Up to ${MAX_TAGS} tags`)
+    .default([])
+    .transform((tags) => [...new Set(tags)]),
   body: z.string().trim().min(1, "Write something").max(50000, "That's a bit long — keep it under 50,000 characters"),
   coverPath: z
     .string()

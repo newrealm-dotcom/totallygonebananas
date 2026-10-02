@@ -8,7 +8,9 @@ import { checkFile, isRemoteMediaPath, kindOf, mediaSrc, RECIPE_BUCKET } from "@
 import { savePost, deletePost } from "@/actions/posts";
 import { PostBodyEditor } from "@/components/PostBodyEditor";
 import { slugify, toEasternDatetimeLocal, easternDatetimeLocalToIso } from "@/lib/format";
+import { MAX_TAGS, normalizeTag, tagIssue } from "@/lib/tags";
 import type { BlogCategory, Post } from "@/lib/types";
+import { TAGS } from "@/lib/types";
 
 const MAX_HEAD_JSON_BYTES = 100_000;
 
@@ -38,12 +40,15 @@ function normalizeCategoryIds(value: unknown): string[] {
 export function PostForm({
   post,
   blogCategories = [],
+  activeTags = [...TAGS],
   defaultCategories = [],
   listHref = "/admin/posts",
 }: {
   post?: Post;
   /** Existing blog categories for checkboxes — never recipe categories. */
   blogCategories?: BlogCategory[];
+  /** Active tags from the shared catalog (plus any already on this post). */
+  activeTags?: string[];
   /** Pre-selected category ids when creating a new post. */
   defaultCategories?: string[];
   /** Where to return after saving a draft or deleting. */
@@ -71,6 +76,11 @@ export function PostForm({
   const [selectedCategories, setSelectedCategories] = useState<string[]>(() =>
     normalizeCategoryIds(post ? post.categories : defaultCategories),
   );
+  const [tags, setTags] = useState<string[]>(() =>
+    Array.isArray(post?.tags) ? post.tags.map((t) => String(t).trim()).filter(Boolean) : [],
+  );
+  const [customTag, setCustomTag] = useState("");
+  const [tagError, setTagError] = useState("");
   const [body, setBody] = useState(post?.body ?? "");
   const [publishedAtLocal, setPublishedAtLocal] = useState(() =>
     toEasternDatetimeLocal(post?.published_at),
@@ -121,6 +131,27 @@ export function PostForm({
     setSelectedCategories((prev) => (prev.includes(id) ? prev : [...prev, id]));
     setCategoryDraft("");
     setErrors((e) => ({ ...e, categories: "" }));
+  }
+
+  function addCustomTag() {
+    const next = normalizeTag(customTag);
+    const issue = tagIssue(next);
+    if (issue) {
+      setTagError(issue);
+      return;
+    }
+    if (tags.includes(next)) {
+      setTagError("That tag is already on this post");
+      return;
+    }
+    if (tags.length >= MAX_TAGS) {
+      setTagError(`Up to ${MAX_TAGS} tags`);
+      return;
+    }
+    setTags((prev) => [...prev, next]);
+    setCustomTag("");
+    setTagError("");
+    setErrors((e) => ({ ...e, tags: "" }));
   }
 
   function switchCoverMode(mode: CoverMode) {
@@ -264,6 +295,7 @@ export function PostForm({
           title,
           excerpt,
           categories: categoryPayload,
+          tags,
           body,
           coverPath: nextCover,
           headJson,
@@ -388,6 +420,67 @@ export function PostForm({
           </div>
         )}
         {errors.categories && <p className="f-err">{errors.categories}</p>}
+      </fieldset>
+      <fieldset className="f" id="post-tags">
+        <legend>Tags</legend>
+        <p className="hint">Same tag list as recipes. Tick active tags or add your own.</p>
+        <div className="tagbox">
+          {activeTags.map((t) => (
+            <label key={t}>
+              <input
+                type="checkbox"
+                checked={tags.includes(t)}
+                onChange={(e) => {
+                  setTagError("");
+                  setTags((prev) => (e.target.checked ? [...prev, t] : prev.filter((x) => x !== t)));
+                }}
+              />{" "}
+              {t}
+            </label>
+          ))}
+          {tags.filter((t) => !activeTags.includes(t)).map((t) => (
+            <label key={t} className="tag-custom">
+              <input
+                type="checkbox"
+                checked
+                onChange={() => {
+                  setTagError("");
+                  setTags((prev) => prev.filter((x) => x !== t));
+                }}
+              />{" "}
+              {t}
+            </label>
+          ))}
+        </div>
+        <div className="tag-add">
+          <label className="sr" htmlFor="post-tag-in">Add a custom tag</label>
+          <input
+            id="post-tag-in"
+            className="field"
+            maxLength={24}
+            value={customTag}
+            placeholder="Add your own tag…"
+            aria-invalid={!!(tagError || errors.tags)}
+            aria-describedby={tagError || errors.tags ? "post-tag-err" : undefined}
+            onChange={(e) => {
+              setCustomTag(e.target.value);
+              if (tagError) setTagError("");
+            }}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") {
+                e.preventDefault();
+                addCustomTag();
+              }
+            }}
+          />
+          <button type="button" className="btn ghost small" onClick={addCustomTag} disabled={!customTag.trim()}>
+            Add tag
+          </button>
+        </div>
+        <p className="hint">Letters, numbers, spaces, or hyphens. No profanity or nonsense.</p>
+        {(tagError || errors.tags) && (
+          <p className="f-err" id="post-tag-err" role="alert">{tagError || errors.tags}</p>
+        )}
       </fieldset>
       <div className="f">
         <label htmlFor="post-body">Body</label>

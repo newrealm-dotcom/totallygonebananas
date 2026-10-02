@@ -2585,6 +2585,7 @@ ol.steps > li > div > p:first-child { margin-top: 0; }
 }
 .blog-byline a:hover { color: var(--brown); }
 .blog-byline-sep { font-weight: 700; color: var(--muted); user-select: none; }
+.blog-post-tags { margin: .7rem 0 0; }
 
 .blog-related { padding-top: 2.5rem; padding-bottom: 1rem; }
 .blog-related .sec-head { margin-bottom: 1.4rem; }

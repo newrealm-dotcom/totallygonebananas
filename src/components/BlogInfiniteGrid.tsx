@@ -92,7 +92,7 @@ export function BlogInfiniteGrid({
 }: {
   initialPosts: Post[];
   total: number;
-  filters?: { author?: string; category?: string; date?: string; excludeCategory?: string };
+  filters?: { author?: string; category?: string; date?: string; tag?: string; excludeCategory?: string };
   showFeatured?: boolean;
   /** When set, this post is featured instead of the first item in `initialPosts`. */
   featuredPost?: Post | null;
@@ -124,6 +124,7 @@ export function BlogInfiniteGrid({
       if (filters.author) q.set("author", filters.author);
       if (filters.category) q.set("category", filters.category);
       if (filters.date) q.set("date", filters.date);
+      if (filters.tag) q.set("tag", filters.tag);
       if (filters.excludeCategory) q.set("excludeCategory", filters.excludeCategory);
       const res = await fetch(`/api/posts?${q}`);
       if (!res.ok) throw new Error("fetch failed");
@@ -139,7 +140,7 @@ export function BlogInfiniteGrid({
       loadingRef.current = false;
       setLoading(false);
     }
-  }, [filters.author, filters.category, filters.date, filters.excludeCategory, hasMore, posts.length]);
+  }, [filters.author, filters.category, filters.date, filters.tag, filters.excludeCategory, hasMore, posts.length]);
 
   useEffect(() => {
     const el = sentinelRef.current;

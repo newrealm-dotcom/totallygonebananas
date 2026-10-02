@@ -10,8 +10,11 @@ export type SaveRecipeTagResult = { ok: true; name: string } | { ok: false; erro
 function revalidateTagPaths() {
   revalidatePath("/recipes");
   revalidatePath("/recipes/new");
+  revalidatePath("/blog");
+  revalidatePath("/our-faves");
   revalidatePath("/admin/tags");
   revalidatePath("/admin");
+  revalidatePath("/admin/posts");
 }
 
 export async function saveRecipeTag(raw: unknown): Promise<SaveRecipeTagResult> {
@@ -46,11 +49,17 @@ export async function deleteRecipeTag(name: string): Promise<{ ok: true } | { ok
 
   const supabase = await createClient();
 
-  // Drop the tag from any recipes that reference it.
+  // Drop the tag from any recipes or posts that reference it.
   const { data: recipes } = await supabase.from("recipes").select("id, tags").contains("tags", [name]);
   for (const recipe of recipes ?? []) {
     const next = (recipe.tags ?? []).filter((t: string) => t !== name);
     await supabase.from("recipes").update({ tags: next }).eq("id", recipe.id);
+  }
+
+  const { data: posts } = await supabase.from("posts").select("id, tags").contains("tags", [name]);
+  for (const post of posts ?? []) {
+    const next = (post.tags ?? []).filter((t: string) => t !== name);
+    await supabase.from("posts").update({ tags: next }).eq("id", post.id);
   }
 
   const { error } = await supabase.from("recipe_tags").delete().eq("name", name);

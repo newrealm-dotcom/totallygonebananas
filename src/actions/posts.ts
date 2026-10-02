@@ -151,6 +151,7 @@ export async function savePost(raw: unknown, postId?: string): Promise<SavePostR
     seo_title: input.seoTitle || null,
     meta_description: input.metaDescription || null,
     categories: ensured.ids,
+    tags: input.tags,
     slug,
     status,
     published_at: publishedAt,

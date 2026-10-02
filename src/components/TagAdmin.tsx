@@ -26,10 +26,16 @@ export function TagAdmin({ tags }: { tags: AdminRecipeTag[] }) {
   }
 
   function remove(tag: AdminRecipeTag) {
-    const where =
-      tag.recipeCount > 0
-        ? ` It is on ${tag.recipeCount} recipe${tag.recipeCount === 1 ? "" : "s"} and will be removed from ${tag.recipeCount === 1 ? "it" : "them"}.`
-        : "";
+    const bits: string[] = [];
+    if (tag.recipeCount > 0) {
+      bits.push(`${tag.recipeCount} recipe${tag.recipeCount === 1 ? "" : "s"}`);
+    }
+    if (tag.postCount > 0) {
+      bits.push(`${tag.postCount} post${tag.postCount === 1 ? "" : "s"}`);
+    }
+    const where = bits.length
+      ? ` It is on ${bits.join(" and ")} and will be removed from ${bits.length === 1 && (tag.recipeCount === 1 || tag.postCount === 1) ? "it" : "them"}.`
+      : "";
     if (!confirm(`Remove “${tag.name}”?${where}`)) return;
     startTransition(async () => {
       const result = await deleteRecipeTag(tag.name);
@@ -49,28 +55,38 @@ export function TagAdmin({ tags }: { tags: AdminRecipeTag[] }) {
           <p className="muted">No active tags yet. Add one below.</p>
         ) : (
           <ul className="admin-tag-pills" aria-label="Active tags">
-            {tags.map((t) => (
-              <li key={t.name}>
-                <span className="admin-tag-pill">
-                  <span className="admin-tag-pill-label">{t.name}</span>
-                  {t.recipeCount > 0 && (
-                    <span className="admin-tag-pill-count" title={`Used on ${t.recipeCount} recipe${t.recipeCount === 1 ? "" : "s"}`}>
-                      {t.recipeCount}
-                    </span>
-                  )}
-                  <button
-                    type="button"
-                    className="admin-tag-pill-remove"
-                    disabled={pending}
-                    onClick={() => remove(t)}
-                    aria-label={`Remove ${t.name}`}
-                    title={`Remove ${t.name}`}
-                  >
-                    <span aria-hidden="true">×</span>
-                  </button>
-                </span>
-              </li>
-            ))}
+            {tags.map((t) => {
+              const total = t.recipeCount + t.postCount;
+              const titleBits = [
+                t.recipeCount > 0 ? `${t.recipeCount} recipe${t.recipeCount === 1 ? "" : "s"}` : null,
+                t.postCount > 0 ? `${t.postCount} post${t.postCount === 1 ? "" : "s"}` : null,
+              ].filter(Boolean);
+              return (
+                <li key={t.name}>
+                  <span className="admin-tag-pill">
+                    <span className="admin-tag-pill-label">{t.name}</span>
+                    {total > 0 && (
+                      <span
+                        className="admin-tag-pill-count"
+                        title={titleBits.length ? `Used on ${titleBits.join(" · ")}` : undefined}
+                      >
+                        {total}
+                      </span>
+                    )}
+                    <button
+                      type="button"
+                      className="admin-tag-pill-remove"
+                      disabled={pending}
+                      onClick={() => remove(t)}
+                      aria-label={`Remove ${t.name}`}
+                      title={`Remove ${t.name}`}
+                    >
+                      <span aria-hidden="true">×</span>
+                    </button>
+                  </span>
+                </li>
+              );
+            })}
           </ul>
         )}
         {errors.form && !name && <p className="f-err" role="alert">{errors.form}</p>}
@@ -94,7 +110,7 @@ export function TagAdmin({ tags }: { tags: AdminRecipeTag[] }) {
             aria-invalid={!!(errors.name || errors.form)}
           />
         </div>
-        <p className="hint">Letters, numbers, spaces, or hyphens. No profanity or nonsense.</p>
+        <p className="hint">Letters, numbers, spaces, or hyphens. No profanity or nonsense. Used on recipes and blog posts.</p>
         {(errors.form || errors.name) && (
           <p className="f-err" role="alert">{errors.form || errors.name}</p>
         )}

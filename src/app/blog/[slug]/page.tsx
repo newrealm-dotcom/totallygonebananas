@@ -113,6 +113,15 @@ export default async function BlogPostPage({ params }: PageProps<"/blog/[slug]">
               )}
             </span>
           </p>
+          {(post.tags?.length ?? 0) > 0 ? (
+            <div className="meta blog-post-tags" aria-label="Tags">
+              {post.tags.map((t) => (
+                <Link key={t} className="pill" href={`/blog?tag=${encodeURIComponent(t)}`}>
+                  {t}
+                </Link>
+              ))}
+            </div>
+          ) : null}
           {editor && (
             <p><Link className="btn small ghost" href={`/admin/posts/${post.id}/edit`}>Edit in admin</Link></p>
           )}

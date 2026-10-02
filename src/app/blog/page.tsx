@@ -8,6 +8,7 @@ import {
   listPosts,
 } from "@/lib/queries";
 import { shortDate } from "@/lib/format";
+import { isValidTag, normalizeTag } from "@/lib/tags";
 import { BlogInfiniteGrid } from "@/components/BlogInfiniteGrid";
 
 export const metadata: Metadata = {
@@ -26,16 +27,19 @@ export default async function BlogPage({ searchParams }: PageProps<"/blog">) {
   const author = typeof sp.author === "string" ? sp.author.trim() : "";
   const category = typeof sp.category === "string" ? sp.category.trim() : "";
   const date = typeof sp.date === "string" ? sp.date.trim() : "";
+  const rawTag = typeof sp.tag === "string" ? sp.tag.trim() : "";
+  const tag = rawTag && isValidTag(rawTag) ? normalizeTag(rawTag) : "";
   if (category === FAVORITES_CATEGORY) redirect("/our-faves");
 
   const filters = {
     ...(author ? { author } : {}),
     ...(category ? { category } : {}),
     ...(date ? { date } : {}),
+    ...(tag ? { tag } : {}),
     // Favorites live on /our-faves — never list them in the archive.
     excludeCategory: FAVORITES_CATEGORY,
   };
-  const filtered = Boolean(author || category || date);
+  const filtered = Boolean(author || category || date || tag);
 
   const [posts, total, blogCategories, authorProfile] = await Promise.all([
     listPosts({ publishedOnly: true, limit: INITIAL_LIMIT, offset: 0, ...filters }),
@@ -61,6 +65,9 @@ export default async function BlogPage({ searchParams }: PageProps<"/blog">) {
   } else if (category && categoryName) {
     heading = categoryName;
     lede = `Stories filed under ${categoryName}.`;
+  } else if (tag) {
+    heading = `Tagged “${tag}”`;
+    lede = `Posts marked with the ${tag} tag.`;
   } else if (date && dateLabel) {
     heading = `Posts from ${dateLabel}`;
     lede = `Everything published on ${dateLabel} (Eastern Time).`;
@@ -114,7 +121,7 @@ export default async function BlogPage({ searchParams }: PageProps<"/blog">) {
         </div>
       ) : (
         <BlogInfiniteGrid
-          key={`${filters.author ?? ""}|${filters.category ?? ""}|${filters.date ?? ""}|${filters.excludeCategory ?? ""}`}
+          key={`${filters.author ?? ""}|${filters.category ?? ""}|${filters.date ?? ""}|${filters.tag ?? ""}|${filters.excludeCategory ?? ""}`}
           initialPosts={posts}
           total={total}
           filters={filters}

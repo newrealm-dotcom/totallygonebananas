@@ -27,6 +27,16 @@ export type RecipeCardData = Pick<
   "id" | "slug" | "title" | "description" | "category_id" | "emoji" | "total_minutes" | "time_note" | "servings" | "difficulty" | "tags" | "cover_path" | "status" | "published_at" | "created_at"
 >;
 
+function normalizePost<T extends Post>(row: T): T {
+  return {
+    ...row,
+    categories: Array.isArray(row.categories)
+      ? row.categories.map((c) => String(c).trim()).filter(Boolean)
+      : [],
+    tags: Array.isArray(row.tags) ? row.tags.map((t) => String(t).trim()).filter(Boolean) : [],
+  };
+}
+
 /** The signed-in user and their profile, or nulls. Cached per request. */
 export const getViewer = cache(async () => {
   const supabase = await createClient();
@@ -86,18 +96,19 @@ export const getBlogCategories = cache(async (): Promise<BlogCategory[]> => {
   return (data as BlogCategory[]) ?? [];
 });
 
-/** All available recipe tags: active tags plus every tag used on recipes. */
+/** All available recipe/blog tags: active tags plus every tag used on recipes or posts. */
 export const getRecipeTags = cache(async (): Promise<RecipeTag[]> => {
   const supabase = await createClient();
-  const [{ data: active }, { data: recipes }] = await Promise.all([
+  const [{ data: active }, { data: recipes }, { data: posts }] = await Promise.all([
     supabase.from("recipe_tags").select("*").order("sort_order").order("name"),
     supabase.from("recipes").select("tags"),
+    supabase.from("posts").select("tags"),
   ]);
 
   const activeRows = (active as RecipeTag[] | null) ?? [];
   const byName = new Map<string, RecipeTag>(activeRows.map((t) => [t.name, t]));
 
-  for (const row of recipes ?? []) {
+  for (const row of [...(recipes ?? []), ...(posts ?? [])]) {
     for (const tag of row.tags ?? []) {
       if (!tag || byName.has(tag)) continue;
       byName.set(tag, { name: tag, sort_order: 999, created_at: "" });
@@ -115,31 +126,41 @@ export const getRecipeTags = cache(async (): Promise<RecipeTag[]> => {
   });
 });
 
-/** All tags for admin: saved active tags plus every tag currently used on recipes. */
+/** All tags for admin: saved active tags plus every tag currently used on recipes or posts. */
 export const getAdminRecipeTags = cache(async (): Promise<AdminRecipeTag[]> => {
   const supabase = await createClient();
-  const [{ data: active }, { data: recipes }] = await Promise.all([
+  const [{ data: active }, { data: recipes }, { data: posts }] = await Promise.all([
     supabase.from("recipe_tags").select("name, sort_order").order("sort_order").order("name"),
     supabase.from("recipes").select("tags"),
+    supabase.from("posts").select("tags"),
   ]);
 
-  const counts = new Map<string, number>();
+  const recipeCounts = new Map<string, number>();
   for (const row of recipes ?? []) {
     for (const tag of row.tags ?? []) {
       if (!tag) continue;
-      counts.set(tag, (counts.get(tag) ?? 0) + 1);
+      recipeCounts.set(tag, (recipeCounts.get(tag) ?? 0) + 1);
+    }
+  }
+
+  const postCounts = new Map<string, number>();
+  for (const row of posts ?? []) {
+    for (const tag of row.tags ?? []) {
+      if (!tag) continue;
+      postCounts.set(tag, (postCounts.get(tag) ?? 0) + 1);
     }
   }
 
   const activeRows = active ?? [];
   const activeNames = new Set(activeRows.map((t) => t.name));
-  const names = new Set<string>([...activeNames, ...counts.keys()]);
+  const names = new Set<string>([...activeNames, ...recipeCounts.keys(), ...postCounts.keys()]);
 
   return [...names]
     .sort((a, b) => a.localeCompare(b))
     .map((name) => ({
       name,
-      recipeCount: counts.get(name) ?? 0,
+      recipeCount: recipeCounts.get(name) ?? 0,
+      postCount: postCounts.get(name) ?? 0,
       sort_order: activeRows.find((t) => t.name === name)?.sort_order ?? 999,
     }));
 });
@@ -249,6 +270,8 @@ export type PostListFilters = {
   category?: string;
   /** Exclude posts that include this blog category id. */
   excludeCategory?: string;
+  /** Tag name stored on posts.tags. */
+  tag?: string;
   /** Eastern calendar day YYYY-MM-DD. */
   date?: string;
 };
@@ -283,12 +306,13 @@ export async function listPosts(opts: PostListFilters = {}): Promise<Post[]> {
   if (authorId) query = query.eq("author_id", authorId);
   if (opts.category) query = query.contains("categories", [opts.category]);
   if (opts.excludeCategory) query = query.not("categories", "cs", `{${opts.excludeCategory}}`);
+  if (opts.tag) query = query.contains("tags", [opts.tag]);
   if (dateRange) query = query.gte("published_at", dateRange.start).lt("published_at", dateRange.end);
 
   const from = opts.offset ?? 0;
   const to = from + (opts.limit ?? 60) - 1;
   const { data } = await query.range(from, to);
-  return ((data as Post[]) ?? []).map((p) => ({ ...p, categories: p.categories ?? [] }));
+  return ((data as Post[]) ?? []).map((p) => normalizePost(p));
 }
 
 export async function countPosts(opts: Omit<PostListFilters, "limit" | "offset"> = {}): Promise<number> {
@@ -303,6 +327,7 @@ export async function countPosts(opts: Omit<PostListFilters, "limit" | "offset">
   if (authorId) query = query.eq("author_id", authorId);
   if (opts.category) query = query.contains("categories", [opts.category]);
   if (opts.excludeCategory) query = query.not("categories", "cs", `{${opts.excludeCategory}}`);
+  if (opts.tag) query = query.contains("tags", [opts.tag]);
   if (dateRange) query = query.gte("published_at", dateRange.start).lt("published_at", dateRange.end);
 
   const { count } = await query;
@@ -322,6 +347,7 @@ export async function pickRandomPost(opts: Omit<PostListFilters, "limit" | "offs
   if (authorId) query = query.eq("author_id", authorId);
   if (opts.category) query = query.contains("categories", [opts.category]);
   if (opts.excludeCategory) query = query.not("categories", "cs", `{${opts.excludeCategory}}`);
+  if (opts.tag) query = query.contains("tags", [opts.tag]);
   if (dateRange) query = query.gte("published_at", dateRange.start).lt("published_at", dateRange.end);
 
   const { data: ids } = await query;
@@ -330,8 +356,7 @@ export async function pickRandomPost(opts: Omit<PostListFilters, "limit" | "offs
   const pick = ids[randomInt(ids.length)]!;
   const { data } = await supabase.from("posts").select("*").eq("id", pick.id).maybeSingle();
   if (!data) return null;
-  const post = data as Post;
-  return { ...post, categories: post.categories ?? [] };
+  return normalizePost(data as Post);
 }
 
 /** Look up a profile for blog author filter headings. */
@@ -414,22 +439,18 @@ export const getPostBySlug = cache(async (slug: string): Promise<PostWithAuthor 
     .select("*, author:profiles!posts_author_id_fkey(username, display_name, avatar_path)")
     .eq("slug", slug)
     .maybeSingle();
-  return data ? ({ ...(data as PostWithAuthor), categories: (data as Post).categories ?? [] }) : null;
+  return data ? normalizePost({ ...(data as PostWithAuthor), categories: (data as Post).categories ?? [] }) : null;
 });
 
 export const getPostById = cache(async (id: string): Promise<Post | null> => {
   const supabase = await createClient();
   const { data } = await supabase
     .from("posts")
-    .select("id, slug, title, excerpt, body, cover_path, head_json, seo_title, meta_description, categories, status, author_id, created_at, updated_at, published_at")
+    .select("id, slug, title, excerpt, body, cover_path, head_json, seo_title, meta_description, categories, tags, status, author_id, created_at, updated_at, published_at")
     .eq("id", id)
     .maybeSingle();
   if (!data) return null;
-  const post = data as Post;
-  const categories = Array.isArray(post.categories)
-    ? post.categories.map((c) => String(c).trim()).filter(Boolean)
-    : [];
-  return { ...post, categories };
+  return normalizePost(data as Post);
 });
 
 export async function listProfiles(): Promise<Profile[]> {

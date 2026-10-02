@@ -11,7 +11,7 @@ export default async function AdminTagsPage() {
       <div className="sec-head">
         <div>
           <h2>Tags</h2>
-          <p>Add or remove tags used on recipes, forms, and filters.</p>
+          <p>Add or remove tags used on recipes, blog posts, forms, and filters.</p>
         </div>
       </div>
       <TagAdmin tags={tags} />
