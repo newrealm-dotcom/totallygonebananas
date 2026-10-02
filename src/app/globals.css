@@ -2435,6 +2435,20 @@ ol.steps > li > div > p:first-child { margin-top: 0; }
     grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr);
     min-height: 22rem;
   }
+  .blog-index .blog-featured .blog-card-topic {
+    display: none;
+  }
+  .blog-index .blog-featured-copy h2,
+  .blog-index .blog-featured-excerpt {
+    max-width: none;
+  }
+  .blog-index .blog-featured-meta {
+    width: 100%;
+    justify-content: space-between;
+  }
+  .blog-index .blog-featured-meta .blog-read-cta {
+    margin-left: auto;
+  }
 }
 .blog-featured-media {
   display: block;
