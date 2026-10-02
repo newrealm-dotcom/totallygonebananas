@@ -6,7 +6,7 @@ import { CategoryStickers } from "@/components/CategoryStickers";
 import { RecipeGrid } from "@/components/RecipeGrid";
 import { HeroSlide } from "@/components/HeroSlide";
 import { MediaView } from "@/components/MediaView";
-import { shortDate, titleCase } from "@/lib/format";
+import { titleCase } from "@/lib/format";
 import { mediaSrc, promoImageSrc } from "@/lib/media";
 import { stripInlineMarkdown } from "@/lib/render-post-markdown";
 import { getDarkMainSliderImages, getMainSliderImages, pickRandomSlide } from "@/lib/main-slider";
@@ -160,7 +160,10 @@ export default async function HomePage({ searchParams }: PageProps<"/">) {
                     <div className="blog-card-body">
                       <h3><Link href={`/blog/${p.slug}`}>{stripInlineMarkdown(p.title)}</Link></h3>
                       {p.excerpt ? <p>{stripInlineMarkdown(p.excerpt)}</p> : null}
-                      {p.published_at ? <p className="muted">{shortDate(p.published_at)}</p> : null}
+                      <div className="blog-card-foot">
+                        <span />
+                        <Link className="blog-card-read" href={`/blog/${p.slug}`}>Read</Link>
+                      </div>
                     </div>
                   </li>
                 );

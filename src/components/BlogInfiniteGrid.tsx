@@ -21,17 +21,20 @@ function PostCard({
   categoryNames,
   featured = false,
   featuredLabel = "Latest story",
+  showDates = true,
 }: {
   post: Post;
   categoryNames?: Record<string, string>;
   featured?: boolean;
   featuredLabel?: string;
+  showDates?: boolean;
 }) {
   const cover = mediaSrc(post.cover_path);
   const topic = categoryLabel(post, categoryNames);
   const title = stripInlineMarkdown(post.title);
   const excerpt = post.excerpt ? stripInlineMarkdown(post.excerpt) : null;
   const href = `/blog/${post.slug}`;
+  const dateLabel = showDates && post.published_at ? shortDate(post.published_at) : null;
 
   if (featured) {
     return (
@@ -49,7 +52,7 @@ function PostCard({
           <h2><Link href={href}>{title}</Link></h2>
           {excerpt ? <p className="blog-featured-excerpt">{excerpt}</p> : null}
           <div className="blog-featured-meta">
-            {post.published_at ? <span>{shortDate(post.published_at)}</span> : null}
+            {dateLabel ? <span>{dateLabel}</span> : null}
             <Link className="btn blog-read-cta" href={href}>Read the story</Link>
           </div>
         </div>
@@ -71,7 +74,7 @@ function PostCard({
         <h2><Link href={href}>{title}</Link></h2>
         {excerpt ? <p>{excerpt}</p> : null}
         <div className="blog-card-foot">
-          {post.published_at ? <p className="muted">{shortDate(post.published_at)}</p> : <span />}
+          {dateLabel ? <p className="muted">{dateLabel}</p> : <span />}
           <Link className="blog-card-read" href={href}>Read</Link>
         </div>
       </div>
@@ -89,6 +92,7 @@ export function BlogInfiniteGrid({
   featuredLabel = "Latest story",
   moreHeading = "More from the archive",
   moreHint = "Pick a card and keep peeling",
+  showDates = true,
 }: {
   initialPosts: Post[];
   total: number;
@@ -100,6 +104,7 @@ export function BlogInfiniteGrid({
   featuredLabel?: string;
   moreHeading?: string;
   moreHint?: string;
+  showDates?: boolean;
 }) {
   const [posts, setPosts] = useState(initialPosts);
   const [hasMore, setHasMore] = useState(initialPosts.length < total);
@@ -163,6 +168,7 @@ export function BlogInfiniteGrid({
           categoryNames={categoryNames}
           featured
           featuredLabel={featuredLabel}
+          showDates={showDates}
         />
       ) : null}
       {gridPosts.length > 0 ? (
@@ -175,7 +181,7 @@ export function BlogInfiniteGrid({
           ) : null}
           <ul className={`blog-grid home-blog-grid${featured ? " blog-grid-rest" : ""}`}>
             {gridPosts.map((p) => (
-              <PostCard key={p.id} post={p} categoryNames={categoryNames} />
+              <PostCard key={p.id} post={p} categoryNames={categoryNames} showDates={showDates} />
             ))}
           </ul>
         </>

@@ -142,6 +142,7 @@ export default async function BlogPage({ searchParams }: PageProps<"/blog">) {
           filters={filters}
           showFeatured={!filtered}
           categoryNames={categoryNames}
+          showDates={false}
         />
       )}
       <div style={{ height: "3rem" }} />

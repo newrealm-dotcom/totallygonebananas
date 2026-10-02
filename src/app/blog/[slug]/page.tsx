@@ -160,7 +160,10 @@ export default async function BlogPostPage({ params }: PageProps<"/blog/[slug]">
                   <div className="blog-card-body">
                     <h3><Link href={`/blog/${p.slug}`}>{stripInlineMarkdown(p.title)}</Link></h3>
                     {p.excerpt ? <p>{stripInlineMarkdown(p.excerpt)}</p> : null}
-                    {p.published_at ? <p className="muted">{shortDate(p.published_at)}</p> : null}
+                    <div className="blog-card-foot">
+                      <span />
+                      <Link className="blog-card-read" href={`/blog/${p.slug}`}>Read</Link>
+                    </div>
                   </div>
                 </li>
               );
