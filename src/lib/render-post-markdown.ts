@@ -17,14 +17,6 @@ export function stripInlineMarkdown(value: string): string {
     .trim();
 }
 
-function sanitizeHtml(html: string): string {
-  return html
-    .replace(/<script[\s\S]*?>[\s\S]*?<\/script>/gi, "")
-    .replace(/\son\w+\s*=\s*(["']).*?\1/gi, "")
-    .replace(/\son\w+\s*=\s*[^\s>]+/gi, "")
-    .replace(/javascript:/gi, "");
-}
-
 function normalizeMarkdown(source: string): string {
   return source
     .replace(/^\uFEFF/, "")
@@ -41,19 +33,19 @@ export function looksLikeHtml(source: string): boolean {
 }
 
 /**
- * Convert markdown (or pass through existing HTML) into safe HTML for the blog.
+ * Convert markdown (or pass through existing HTML) into HTML for blog/recipe notes.
+ * CSS and JS from the editor are preserved.
  */
 export function renderPostMarkdown(source: string): string {
   const trimmed = source.trim();
   if (!trimmed) return "";
 
   if (looksLikeHtml(trimmed)) {
-    return sanitizeHtml(trimmed);
+    return trimmed;
   }
 
   const md = normalizeMarkdown(trimmed);
-  const html = marked.parse(md, { async: false }) as string;
-  return sanitizeHtml(html);
+  return marked.parse(md, { async: false }) as string;
 }
 
 /** Convert a markdown body into stored HTML at upload time. */

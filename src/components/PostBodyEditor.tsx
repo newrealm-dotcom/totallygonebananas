@@ -7,6 +7,7 @@ import Placeholder from "@tiptap/extension-placeholder";
 import Underline from "@tiptap/extension-underline";
 import { useState, type ReactNode } from "react";
 import { looksLikeHtml, renderPostMarkdown } from "@/lib/render-post-markdown";
+import { PreserveHtmlAttrs, ScriptBlock, StyleBlock } from "@/lib/tiptap-raw-html";
 
 type EditorMode = "visual" | "code";
 
@@ -184,10 +185,19 @@ export function PostBodyEditor({
         autolink: true,
         defaultProtocol: "https",
         HTMLAttributes: { rel: "noopener noreferrer", target: "_blank" },
+        isAllowedUri: (url, ctx) => {
+          if (!url) return false;
+          // Allow intentional javascript: links from trusted editors.
+          if (/^\s*javascript:/i.test(url)) return true;
+          return ctx.defaultValidate(url);
+        },
       }),
       Placeholder.configure({
         placeholder,
       }),
+      PreserveHtmlAttrs,
+      StyleBlock,
+      ScriptBlock,
     ],
     content: initialHtml(value),
     editorProps: {
@@ -258,6 +268,9 @@ export function PostBodyEditor({
           aria-invalid={invalid || undefined}
         />
       )}
+      <p className="hint" style={{ marginTop: ".55rem" }}>
+        Code mode accepts full HTML, including <code>&lt;style&gt;</code> and <code>&lt;script&gt;</code>.
+      </p>
     </div>
   );
 }

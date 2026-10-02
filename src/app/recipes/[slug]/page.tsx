@@ -5,6 +5,7 @@ import { canEdit, getCategories, getRatings, getRecipeBySlug, getSavedIds, getVi
 import { createClient } from "@/lib/supabase/server";
 import { publicUrl } from "@/lib/media";
 import { shortDate, tintFor, titleCase } from "@/lib/format";
+import { HtmlWithScripts } from "@/components/HtmlWithScripts";
 import { renderPostMarkdown } from "@/lib/render-post-markdown";
 import { MediaView } from "@/components/MediaView";
 import { SaveButton } from "@/components/SaveButton";
@@ -203,7 +204,7 @@ export default async function RecipePage({ params, searchParams }: PageProps<"/r
             {r.notes?.trim() ? (
               <div className="recipe-notes" aria-labelledby="notes-title">
                 <h2 id="notes-title">Notes</h2>
-                <div className="recipe-notes-body" dangerouslySetInnerHTML={{ __html: renderPostMarkdown(r.notes) }} />
+                <HtmlWithScripts className="recipe-notes-body" html={renderPostMarkdown(r.notes)} />
               </div>
             ) : null}
             <div className="d-steps" aria-labelledby="steps-h">

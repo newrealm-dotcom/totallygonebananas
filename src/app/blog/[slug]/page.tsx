@@ -5,6 +5,7 @@ import { notFound } from "next/navigation";
 import { getBlogCategories, getPostBySlug, getViewer, isEditorRole, listRelatedPosts } from "@/lib/queries";
 import { easternDateKey, shortDate } from "@/lib/format";
 import { mediaSrc } from "@/lib/media";
+import { HtmlWithScripts } from "@/components/HtmlWithScripts";
 import { renderPostMarkdown, stripInlineMarkdown } from "@/lib/render-post-markdown";
 
 export async function generateMetadata({ params }: PageProps<"/blog/[slug]">): Promise<Metadata> {
@@ -121,7 +122,7 @@ export default async function BlogPostPage({ params }: PageProps<"/blog/[slug]">
             <Image src={cover} alt="" width={960} height={540} unoptimized priority />
           </div>
         )}
-        <div className="blog-body" dangerouslySetInnerHTML={{ __html: bodyHtml }} />
+        <HtmlWithScripts className="blog-body" html={bodyHtml} />
       </article>
 
       {related.length > 0 ? (
