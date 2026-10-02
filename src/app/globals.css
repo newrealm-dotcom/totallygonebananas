@@ -2359,13 +2359,22 @@ ol.steps > li > div > p:first-child { margin-top: 0; }
 }
 @media (min-width: 901px) {
   .blog-archive-hero:has(.blog-archive-slide) {
-    grid-template-columns: minmax(0, 60%) minmax(0, 40%);
+    grid-template-columns: minmax(0, 70%) minmax(0, 30%);
+    align-items: start;
+  }
+  #main:has(> .blog-index:has(.blog-archive-slide)) {
+    padding-top: 0;
   }
   .blog-index > .blog-archive-hero:has(.blog-archive-slide) {
+    padding-top: 0;
     padding-bottom: .5rem;
     margin-bottom: .25rem;
   }
-  .blog-archive-slide {
+  .blog-index > .blog-archive-hero:has(.blog-archive-slide) .blog-archive-copy {
+    align-self: center;
+  }
+  .blog-index > .blog-archive-hero:has(.blog-archive-slide) .blog-archive-slide {
+    align-self: start;
     justify-self: stretch;
     max-width: none;
   }
@@ -3052,7 +3061,7 @@ html[data-theme="dark"] .login-hero-stack .login-hero-dark { display: block; }
   .recipes-page ol.steps { gap: 1.55rem; }
   .hero { padding-top: 0; }
   /* Match /recipes first-content top spacing (.page-head) on these index pages. */
-  .blog-index > .blog-archive-hero,
+  .blog-index > .blog-archive-hero:not(:has(.blog-archive-slide)),
   .our-faves-page > .blog-archive-hero,
   .about-page .about,
   .profile-page .stand-hero {
