@@ -93,6 +93,7 @@ export function BlogInfiniteGrid({
   moreHeading = "More from the archive",
   moreHint = "Pick a card and keep peeling",
   showDates = true,
+  loadMode = "scroll",
 }: {
   initialPosts: Post[];
   total: number;
@@ -105,6 +106,8 @@ export function BlogInfiniteGrid({
   moreHeading?: string;
   moreHint?: string;
   showDates?: boolean;
+  /** `scroll` uses an intersection sentinel; `button` shows a More control. */
+  loadMode?: "scroll" | "button";
 }) {
   const [posts, setPosts] = useState(initialPosts);
   const [hasMore, setHasMore] = useState(initialPosts.length < total);
@@ -140,7 +143,7 @@ export function BlogInfiniteGrid({
       });
       setHasMore(data.hasMore);
     } catch {
-      /* keep hasMore so the sentinel can retry */
+      /* keep hasMore so the sentinel / button can retry */
     } finally {
       loadingRef.current = false;
       setLoading(false);
@@ -148,6 +151,7 @@ export function BlogInfiniteGrid({
   }, [filters.author, filters.category, filters.date, filters.tag, filters.excludeCategory, hasMore, posts.length]);
 
   useEffect(() => {
+    if (loadMode !== "scroll") return;
     const el = sentinelRef.current;
     if (!el || !hasMore) return;
     const io = new IntersectionObserver(
@@ -158,7 +162,7 @@ export function BlogInfiniteGrid({
     );
     io.observe(el);
     return () => io.disconnect();
-  }, [hasMore, loadMore]);
+  }, [hasMore, loadMore, loadMode]);
 
   return (
     <div className="blog-feed">
@@ -186,8 +190,19 @@ export function BlogInfiniteGrid({
           </ul>
         </>
       ) : null}
-      {hasMore ? <div ref={sentinelRef} className="blog-feed-sentinel" aria-hidden="true" /> : null}
-      {loading ? <p className="hint blog-feed-status" role="status">Loading more posts…</p> : null}
+      {loadMode === "scroll" && hasMore ? (
+        <div ref={sentinelRef} className="blog-feed-sentinel" aria-hidden="true" />
+      ) : null}
+      {loadMode === "button" && hasMore ? (
+        <div className="blog-feed-more">
+          <button type="button" className="btn" disabled={loading} onClick={() => void loadMore()}>
+            {loading ? "Loading…" : "More"}
+          </button>
+        </div>
+      ) : null}
+      {loadMode === "scroll" && loading ? (
+        <p className="hint blog-feed-status" role="status">Loading more posts…</p>
+      ) : null}
       {!hasMore && posts.length > PAGE_SIZE ? (
         <p className="hint blog-feed-status">That&apos;s every post for now.</p>
       ) : null}

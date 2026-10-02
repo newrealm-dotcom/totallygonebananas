@@ -2353,17 +2353,18 @@ ol.steps > li > div > p:first-child { margin-top: 0; }
   width: 100%;
   max-width: none;
   height: auto !important;
+  aspect-ratio: auto;
   display: block;
   object-fit: contain;
   object-position: top center;
+  margin: 0;
+  padding: 0;
+  vertical-align: top;
 }
 @media (min-width: 901px) {
   .blog-archive-hero:has(.blog-archive-slide) {
     grid-template-columns: minmax(0, 70%) minmax(0, 30%);
     align-items: start;
-  }
-  #main:has(> .blog-index:has(.blog-archive-slide)) {
-    padding-top: 0;
   }
   .blog-index > .blog-archive-hero:has(.blog-archive-slide) {
     padding-top: 0;
@@ -2371,12 +2372,16 @@ ol.steps > li > div > p:first-child { margin-top: 0; }
     margin-bottom: .25rem;
   }
   .blog-index > .blog-archive-hero:has(.blog-archive-slide) .blog-archive-copy {
-    align-self: center;
+    align-self: start;
+    padding-top: 50px;
+    padding-bottom: 50px;
   }
   .blog-index > .blog-archive-hero:has(.blog-archive-slide) .blog-archive-slide {
     align-self: start;
     justify-self: stretch;
     max-width: none;
+    margin-top: 0;
+    padding-top: 0;
   }
 }
 .blog-archive-kicker {
@@ -2625,10 +2630,23 @@ ol.steps > li > div > p:first-child { margin-top: 0; }
   color: var(--muted);
 }
 .blog-grid-rest { margin-top: 0; }
+.blog-feed-more {
+  display: flex;
+  justify-content: center;
+  margin: 1.6rem 0 .4rem;
+}
 @media (min-width: 901px) {
   .blog-grid.blog-grid-rest {
     grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr));
   }
+  .our-faves-page .blog-grid,
+  .our-faves-page .blog-grid.blog-grid-rest,
+  .our-faves-page .home-blog-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+.our-faves-page .blog-featured + .blog-more-head {
+  margin-top: calc(50px - 1.85rem);
 }
 .blog-featured {
   display: grid;
@@ -3014,6 +3032,8 @@ html[data-theme="dark"] .login-hero-stack .login-hero-dark { display: block; }
 /* Desktop: at least 50px between the header and page content. */
 @media (min-width: 901px) {
   #main { padding-top: 50px; }
+  /* Blog archive hero image sits flush under the header. */
+  #main:has(> .blog-index .blog-archive-slide) { padding-top: 0; }
   /* Recipe routes: 100px side padding, 50px between columns, 50px from #main above. */
   .recipes-page {
     padding-top: 0;
