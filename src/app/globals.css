@@ -3141,7 +3141,7 @@ header.top.is-compact .top-actions { margin-left: 0; }
 }
 @keyframes banana-fall {
   0% {
-    transform: translate3d(0, -18vh, 0) rotate(var(--r0));
+    transform: translate3d(0, var(--startY, -70vh), 0) rotate(var(--r0));
     opacity: 1;
   }
   45% {

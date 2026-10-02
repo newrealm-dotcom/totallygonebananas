@@ -201,12 +201,6 @@ export default async function RecipePage({ params, searchParams }: PageProps<"/r
               </div>
             ) : null}
             <IngredientPanel ingredients={r.ingredients} servings={r.servings} />
-            {r.notes?.trim() ? (
-              <div className="recipe-notes" aria-labelledby="notes-title">
-                <h2 id="notes-title">Notes</h2>
-                <HtmlWithScripts className="recipe-notes-body" html={renderPostMarkdown(r.notes)} />
-              </div>
-            ) : null}
             <div className="d-steps" aria-labelledby="steps-h">
               <h2 id="steps-h">Steps</h2>
               {r.steps.map((group, gi) => (
@@ -234,6 +228,12 @@ export default async function RecipePage({ params, searchParams }: PageProps<"/r
                 </div>
               ))}
             </div>
+            {r.notes?.trim() ? (
+              <div className="recipe-notes" aria-labelledby="notes-title">
+                <h2 id="notes-title">Notes</h2>
+                <HtmlWithScripts className="recipe-notes-body" html={renderPostMarkdown(r.notes)} />
+              </div>
+            ) : null}
             {r.status === "pending" && isEditorRole(profile) && (
               <div className="panel" style={{ marginTop: "1.2rem" }}>
                 <h2>Review</h2>

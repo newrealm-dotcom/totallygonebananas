@@ -11,6 +11,7 @@ interface BananaPiece {
   dur: number;
   drift: number;
   sway: number;
+  startY: number;
   r0: number;
   r1: number;
   rMid: number;
@@ -34,6 +35,8 @@ function makePieces(count: number): BananaPiece[] {
     dur: 1.5 + Math.random() * 3.6,
     drift: (Math.random() - 0.5) * 260,
     sway: (Math.random() - 0.5) * 90,
+    // Start well above the viewport so pieces look mid-fall when they enter.
+    startY: -(55 + Math.random() * 70),
     r0: Math.random() * 360,
     rMid: Math.random() * 720 - 360,
     r1: Math.random() * 1080 - 540,
@@ -76,6 +79,7 @@ export function BananaRain({ active }: { active: boolean }) {
               "--dur": `${p.dur}s`,
               "--drift": `${p.drift}px`,
               "--sway": `${p.sway}px`,
+              "--startY": `${p.startY}vh`,
               "--r0": `${p.r0}deg`,
               "--rMid": `${p.rMid}deg`,
               "--r1": `${p.r1}deg`,
