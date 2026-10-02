@@ -5,9 +5,17 @@ import StarterKit from "@tiptap/starter-kit";
 import Link from "@tiptap/extension-link";
 import Placeholder from "@tiptap/extension-placeholder";
 import Underline from "@tiptap/extension-underline";
-import { useState, type ReactNode } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import { looksLikeHtml, renderPostMarkdown } from "@/lib/render-post-markdown";
-import { PreserveHtmlAttrs, ScriptBlock, StyleBlock } from "@/lib/tiptap-raw-html";
+import {
+  BlogImage,
+  DivBlock,
+  FigcaptionBlock,
+  FigureBlock,
+  PreserveHtmlAttrs,
+  ScriptBlock,
+  StyleBlock,
+} from "@/lib/tiptap-raw-html";
 
 type EditorMode = "visual" | "code";
 
@@ -15,6 +23,11 @@ function initialHtml(value: string): string {
   const trimmed = value.trim();
   if (!trimmed) return "";
   return looksLikeHtml(trimmed) ? trimmed : renderPostMarkdown(trimmed);
+}
+
+/** Open Code mode when the body already has tags Visual can easily mangle. */
+function prefersCodeMode(html: string): boolean {
+  return /<(?:img|style|script|div|figure|video|iframe|table)\b/i.test(html);
 }
 
 function ToolbarButton({
@@ -170,8 +183,14 @@ export function PostBodyEditor({
   /** Smaller editor for recipe notes (no heading buttons). */
   compact?: boolean;
 }) {
-  const [mode, setMode] = useState<EditorMode>("visual");
+  const [mode, setMode] = useState<EditorMode>(() =>
+    prefersCodeMode(value) ? "code" : "visual",
+  );
   const [code, setCode] = useState(() => initialHtml(value));
+  const modeRef = useRef(mode);
+  useEffect(() => {
+    modeRef.current = mode;
+  }, [mode]);
 
   const editor = useEditor({
     immediatelyRender: false,
@@ -195,6 +214,10 @@ export function PostBodyEditor({
       Placeholder.configure({
         placeholder,
       }),
+      BlogImage,
+      DivBlock,
+      FigureBlock,
+      FigcaptionBlock,
       PreserveHtmlAttrs,
       StyleBlock,
       ScriptBlock,
@@ -208,6 +231,8 @@ export function PostBodyEditor({
       },
     },
     onUpdate: ({ editor: ed }) => {
+      // Only push Visual edits while Visual is active; Code mode owns the textarea.
+      if (modeRef.current === "code") return;
       const html = ed.isEmpty ? "" : ed.getHTML();
       setCode(html);
       onChange(html);
@@ -269,7 +294,8 @@ export function PostBodyEditor({
         />
       )}
       <p className="hint" style={{ marginTop: ".55rem" }}>
-        Code mode accepts full HTML, including <code>&lt;style&gt;</code> and <code>&lt;script&gt;</code>.
+        Code mode accepts full HTML, including <code>&lt;img&gt;</code>, <code>&lt;style&gt;</code>, and <code>&lt;script&gt;</code>.
+        Stay in Code while editing those so Visual doesn&apos;t reshape them.
       </p>
     </div>
   );
