@@ -5,9 +5,11 @@ import { Mascot } from "@/components/Mascot";
 export function HeroSlide({
   lightSrc,
   darkSrc,
+  alt = "The Totally Gone Bananas mascot",
 }: {
   lightSrc: string | null;
   darkSrc: string | null;
+  alt?: string;
 }) {
   const light = lightSrc ?? darkSrc;
   const dark = darkSrc ?? lightSrc;
@@ -19,7 +21,7 @@ export function HeroSlide({
       <Image
         className="mascot hero-slide"
         src={(light ?? dark)!}
-        alt="The Totally Gone Bananas mascot"
+        alt={alt}
         width={920}
         height={520}
         priority
@@ -33,7 +35,7 @@ export function HeroSlide({
       <Image
         className="mascot hero-slide hero-slide-light"
         src={light}
-        alt="The Totally Gone Bananas mascot"
+        alt={alt}
         width={920}
         height={520}
         priority
@@ -42,7 +44,7 @@ export function HeroSlide({
       <Image
         className="mascot hero-slide hero-slide-dark"
         src={dark}
-        alt="The Totally Gone Bananas mascot"
+        alt={alt}
         width={920}
         height={520}
         priority

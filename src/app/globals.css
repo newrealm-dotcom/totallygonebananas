@@ -2315,8 +2315,33 @@ ol.steps > li > div > p:first-child { margin-top: 0; }
   .home-blog-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 35px; }
 }
 .blog-archive-hero {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1.4rem 2rem;
+  align-items: start;
   padding: clamp(1.4rem, 3.5vw, 2.4rem) 0 1.6rem;
   margin-bottom: .6rem;
+}
+.blog-archive-copy { min-width: 0; }
+.blog-archive-slide {
+  justify-self: center;
+  width: 100%;
+  max-width: min(460px, 100%);
+}
+.blog-archive-slide .mascot,
+.blog-archive-slide .hero-slide-stack {
+  width: 100%;
+  max-width: none;
+  height: auto;
+}
+@media (min-width: 901px) {
+  .blog-archive-hero:has(.blog-archive-slide) {
+    grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr);
+  }
+  .blog-archive-slide {
+    justify-self: end;
+    max-width: min(520px, 100%);
+  }
 }
 .blog-archive-kicker {
   margin: 0 0 .45rem;

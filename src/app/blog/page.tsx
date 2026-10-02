@@ -12,6 +12,8 @@ import { isValidTag, normalizeTag } from "@/lib/tags";
 import { BlogInfiniteGrid } from "@/components/BlogInfiniteGrid";
 import { FilterPillsScroller } from "@/components/FilterPillsScroller";
 import { FlipCounter } from "@/components/FlipCounter";
+import { HeroSlide } from "@/components/HeroSlide";
+import { getInTheWildImages, pickRandomSlide } from "@/lib/main-slider";
 
 export const metadata: Metadata = {
   title: "Bananas in the Wild",
@@ -43,12 +45,14 @@ export default async function BlogPage({ searchParams }: PageProps<"/blog">) {
   };
   const filtered = Boolean(author || category || date || tag);
 
-  const [posts, total, blogCategories, authorProfile] = await Promise.all([
+  const [posts, total, blogCategories, authorProfile, wildSlides] = await Promise.all([
     listPosts({ publishedOnly: true, limit: INITIAL_LIMIT, offset: 0, ...filters }),
     countPosts({ publishedOnly: true, ...filters }),
     getBlogCategories(),
     author ? getProfileByUsernameOrId(author) : Promise.resolve(null),
+    getInTheWildImages(),
   ]);
+  const wildSlide = pickRandomSlide(wildSlides);
 
   const browseCategories = blogCategories.filter((c) => c.id !== FAVORITES_CATEGORY);
   const categoryName = category
@@ -80,52 +84,59 @@ export default async function BlogPage({ searchParams }: PageProps<"/blog">) {
   return (
     <div className="wrap blog-index">
       <header className="blog-archive-hero">
-        <p className="blog-archive-kicker" aria-hidden="true">The archive</p>
-        <h1>{heading}</h1>
-        <p className="lede">{lede}</p>
-        {!filtered && total > 0 ? (
-          <p className="blog-archive-count">
-            <span className="sr">
-              {total} {total === 1 ? "story" : "stories"} waiting to be peeled open
-            </span>
-            <span aria-hidden="true" className="blog-archive-count-visual">
-              <FlipCounter value={total} persistKey="blog-archive-story-count" />
-              <span className="blog-archive-count-label">
-                {total === 1 ? "story" : "stories"} waiting to be peeled open
+        <div className="blog-archive-copy">
+          <p className="blog-archive-kicker" aria-hidden="true">The archive</p>
+          <h1>{heading}</h1>
+          <p className="lede">{lede}</p>
+          {!filtered && total > 0 ? (
+            <p className="blog-archive-count">
+              <span className="sr">
+                {total} {total === 1 ? "story" : "stories"} waiting to be peeled open
               </span>
-            </span>
-          </p>
-        ) : null}
-        {browseCategories.length > 0 && !author && !date ? (
-          <div className="blog-topic-row">
-            <span className="blog-topic-label">Categories:</span>
-            <FilterPillsScroller label="categories">
-              <nav className="blog-topic-nav" aria-label="Browse by topic">
-                <Link
-                  className="blog-topic"
-                  href="/blog"
-                  aria-current={!category ? "page" : undefined}
-                >
-                  All stories
-                </Link>
-                {browseCategories.map((c) => (
+              <span aria-hidden="true" className="blog-archive-count-visual">
+                <FlipCounter value={total} persistKey="blog-archive-story-count" />
+                <span className="blog-archive-count-label">
+                  {total === 1 ? "story" : "stories"} waiting to be peeled open
+                </span>
+              </span>
+            </p>
+          ) : null}
+          {browseCategories.length > 0 && !author && !date ? (
+            <div className="blog-topic-row">
+              <span className="blog-topic-label">Categories:</span>
+              <FilterPillsScroller label="categories">
+                <nav className="blog-topic-nav" aria-label="Browse by topic">
                   <Link
-                    key={c.id}
                     className="blog-topic"
-                    href={`/blog?category=${encodeURIComponent(c.id)}`}
-                    aria-current={category === c.id ? "page" : undefined}
+                    href="/blog"
+                    aria-current={!category ? "page" : undefined}
                   >
-                    {c.name}
+                    All stories
                   </Link>
-                ))}
-              </nav>
-            </FilterPillsScroller>
+                  {browseCategories.map((c) => (
+                    <Link
+                      key={c.id}
+                      className="blog-topic"
+                      href={`/blog?category=${encodeURIComponent(c.id)}`}
+                      aria-current={category === c.id ? "page" : undefined}
+                    >
+                      {c.name}
+                    </Link>
+                  ))}
+                </nav>
+              </FilterPillsScroller>
+            </div>
+          ) : null}
+          {filtered ? (
+            <p className="blog-archive-reset">
+              <Link className="btn ghost small" href="/blog">View all posts</Link>
+            </p>
+          ) : null}
+        </div>
+        {wildSlide ? (
+          <div className="blog-archive-slide">
+            <HeroSlide lightSrc={wildSlide} darkSrc={wildSlide} alt="" />
           </div>
-        ) : null}
-        {filtered ? (
-          <p className="blog-archive-reset">
-            <Link className="btn ghost small" href="/blog">View all posts</Link>
-          </p>
         ) : null}
       </header>
 

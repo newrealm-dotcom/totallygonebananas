@@ -35,3 +35,27 @@ export function pickRandomSlide(slides: string[]): string | null {
   if (!slides.length) return null;
   return slides[Math.floor(Math.random() * slides.length)] ?? null;
 }
+
+const IN_THE_WILD_SLIDES = [
+  "/images/inthewild-01.webp",
+  "/images/inthewild-02.webp",
+  "/images/inthewild-03.webp",
+  "/images/inthewild-04.webp",
+];
+
+/** Blog archive hero images in /public/images/inthewild-*.webp. */
+export async function getInTheWildImages(): Promise<string[]> {
+  noStore();
+  const dir = path.join(process.cwd(), "public", "images");
+  try {
+    const entries = await readdir(dir, { withFileTypes: true });
+    const found = entries
+      .filter((entry) => entry.isFile() && /^inthewild-.*\.(webp|png|jpe?g|gif|avif)$/i.test(entry.name))
+      .map((entry) => entry.name)
+      .sort((a, b) => a.localeCompare(b))
+      .map((file) => `/images/${file}`);
+    return found.length ? found : IN_THE_WILD_SLIDES;
+  } catch {
+    return IN_THE_WILD_SLIDES;
+  }
+}
