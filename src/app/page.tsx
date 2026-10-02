@@ -37,7 +37,7 @@ export default async function HomePage({ searchParams }: PageProps<"/">) {
     getMainSliderImages(),
     getDarkMainSliderImages(),
     getHomepagePromo(),
-    listPosts({ publishedOnly: true, limit: 6, offset: 0, excludeCategory: "favorites" }),
+    listPosts({ publishedOnly: true, limit: 3, offset: 0, excludeCategory: "favorites" }),
   ]);
   const promoSrc = promoImageSrc(promo.image_path);
   const cat = categories.find((c) => c.id === active);
