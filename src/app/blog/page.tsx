@@ -10,6 +10,8 @@ import {
 import { shortDate } from "@/lib/format";
 import { isValidTag, normalizeTag } from "@/lib/tags";
 import { BlogInfiniteGrid } from "@/components/BlogInfiniteGrid";
+import { FilterPillsScroller } from "@/components/FilterPillsScroller";
+import { FlipCounter } from "@/components/FlipCounter";
 
 export const metadata: Metadata = {
   title: "Bananas in the Wild",
@@ -83,29 +85,42 @@ export default async function BlogPage({ searchParams }: PageProps<"/blog">) {
         <p className="lede">{lede}</p>
         {!filtered && total > 0 ? (
           <p className="blog-archive-count">
-            <strong>{total}</strong> {total === 1 ? "story" : "stories"} waiting to be peeled open
+            <span className="sr">
+              {total} {total === 1 ? "story" : "stories"} waiting to be peeled open
+            </span>
+            <span aria-hidden="true" className="blog-archive-count-visual">
+              <FlipCounter value={total} persistKey="blog-archive-story-count" />
+              <span className="blog-archive-count-label">
+                {total === 1 ? "story" : "stories"} waiting to be peeled open
+              </span>
+            </span>
           </p>
         ) : null}
         {browseCategories.length > 0 && !author && !date ? (
-          <nav className="blog-topic-nav" aria-label="Browse by topic">
-            <Link
-              className="blog-topic"
-              href="/blog"
-              aria-current={!category ? "page" : undefined}
-            >
-              All stories
-            </Link>
-            {browseCategories.map((c) => (
-              <Link
-                key={c.id}
-                className="blog-topic"
-                href={`/blog?category=${encodeURIComponent(c.id)}`}
-                aria-current={category === c.id ? "page" : undefined}
-              >
-                {c.name}
-              </Link>
-            ))}
-          </nav>
+          <div className="blog-topic-row">
+            <span className="blog-topic-label">Categories:</span>
+            <FilterPillsScroller label="categories">
+              <nav className="blog-topic-nav" aria-label="Browse by topic">
+                <Link
+                  className="blog-topic"
+                  href="/blog"
+                  aria-current={!category ? "page" : undefined}
+                >
+                  All stories
+                </Link>
+                {browseCategories.map((c) => (
+                  <Link
+                    key={c.id}
+                    className="blog-topic"
+                    href={`/blog?category=${encodeURIComponent(c.id)}`}
+                    aria-current={category === c.id ? "page" : undefined}
+                  >
+                    {c.name}
+                  </Link>
+                ))}
+              </nav>
+            </FilterPillsScroller>
+          </div>
         ) : null}
         {filtered ? (
           <p className="blog-archive-reset">

@@ -2347,19 +2347,174 @@ ol.steps > li > div > p:first-child { margin-top: 0; }
   font-weight: 800;
   color: var(--muted);
 }
-.blog-archive-count strong {
-  color: var(--ink);
+.blog-archive-count-visual {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: .65rem .75rem;
+}
+.blog-archive-count-label {
+  font-weight: 800;
+  color: var(--muted);
+}
+
+/* Split-flap / flip-clock digits */
+.flip-counter {
+  display: inline-flex;
+  align-items: center;
+  gap: .24rem;
+  font-size: clamp(1.32rem, 2.72vw, 1.83rem);
+  line-height: 1;
+}
+.flip-digit {
+  position: relative;
+  width: 1.28em;
+  height: 1.72em;
+  flex-shrink: 0;
+  color: #2a2a2a;
+  font-family: var(--body);
   font-weight: 900;
-  background: var(--yellow);
-  border-radius: 8px;
-  padding: .05rem .35rem;
+  font-variant-numeric: tabular-nums;
+  filter: drop-shadow(0 2px 2px rgb(0 0 0 / .16));
+  perspective: 320px;
+}
+.flip-digit::before,
+.flip-digit::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  z-index: 5;
+  width: .18em;
+  height: .42em;
+  border-radius: .06em;
+  background: linear-gradient(180deg, #d8d8d8 0%, #9a9a9a 45%, #6e6e6e 100%);
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / .45), 0 1px 1px rgb(0 0 0 / .25);
+  transform: translateY(-50%);
+}
+.flip-digit::before { left: -.07em; }
+.flip-digit::after { right: -.07em; }
+.flip-digit-half {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 50%;
+  overflow: hidden;
+}
+.flip-digit-top {
+  top: 0;
+  border-radius: .22em .22em 0 0;
+  background: linear-gradient(180deg, #fafafa 0%, #e9e9e9 100%);
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / .85);
+}
+.flip-digit-top::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 1px;
+  background: rgb(0 0 0 / .22);
+  z-index: 2;
+}
+.flip-digit-bottom {
+  bottom: 0;
+  border-radius: 0 0 .22em .22em;
+  background: linear-gradient(180deg, #d5d5d5 0%, #efefef 55%, #f6f6f6 100%);
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / .35);
+}
+.flip-digit-num {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 200%;
+  display: grid;
+  place-items: center;
+}
+.flip-digit-top .flip-digit-num { top: 0; }
+.flip-digit-bottom .flip-digit-num { bottom: 0; }
+.flip-digit-leaf {
+  position: absolute;
+  inset: 0;
+  z-index: 4;
+  pointer-events: none;
+  transform-style: preserve-3d;
+}
+.flip-digit-leaf-front,
+.flip-digit-leaf-back {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 50%;
+  overflow: hidden;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+}
+.flip-digit-leaf-front {
+  top: 0;
+  transform-origin: bottom center;
+  animation: flip-digit-top .32s ease-in forwards;
+}
+.flip-digit-leaf-front .flip-digit-top {
+  position: relative;
+  height: 100%;
+}
+.flip-digit-leaf-back {
+  bottom: 0;
+  transform-origin: top center;
+  transform: rotateX(90deg);
+  animation: flip-digit-bottom .32s ease-out forwards;
+}
+.flip-digit-leaf-back .flip-digit-bottom {
+  position: relative;
+  height: 100%;
+}
+@keyframes flip-digit-top {
+  0% { transform: rotateX(0deg); }
+  100% { transform: rotateX(-90deg); }
+}
+@keyframes flip-digit-bottom {
+  0%, 45% { transform: rotateX(90deg); }
+  100% { transform: rotateX(0deg); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .flip-digit-leaf-front,
+  .flip-digit-leaf-back { animation: none; }
 }
 .blog-archive-reset { margin: 1rem 0 0; }
+.blog-topic-row {
+  display: flex;
+  align-items: center;
+  gap: .65rem;
+  margin: .2rem 0 0;
+  min-width: 0;
+}
+.blog-topic-row:has(.filter-pills-expand.is-expanded) {
+  align-items: flex-start;
+}
+.blog-topic-label {
+  flex-shrink: 0;
+  font-weight: 800;
+  font-size: .95rem;
+}
+.blog-topic-row:has(.filter-pills-expand.is-expanded) .blog-topic-label {
+  padding-top: .55rem;
+}
 .blog-topic-nav {
   display: flex;
   flex-wrap: wrap;
   gap: .55rem;
-  margin: .2rem 0 0;
+  min-width: 0;
+}
+.filter-pills-content .blog-topic-nav {
+  display: flex;
+  flex-wrap: wrap;
+  width: 100%;
+  max-width: none;
+  margin: 0;
+  gap: .55rem;
+}
+.filter-pills-content .blog-topic {
+  flex-shrink: 0;
 }
 .blog-topic {
   display: inline-flex;
@@ -2805,7 +2960,9 @@ html[data-theme="dark"] .login-hero-stack .login-hero-dark { display: block; }
   }
   .recipes-page .wrap,
   .recipes-page .wrap.narrow { padding-inline: 0; }
-  .recipes-page .wrap > :first-child { margin-top: 0; padding-top: 0; }
+  .recipes-page .wrap > :first-child { margin-top: 0; }
+  /* Keep index page-head top padding (matches Our Faves / blog archive heroes). */
+  .recipes-page .wrap > :first-child:not(.page-head) { padding-top: 0; }
   .recipes-page .wrap > .notice-inline:first-child { padding: 1rem; }
   .recipes-page .lede { max-width: none; }
   .recipes-page .grid { column-gap: 50px; row-gap: 35px; }
@@ -2841,9 +2998,14 @@ html[data-theme="dark"] .login-hero-stack .login-hero-dark { display: block; }
   .recipes-page .d-cooks h2 { margin-bottom: 1.15rem; }
   .recipes-page .step-group + .step-group { margin-top: 2rem; }
   .recipes-page ol.steps { gap: 1.55rem; }
-  .hero,
-  .about,
-  .stand-hero { padding-top: 0; }
+  .hero { padding-top: 0; }
+  /* Match /recipes first-content top spacing (.page-head) on these index pages. */
+  .blog-index > .blog-archive-hero,
+  .our-faves-page > .blog-archive-hero,
+  .about-page .about,
+  .profile-page .stand-hero {
+    padding-top: clamp(1.8rem, 4vw, 3rem);
+  }
   /* Keep the gold band continuous from the header into the hero gradient. */
   #main:has(> .hero:first-child) { padding-top: 0; }
   #main:has(> .hero:first-child) > .hero { padding-top: 50px; }

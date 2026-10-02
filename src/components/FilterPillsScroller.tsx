@@ -13,7 +13,7 @@ export function FilterPillsScroller({ children, label }: { children: ReactNode; 
   const measure = useCallback(() => {
     const content = contentRef.current;
     if (!content) return;
-    const first = content.querySelector<HTMLElement>(".cat, .chip");
+    const first = content.querySelector<HTMLElement>(".cat, .chip, .blog-topic");
     const rowHeight = first?.offsetHeight ?? 44;
     const styles = getComputedStyle(content);
     const gap = Number.parseFloat(styles.rowGap || styles.gap) || 0;
