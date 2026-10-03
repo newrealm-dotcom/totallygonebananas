@@ -48,6 +48,7 @@ export default async function OurFavesPage() {
           moreHeading="More faves"
           moreHint="Pick a card and keep peeling"
           loadMode="button"
+          showDates={false}
         />
       )}
       <div style={{ height: "3rem" }} />
