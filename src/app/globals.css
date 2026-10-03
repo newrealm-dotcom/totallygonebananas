@@ -1139,6 +1139,30 @@ video.media-fill { background: #000; }
 .card h3 a:focus-visible { outline: none; }
 .card p { margin: 0; font-size: .95rem; color: var(--muted); font-weight: 600; }
 .meta { display: flex; flex-wrap: wrap; gap: .4rem; margin-top: auto; padding-top: .3rem; }
+.card-open {
+  position: relative;
+  z-index: 2;
+  align-self: flex-end;
+  margin-top: .15rem;
+  font-weight: 900;
+  font-size: .82rem;
+  letter-spacing: .04em;
+  text-transform: uppercase;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  color: var(--ink);
+}
+.card-open:hover { color: var(--muted); }
+.card-open-long { display: none; }
+@media (max-width: 900px) {
+  .card-open {
+    align-self: stretch;
+    text-align: center;
+    margin-top: .35rem;
+  }
+  .card-open-short { display: none; }
+  .card-open-long { display: inline; }
+}
 .empty { background: var(--panel); border: 3px dashed var(--line); border-radius: 24px; padding: 2rem; text-align: center; font-weight: 700; display: grid; gap: .6rem; justify-items: center; }
 .empty p { margin: 0; }
 .empty .big { font-size: 2.4rem; }
@@ -3460,7 +3484,8 @@ ol.steps > li > div > p:first-child { margin-top: 0; }
 .blog-card-read {
   font-weight: 900;
   text-transform: uppercase;
-  font-size: 1.7rem;
+  font-size: .82rem;
+  letter-spacing: .04em;
   text-decoration: underline;
   text-underline-offset: 3px;
   transition: color .14s ease;

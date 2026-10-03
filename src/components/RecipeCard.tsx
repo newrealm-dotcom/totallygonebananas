@@ -37,6 +37,10 @@ export function RecipeCard({ recipe, categories, rating, saved, signedIn, showCa
           {rating && <span className="pill rate" aria-label={`Rated ${rating.avg_rating} out of 5 by ${rating.ratings_count} cooks`}>★ {rating.avg_rating} ({rating.ratings_count})</span>}
           {recipe.tags.slice(0, 2).map((t) => <span key={t} className="pill">{t}</span>)}
         </div>
+        <Link className="card-open" href={`/recipes/${recipe.slug}`}>
+          <span className="card-open-short">Open</span>
+          <span className="card-open-long">Open recipe</span>
+        </Link>
       </div>
     </article>
   );
