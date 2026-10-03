@@ -36,6 +36,17 @@ export function pickRandomSlide(slides: string[]): string | null {
   return slides[Math.floor(Math.random() * slides.length)] ?? null;
 }
 
+/** Light-mode image that should lead the homepage slider. */
+export const FIRST_LIGHT_SLIDE = "/main-slider/main-banana-first.webp";
+/** Dark-mode image that should lead the homepage slider. */
+export const FIRST_DARK_SLIDE = "/main-slider/dark/dark-main-banana-first.webp";
+
+/** Prefer a named slide when it exists; otherwise pick at random. */
+export function pickPreferredSlide(slides: string[], preferred: string): string | null {
+  if (slides.includes(preferred)) return preferred;
+  return pickRandomSlide(slides);
+}
+
 const IN_THE_WILD_SLIDES = [
   "/images/inthewild-01.webp",
   "/images/inthewild-02.webp",

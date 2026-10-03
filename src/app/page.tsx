@@ -10,7 +10,7 @@ import { MediaView } from "@/components/MediaView";
 import { titleCase } from "@/lib/format";
 import { mediaSrc, promoImageSrc } from "@/lib/media";
 import { stripInlineMarkdown } from "@/lib/render-post-markdown";
-import { getDarkMainSliderImages, getMainSliderImages, pickRandomSlide } from "@/lib/main-slider";
+import { getDarkMainSliderImages, getMainSliderImages, FIRST_DARK_SLIDE, FIRST_LIGHT_SLIDE, pickPreferredSlide } from "@/lib/main-slider";
 
 /** Recipe of the day: the same pick for everyone for 24 hours (UTC). */
 function recipeOfTheDay<T>(list: T[]): T | null {
@@ -47,8 +47,8 @@ export default async function HomePage({ searchParams }: PageProps<"/">) {
   ]);
   const promoSrc = promoImageSrc(promo.image_path);
   const cat = categories.find((c) => c.id === active);
-  const heroLight = pickRandomSlide(lightSlides);
-  const heroDark = pickRandomSlide(darkSlides);
+  const heroLight = pickPreferredSlide(lightSlides, FIRST_LIGHT_SLIDE);
+  const heroDark = pickPreferredSlide(darkSlides, FIRST_DARK_SLIDE);
   const moreHref = cat ? `/recipes?category=${cat.id}` : "/recipes";
 
   const rotd = recipeOfTheDay(all);
