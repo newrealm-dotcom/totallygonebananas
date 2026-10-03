@@ -33,6 +33,9 @@ export default async function OurFavesPage() {
           <p className="lede">
             Banana-inspired things we actually like — snacks, scents, gadgets, and little luxuries, all in one place.
           </p>
+          {posts.length > 0 ? (
+            <a className="btn" href="#faves-feed">Browse the picks</a>
+          ) : null}
         </div>
         <div className="faves-hero-mascot">
           <Image
@@ -41,7 +44,7 @@ export default async function OurFavesPage() {
             width={720}
             height={900}
             priority
-            sizes="(max-width: 900px) 240px, 360px"
+            sizes="(max-width: 900px) 240px, 48vw"
           />
         </div>
       </header>
@@ -50,12 +53,14 @@ export default async function OurFavesPage() {
           <p>No favorites yet. Check back soon.</p>
         </div>
       ) : (
-        <FavesGrid
-          initialPosts={posts}
-          total={total}
-          featuredPost={featuredPost}
-          categoryNames={categoryNames}
-        />
+        <div id="faves-feed">
+          <FavesGrid
+            initialPosts={posts}
+            total={total}
+            featuredPost={featuredPost}
+            categoryNames={categoryNames}
+          />
+        </div>
       )}
       <div style={{ height: "3rem" }} />
     </div>

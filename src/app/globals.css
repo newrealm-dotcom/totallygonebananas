@@ -2789,6 +2789,9 @@ ol.steps > li > div > p:first-child { margin-top: 0; }
 }
 .faves-hero-copy {
   min-width: 0;
+  display: grid;
+  justify-items: start;
+  gap: 0;
 }
 .faves-hero h1 {
   font-family: var(--display);
@@ -2798,7 +2801,10 @@ ol.steps > li > div > p:first-child { margin-top: 0; }
   margin: 0 0 .7rem;
 }
 .faves-hero .lede {
-  margin-bottom: 0;
+  margin: 0;
+}
+.faves-hero-copy .btn {
+  margin-top: 1.15rem;
 }
 .faves-hero-mascot {
   justify-self: center;
@@ -2814,18 +2820,35 @@ ol.steps > li > div > p:first-child { margin-top: 0; }
 @media (min-width: 901px) {
   .faves-hero {
     grid-template-columns: 40% minmax(0, 1fr);
-    align-items: center;
+    align-items: end;
+    column-gap: clamp(1.25rem, 3vw, 2.5rem);
+    min-height: min(62vh, 36rem);
     padding-top: 20px;
     padding-bottom: 20px;
     margin-bottom: 0;
   }
   .faves-hero-copy {
     align-self: center;
+    width: 100%;
+    max-width: none;
+  }
+  .faves-hero h1 {
+    font-size: clamp(3.6rem, 6.8vw, 6rem);
+    margin-bottom: .85rem;
+    width: 100%;
+    max-width: none;
+    white-space: nowrap;
+  }
+  .faves-hero .lede {
+    font-size: clamp(1.14rem, 1.55vw, 1.32rem);
+    max-width: none;
+    width: 100%;
   }
   .faves-hero-mascot {
     justify-self: end;
-    width: 100%;
-    max-width: 360px;
+    align-self: end;
+    width: min(100%, 34rem);
+    max-width: none;
   }
 }
 .faves-feed {
