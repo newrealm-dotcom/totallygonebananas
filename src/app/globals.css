@@ -933,15 +933,13 @@ html[data-theme="dark"] .hero-slide-stack .hero-slide-dark { display: block; }
 }
 
 .cats { display: flex; flex-wrap: wrap; gap: .75rem; margin-top: 1.6rem; }
-.cat { display: flex; align-items: center; gap: .6rem; padding: .4rem 1rem .4rem .4rem; border: 3px solid var(--line); border-radius: 999px; background: var(--paper); font-weight: 900; box-shadow: 4px 4px 0 var(--line); transition: transform .12s, box-shadow .12s; min-height: 52px; text-decoration: none; }
-.cat .ce { width: 38px; height: 38px; border-radius: 50%; display: grid; place-items: center; font-size: 1.35rem; border: 2.5px solid var(--brown); }
+.cat { display: inline-flex; align-items: center; gap: .35rem; padding: .45rem 1.1rem; border: 3px solid var(--line); border-radius: 999px; background: var(--paper); font-weight: 900; box-shadow: 4px 4px 0 var(--line); transition: transform .12s, box-shadow .12s; min-height: 52px; text-decoration: none; }
 .cat small { font-weight: 800; color: var(--muted); font-size: .8rem; }
 .cat:hover { transform: translate(-1px, -1px); box-shadow: 5px 5px 0 var(--line); }
 .cat[aria-current] { background: var(--yellow); color: var(--on-yellow); border-color: var(--brown); }
 .cat[aria-current] small { color: var(--on-yellow); }
 .cats.small { margin: 0 0 .9rem; gap: .55rem; }
-.cats.small .cat { min-height: 44px; box-shadow: 3px 3px 0 var(--line); padding-right: .85rem; }
-.cats.small .ce { width: 30px; height: 30px; font-size: 1.05rem; }
+.cats.small .cat { min-height: 44px; box-shadow: 3px 3px 0 var(--line); padding: .35rem .9rem; }
 .rotd { background: var(--panel); color: var(--brown); border: 3px solid var(--brown); border-radius: 32px; box-shadow: 8px 8px 0 var(--line); padding: clamp(1.3rem, 3vw, 2.2rem); display: grid; grid-template-columns: auto 1fr; gap: 1.5rem; align-items: center; }
 .rotd .emo { font-size: clamp(4rem, 9vw, 6.5rem); line-height: 1; background: var(--cream); border: 3px solid var(--brown); border-radius: 50%; width: 1.55em; height: 1.55em; display: grid; place-items: center; overflow: hidden; position: relative; }
 .rotd .kicker { font-weight: 900; margin: 0 0 .2rem; }

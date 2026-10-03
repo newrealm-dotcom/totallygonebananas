@@ -565,7 +565,7 @@ export function RecipeForm({ userId, isEditor, categories, activeTags = [...TAGS
                   checked={v.categoryIds.includes(c.id)}
                   onChange={(e) => toggleCategory(c.id, e.target.checked)}
                 />{" "}
-                {c.emoji ? `${c.emoji} ` : ""}{c.name}
+                {c.name}
               </label>
             ))}
             {v.pendingCategories.map((c) => (
