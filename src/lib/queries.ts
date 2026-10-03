@@ -135,6 +135,36 @@ export const getRecipeTags = cache(async (): Promise<RecipeTag[]> => {
   });
 });
 
+/** Recipe filter tags ordered by use on published recipes (most popular first). */
+export const getRecipeTagsByPopularity = cache(async (): Promise<RecipeTag[]> => {
+  const supabase = await createClient();
+  const [{ data: active }, { data: recipes }] = await Promise.all([
+    supabase.from("recipe_tags").select("*").order("name"),
+    supabase.from("recipes").select("tags").eq("status", "published"),
+  ]);
+
+  const counts = new Map<string, number>();
+  for (const row of recipes ?? []) {
+    for (const tag of row.tags ?? []) {
+      if (!tag) continue;
+      counts.set(tag, (counts.get(tag) ?? 0) + 1);
+    }
+  }
+
+  const activeRows = (active as RecipeTag[] | null) ?? [];
+  const byName = new Map<string, RecipeTag>(activeRows.map((t) => [t.name, t]));
+  for (const tag of counts.keys()) {
+    if (!byName.has(tag)) byName.set(tag, { name: tag, sort_order: 999, created_at: "" });
+  }
+
+  return [...byName.values()].sort((a, b) => {
+    const ca = counts.get(a.name) ?? 0;
+    const cb = counts.get(b.name) ?? 0;
+    if (cb !== ca) return cb - ca;
+    return a.name.localeCompare(b.name);
+  });
+});
+
 /** All tags for admin: saved active tags plus every tag currently used on recipes or posts. */
 export const getAdminRecipeTags = cache(async (): Promise<AdminRecipeTag[]> => {
   const supabase = await createClient();

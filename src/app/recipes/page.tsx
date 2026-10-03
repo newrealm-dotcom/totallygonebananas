@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { countRecipes, getCategories, getRatings, getRecipeTags, getSavedIds, getViewer, listRecipes, type RecipeFilters } from "@/lib/queries";
+import { countRecipes, getCategories, getRatings, getRecipeTagsByPopularity, getSavedIds, getViewer, listRecipes, type RecipeFilters } from "@/lib/queries";
 import { CategoryStickers } from "@/components/CategoryStickers";
 import { FilterPillsScroller } from "@/components/FilterPillsScroller";
 import { FlipCounter } from "@/components/FlipCounter";
@@ -31,7 +31,7 @@ export default async function RecipesPage({ searchParams }: PageProps<"/recipes"
     listRecipes(f),
     countRecipes(f),
     getViewer(),
-    getRecipeTags(),
+    getRecipeTagsByPopularity(),
   ]);
   const [ratings, saved] = await Promise.all([getRatings(recipes.map((r) => r.id)), getSavedIds(viewer.userId)]);
   const cat = categories.find((c) => c.id === f.category);
