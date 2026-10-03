@@ -3,6 +3,7 @@ import Link from "next/link";
 import { getCategories, getHomepagePromo, listPosts, listRecipes } from "@/lib/queries";
 import { createClient } from "@/lib/supabase/server";
 import { CategoryStickers } from "@/components/CategoryStickers";
+import { FilterPillsScroller } from "@/components/FilterPillsScroller";
 import { RecipeGrid } from "@/components/RecipeGrid";
 import { HeroSlide } from "@/components/HeroSlide";
 import { MediaView } from "@/components/MediaView";
@@ -59,7 +60,17 @@ export default async function HomePage({ searchParams }: PageProps<"/">) {
           <div>
             <h1>What are we going bananas for today?</h1>
             <p className="lede">Pick a craving and dig in. Whether you&apos;re after something chocolatey, something fruity, or an easy bake for a slow Sunday morning, there&apos;s a recipe here for it. New ones go up all the time, so check back often to see what just came out of the oven.</p>
-            <CategoryStickers categories={categories.filter((c) => counts.get(c.id))} counts={counts} active={active} hrefFor={(id) => (id ? `/?category=${id}#latest` : "/#latest")} />
+            <div className="hero-cats">
+              <span className="hero-cats-label">Categories:</span>
+              <FilterPillsScroller label="categories" moreText="more">
+                <CategoryStickers
+                  small
+                  categories={categories.filter((c) => counts.get(c.id))}
+                  active={active}
+                  hrefFor={(id) => (id ? `/?category=${id}#latest` : "/#latest")}
+                />
+              </FilterPillsScroller>
+            </div>
           </div>
           <div className="mascot-wrap">
             <div className="bubble">

@@ -3,6 +3,7 @@ import Link from "next/link";
 import { countRecipes, getCategories, getRatings, getRecipeTags, getSavedIds, getViewer, listRecipes, type RecipeFilters } from "@/lib/queries";
 import { CategoryStickers } from "@/components/CategoryStickers";
 import { FilterPillsScroller } from "@/components/FilterPillsScroller";
+import { FlipCounter } from "@/components/FlipCounter";
 import { RecipesInfiniteGrid } from "@/components/RecipesInfiniteGrid";
 import { isValidTag, normalizeTag } from "@/lib/tags";
 import { plural, titleCase } from "@/lib/format";
@@ -88,7 +89,16 @@ export default async function RecipesPage({ searchParams }: PageProps<"/recipes"
       </div>
 
       <div className="result-bar">
-        <p aria-live="polite">{plural(total, "recipe")}{filtered ? " found" : ""}</p>
+        <p aria-live="polite">
+          <span className="sr">{plural(total, "recipe")}{filtered ? " found" : ""}</span>
+          <span aria-hidden="true" className="result-bar-count">
+            <FlipCounter value={total} persistKey={filtered ? undefined : "recipes-index-count"} />
+            <span>
+              {total === 1 ? "recipe" : "recipes"}
+              {filtered ? " found" : ""}
+            </span>
+          </span>
+        </p>
         {filtered && <Link className="btn ghost small" href="/recipes">Clear filters</Link>}
       </div>
 
