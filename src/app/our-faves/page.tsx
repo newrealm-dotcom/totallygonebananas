@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
+import Image from "next/image";
 import { countPosts, getBlogCategories, listPosts, pickRandomPost } from "@/lib/queries";
-import { BlogInfiniteGrid } from "@/components/BlogInfiniteGrid";
+import { FavesGrid } from "@/components/FavesGrid";
 
 export const metadata: Metadata = {
   title: "Our Faves",
@@ -25,30 +26,35 @@ export default async function OurFavesPage() {
 
   return (
     <div className="wrap our-faves-page">
-      <header className="blog-archive-hero">
-        <h1>Our Faves</h1>
-        <p className="lede">
-          Can&apos;t get enough of the banana? We&apos;ve rounded up our favorite banana-inspired pieces in one place,
-          so go take a look and find the one that makes you smile.
-        </p>
+      <header className="faves-hero">
+        <div className="faves-hero-copy">
+          <p className="blog-archive-kicker">Hand-picked</p>
+          <h1>Our Faves</h1>
+          <p className="lede">
+            Banana-inspired things we actually like — snacks, scents, gadgets, and little luxuries, all in one place.
+          </p>
+        </div>
+        <div className="faves-hero-mascot">
+          <Image
+            src="/images/character-faves.webp"
+            alt=""
+            width={720}
+            height={900}
+            priority
+            sizes="(max-width: 900px) 240px, 360px"
+          />
+        </div>
       </header>
       {posts.length === 0 ? (
         <div className="empty">
           <p>No favorites yet. Check back soon.</p>
         </div>
       ) : (
-        <BlogInfiniteGrid
+        <FavesGrid
           initialPosts={posts}
           total={total}
-          filters={filters}
-          showFeatured
           featuredPost={featuredPost}
           categoryNames={categoryNames}
-          featuredLabel="Featured fave"
-          moreHeading="More faves"
-          moreHint="Pick a card and keep peeling"
-          loadMode="button"
-          showDates={false}
         />
       )}
       <div style={{ height: "3rem" }} />

@@ -577,7 +577,7 @@ footer nav a:hover {
 .h1, .page-head h1, .hero h1 { font-family: var(--display); font-weight: 400; font-size: clamp(2.3rem, 5.2vw, 4rem); line-height: 1; margin: 0 0 .7rem; letter-spacing: .02em; text-wrap: balance; }
 .lede { font-size: 1.12rem; max-width: 56ch; margin: 0; color: var(--muted); font-weight: 600; }
 .blog-index .lede { max-width: none; width: 100%; }
-.our-faves-page .lede { max-width: none; width: 100%; }
+.our-faves-page .lede { max-width: 46ch; width: auto; }
 .hero .lede { max-width: none; width: 100%; }
 h2 { font-family: var(--display); font-weight: 400; font-size: clamp(1.6rem, 3.2vw, 36px); line-height: 1.05; margin: 0; letter-spacing: .02em; text-wrap: balance; }
 section.block { padding: clamp(2rem, 5vw, 3.5rem) 0; }
@@ -2777,6 +2777,219 @@ ol.steps > li > div > p:first-child { margin-top: 0; }
 .our-faves-page .blog-featured + .blog-more-head {
   margin-top: calc(50px - 1.85rem);
 }
+
+/* Our Faves lookbook */
+.faves-hero {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1.4rem 2rem;
+  align-items: center;
+  padding: clamp(1.4rem, 3.5vw, 2.4rem) 0 1.4rem;
+  margin-bottom: .4rem;
+}
+.faves-hero-copy {
+  min-width: 0;
+}
+.faves-hero h1 {
+  font-family: var(--display);
+  font-weight: 400;
+  font-size: clamp(2.8rem, 7vw, 5.2rem);
+  line-height: .95;
+  margin: 0 0 .7rem;
+}
+.faves-hero .lede {
+  margin-bottom: 0;
+}
+.faves-hero-mascot {
+  justify-self: center;
+  width: min(280px, 70%);
+  line-height: 0;
+}
+.faves-hero-mascot img {
+  width: 100%;
+  height: auto;
+  display: block;
+  object-fit: contain;
+}
+@media (min-width: 901px) {
+  .faves-hero {
+    grid-template-columns: minmax(0, 1fr) minmax(220px, 34%);
+    align-items: center;
+    padding-top: 20px;
+    padding-bottom: 20px;
+    margin-bottom: 0;
+  }
+  .faves-hero-copy {
+    align-self: center;
+  }
+  .faves-hero-mascot {
+    justify-self: end;
+    width: 100%;
+    max-width: 360px;
+  }
+}
+.faves-feed {
+  display: grid;
+  gap: 1.6rem;
+}
+.faves-spot {
+  display: grid;
+  grid-template-columns: 1fr;
+  background: var(--paper);
+  border: 3px solid var(--line);
+  border-radius: 28px;
+  box-shadow: 8px 8px 0 var(--line);
+  overflow: hidden;
+}
+.faves-spot-media {
+  display: block;
+  min-height: 16rem;
+  overflow: hidden;
+  background: var(--panel);
+}
+.faves-spot-media img,
+.faves-media-ph {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+.faves-spot-media img {
+  aspect-ratio: 4 / 3;
+}
+.faves-spot:hover .faves-spot-media img,
+.faves-tile:hover .faves-tile-media img {
+  transform: scale(1.04);
+}
+.faves-spot-media img,
+.faves-tile-media img {
+  transition: transform .35s ease;
+}
+.faves-spot-copy {
+  display: grid;
+  align-content: start;
+  gap: .55rem;
+  padding: 1.4rem 1.4rem 1.6rem;
+}
+.faves-spot-index {
+  margin: 0;
+  font-weight: 900;
+  font-size: .8rem;
+  letter-spacing: .14em;
+  color: var(--muted);
+}
+.faves-spot-label {
+  margin: 0;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: .08em;
+  font-size: .78rem;
+}
+.faves-spot-copy h2 {
+  font-size: clamp(1.7rem, 3.2vw, 2.4rem);
+  margin: 0;
+}
+.faves-spot-copy h2 a { text-decoration: none; }
+.faves-spot-copy h2 a:hover { text-decoration: underline; text-underline-offset: 4px; }
+.faves-spot-excerpt {
+  margin: 0;
+  font-weight: 600;
+  color: var(--muted);
+  max-width: 42ch;
+}
+.faves-spot-copy .blog-read-cta {
+  justify-self: start;
+  margin-top: .4rem;
+}
+.faves-grid {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1.2rem;
+}
+.faves-tile {
+  display: grid;
+  grid-template-rows: auto 1fr;
+  background: var(--paper);
+  border: 3px solid var(--line);
+  border-radius: 24px;
+  box-shadow: 5px 5px 0 var(--line);
+  overflow: hidden;
+}
+.faves-tile-media {
+  position: relative;
+  display: block;
+  overflow: hidden;
+  background: var(--panel);
+}
+.faves-tile-media img {
+  width: 100%;
+  aspect-ratio: 16 / 10;
+  object-fit: cover;
+  display: block;
+}
+.faves-tile-index {
+  position: absolute;
+  top: .7rem;
+  left: .7rem;
+  z-index: 1;
+  background: var(--yellow);
+  color: var(--on-yellow);
+  border: 2.5px solid var(--brown);
+  border-radius: 999px;
+  font-weight: 900;
+  font-size: .75rem;
+  letter-spacing: .06em;
+  padding: .2rem .55rem;
+}
+.faves-tile-copy {
+  display: grid;
+  gap: .35rem;
+  padding: 1rem 1.1rem 1.15rem;
+  align-content: start;
+}
+.faves-tile-copy h2 {
+  font-size: 1.28rem;
+  margin: 0;
+  font-family: var(--display);
+  font-weight: 400;
+  line-height: 1.15;
+}
+.faves-tile-copy h2 a { text-decoration: none; }
+.faves-tile-copy h2 a:hover { text-decoration: underline; text-underline-offset: 3px; }
+.faves-tile-copy .blog-card-read { justify-self: start; }
+.faves-media-ph {
+  display: block;
+  min-height: 10rem;
+  background:
+    linear-gradient(135deg, color-mix(in srgb, var(--yellow) 55%, var(--panel)) 0%, var(--panel) 55%, color-mix(in srgb, var(--cream) 70%, var(--panel)) 100%);
+}
+@media (min-width: 901px) {
+  .faves-spot {
+    grid-template-columns: minmax(0, 1.15fr) minmax(0, .85fr);
+    min-height: 26rem;
+  }
+  .faves-spot-media,
+  .faves-spot-media img {
+    height: 100%;
+    min-height: 26rem;
+    aspect-ratio: auto;
+  }
+  .faves-spot-copy {
+    padding: 2rem 2.1rem 2.2rem;
+    align-content: center;
+  }
+  .faves-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 1.5rem;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .faves-spot-media img,
+  .faves-tile-media img { transition: none; }
+}
 .blog-featured {
   display: grid;
   grid-template-columns: 1fr;
@@ -3189,6 +3402,7 @@ html[data-theme="dark"] .login-hero-stack .login-hero-dark { display: block; }
   #main { padding-top: 50px; }
   /* Blog archive hero image sits flush under the header. */
   #main:has(> .blog-index .blog-archive-slide) { padding-top: 0; }
+  #main:has(> .our-faves-page) { padding-top: 0; }
   /* Recipe routes: 100px side padding, 50px between columns, 50px from #main above. */
   .recipes-page {
     padding-top: 0;
@@ -3237,7 +3451,6 @@ html[data-theme="dark"] .login-hero-stack .login-hero-dark { display: block; }
   .hero { padding-top: 0; }
   /* Match /recipes first-content top spacing (.page-head) on these index pages. */
   .blog-index > .blog-archive-hero:not(:has(.blog-archive-slide)),
-  .our-faves-page > .blog-archive-hero,
   .about-page .about,
   .profile-page .stand-hero {
     padding-top: clamp(1.8rem, 4vw, 3rem);
@@ -3272,7 +3485,7 @@ html[data-theme="dark"] .login-hero-stack .login-hero-dark { display: block; }
     justify-items: center;
   }
   .adapted-from-source { display: block; }
-  .our-faves-page .blog-archive-hero {
+  .our-faves-page .faves-hero {
     padding-top: calc(clamp(1.4rem, 3.5vw, 2.4rem) + 25px);
     padding-bottom: max(0px, calc(1.6rem - 25px));
   }
