@@ -2813,7 +2813,7 @@ ol.steps > li > div > p:first-child { margin-top: 0; }
 }
 @media (min-width: 901px) {
   .faves-hero {
-    grid-template-columns: minmax(0, 1fr) minmax(220px, 34%);
+    grid-template-columns: 40% minmax(0, 1fr);
     align-items: center;
     padding-top: 20px;
     padding-bottom: 20px;
