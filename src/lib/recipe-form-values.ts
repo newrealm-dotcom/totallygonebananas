@@ -41,9 +41,9 @@ export interface StepGroupRow {
 export interface RecipeFormValues {
   title: string;
   description: string;
-  categoryId: string;
-  newCatName: string;
-  newCatEmoji: string;
+  categoryIds: string[];
+  /** Editor-only categories created in this session (not yet in the catalog). */
+  pendingCategories: { id: string; name: string; emoji: string }[];
   emoji: string;
   totalMinutes: string;
   notes: string;
@@ -73,13 +73,12 @@ const emptyStepGroup = (title = ""): StepGroupRow => ({
 });
 
 /** Stable IDs for the blank form so SSR HTML matches client hydration. */
-export function blankValues(categoryId = ""): RecipeFormValues {
+export function blankValues(categoryIds: string[] = []): RecipeFormValues {
   return {
     title: "",
     description: "",
-    categoryId,
-    newCatName: "",
-    newCatEmoji: "",
+    categoryIds,
+    pendingCategories: [],
     emoji: "",
     totalMinutes: "",
     notes: "",
@@ -136,7 +135,8 @@ function stepGroupsToFormRows(groups: StepGroup[], existing: (kind: MediaKind, p
 export function valuesFromRecipe(r: {
   title: string;
   description: string | null;
-  category_id: string | null;
+  categories?: string[] | null;
+  category_id?: string | null;
   emoji: string | null;
   total_minutes: number | null;
   time_note?: string | null;
@@ -167,12 +167,16 @@ export function valuesFromRecipe(r: {
   const notes =
     (r.notes && r.notes.trim()) ||
     (r.time_note && r.time_note.trim() ? `<p>${r.time_note.replace(/&/g, "&amp;").replace(/</g, "&lt;")}</p>` : "");
+  const categoryIds = Array.isArray(r.categories) && r.categories.length
+    ? r.categories.map((id) => String(id).trim()).filter(Boolean)
+    : r.category_id
+      ? [r.category_id]
+      : [];
   return {
     title: r.title,
     description: r.description ?? "",
-    categoryId: r.category_id ?? "",
-    newCatName: "",
-    newCatEmoji: "",
+    categoryIds,
+    pendingCategories: [],
     emoji: r.emoji ?? "",
     totalMinutes: r.total_minutes ? String(r.total_minutes) : "",
     notes,
@@ -206,18 +210,25 @@ export function mergeRecipeDraft(
   } else if (Array.isArray(draft.steps) && draft.steps.length) {
     stepGroups = [{ id: uid(), title: "", steps: draft.steps }];
   }
-  const legacy = draft as Partial<RecipeFormValues> & { timeNote?: string };
+  const legacy = draft as Partial<RecipeFormValues> & { categoryId?: string; timeNote?: string };
   const notes =
     typeof draft.notes === "string"
       ? draft.notes
       : typeof legacy.timeNote === "string" && legacy.timeNote.trim()
         ? `<p>${legacy.timeNote.replace(/&/g, "&amp;").replace(/</g, "&lt;")}</p>`
         : base.notes;
+  const categoryIds = Array.isArray(draft.categoryIds)
+    ? draft.categoryIds
+    : typeof legacy.categoryId === "string" && legacy.categoryId && legacy.categoryId !== "__new"
+      ? [legacy.categoryId]
+      : base.categoryIds;
   return {
     ...base,
     ...draft,
     notes,
     description: draft.description ?? base.description,
+    categoryIds,
+    pendingCategories: Array.isArray(draft.pendingCategories) ? draft.pendingCategories : base.pendingCategories,
     tags: Array.isArray(draft.tags) ? draft.tags : base.tags,
     equipment: Array.isArray(draft.equipment) && draft.equipment.length ? draft.equipment : base.equipment,
     ingredientGroups,

@@ -69,7 +69,8 @@ export interface Recipe {
   slug: string;
   title: string;
   description: string | null;
-  category_id: string | null;
+  /** Recipe category ids from `public.categories`. */
+  categories: string[];
   emoji: string | null;
   total_minutes: number | null;
   /** @deprecated Prefer `notes`. Kept for older cards that overrode the time label. */

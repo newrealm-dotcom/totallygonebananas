@@ -49,7 +49,10 @@ export default async function RecipePage({ params, searchParams }: PageProps<"/r
     : { data: [] as { id: string; display_name: string | null }[] };
   const nameOf = new Map((names ?? []).map((n) => [n.id, n.display_name]));
 
-  const cat = categories.find((c) => c.id === r.category_id);
+  const recipeCats = (r.categories ?? [])
+    .map((id) => categories.find((c) => c.id === id))
+    .filter((c): c is (typeof categories)[number] => !!c);
+  const primary = recipeCats[0];
   const rating = ratings.get(r.id);
   const editable = canEdit(r, userId, profile);
   const savedMsg = typeof sp.saved === "string" ? SAVED_MSG[sp.saved] : undefined;
@@ -76,13 +79,18 @@ export default async function RecipePage({ params, searchParams }: PageProps<"/r
 
       <nav className="crumbs" aria-label="Breadcrumb">
         <Link href="/recipes">Recipes</Link>
-        {cat && <><span aria-hidden="true">&gt;&gt;</span><Link href={`/recipes?category=${cat.id}`}>{cat.name}</Link></>}
+        {recipeCats.map((cat) => (
+          <span key={cat.id}>
+            <span aria-hidden="true">&gt;&gt;</span>
+            <Link href={`/recipes?category=${cat.id}`}>{cat.name}</Link>
+          </span>
+        ))}
       </nav>
 
       <section className="d-hero">
         <div className="d-media">
-          <div className="d-art" style={{ background: tintFor(r.category_id, categories) }}>
-            {hero ? <MediaView path={hero.path} kind={hero.kind} alt={hero.caption || r.title} priority sizes="(max-width: 900px) 100vw, 520px" /> : <span aria-hidden="true">{r.emoji || cat?.emoji || "🍌"}</span>}
+          <div className="d-art" style={{ background: tintFor(primary?.id ?? null, categories) }}>
+            {hero ? <MediaView path={hero.path} kind={hero.kind} alt={hero.caption || r.title} priority sizes="(max-width: 900px) 100vw, 520px" /> : <span aria-hidden="true">{r.emoji || primary?.emoji || "🍌"}</span>}
           </div>
           <div className="d-actions">
             <a className="btn" href="#made">I made it!</a>

@@ -62,16 +62,25 @@ export async function saveRecipe(raw: unknown, recipeId?: string): Promise<SaveR
   const foreign = allPaths.find((p) => !p.startsWith(`${userId}/`) && !existing?.knownPaths.has(p));
   if (foreign) return { ok: false, errors: { gallery: "One of the files couldn't be verified. Remove it and upload it again." } };
 
-  // Category: editors may create one on the fly.
-  let categoryId = input.categoryId;
-  if (categoryId === "__new") {
-    if (!editor || !input.newCategory) return { ok: false, errors: { categoryId: "Pick a category" } };
-    categoryId = slugify(input.newCategory.name).slice(0, 40);
-    const { error } = await supabase
-      .from("categories")
-      .upsert({ id: categoryId, name: input.newCategory.name, emoji: input.newCategory.emoji || "🍌", sort_order: 100 }, { onConflict: "id", ignoreDuplicates: true });
-    if (error) return { ok: false, errors: { categoryId: "Couldn't create that category." } };
+  // Categories: editors may create new ones on the fly.
+  const categoryIds = [...input.categories];
+  if (input.newCategories.length) {
+    if (!editor) return { ok: false, errors: { categories: "Only editors can create categories." } };
+    for (const nc of input.newCategories) {
+      const id = (slugify(nc.name) || "category").slice(0, 40);
+      const { error } = await supabase
+        .from("categories")
+        .upsert({ id, name: nc.name, emoji: nc.emoji || "🍌", sort_order: 100 }, { onConflict: "id", ignoreDuplicates: true });
+      if (error) return { ok: false, errors: { categories: "Couldn't create that category." } };
+      if (!categoryIds.includes(id)) categoryIds.push(id);
+    }
   }
+  if (!categoryIds.length) return { ok: false, errors: { categories: "Pick at least one category" } };
+
+  const { data: knownCats } = await supabase.from("categories").select("id").in("id", categoryIds);
+  const known = new Set((knownCats ?? []).map((c) => c.id));
+  const missing = categoryIds.filter((id) => !known.has(id));
+  if (missing.length) return { ok: false, errors: { categories: "One of those categories isn't available. Refresh and try again." } };
 
   // Status: members submit for review; only editors publish.
   let status: RecipeStatus;
@@ -87,7 +96,7 @@ export async function saveRecipe(raw: unknown, recipeId?: string): Promise<SaveR
   const row = {
     title: input.title,
     description: input.description || null,
-    category_id: categoryId,
+    categories: categoryIds,
     emoji: input.emoji || null,
     total_minutes: input.totalMinutes,
     notes: notesHtml || null,

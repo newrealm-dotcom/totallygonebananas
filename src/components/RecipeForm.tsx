@@ -20,7 +20,7 @@ import {
   type Upload,
 } from "@/lib/recipe-form-values";
 import { PostBodyEditor } from "@/components/PostBodyEditor";
-import { titleCase } from "@/lib/format";
+import { slugify, titleCase } from "@/lib/format";
 
 export type { RecipeFormValues, Upload };
 export { blankValues, valuesFromRecipe } from "@/lib/recipe-form-values";
@@ -58,7 +58,7 @@ export function RecipeForm({ userId, isEditor, categories, activeTags = [...TAGS
   const formId = useId();
   const draftKey = `tgb-recipe-draft:${recipeId ?? "new"}`;
 
-  const [v, setV] = useState<RecipeFormValues>(() => initial ?? blankValues(categories[0]?.id ?? ""));
+  const [v, setV] = useState<RecipeFormValues>(() => initial ?? blankValues());
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [restoredAt, setRestoredAt] = useState<number | null>(null);
   const [pasteFor, setPasteFor] = useState<null | "equipment" | { ingredientGroupId: string } | { stepGroupId: string }>(null);
@@ -69,6 +69,7 @@ export function RecipeForm({ userId, isEditor, categories, activeTags = [...TAGS
   const [submitted, setSubmitted] = useState(false);
   const [customTag, setCustomTag] = useState("");
   const [tagError, setTagError] = useState("");
+  const [categoryDraft, setCategoryDraft] = useState("");
   const inputs = useRef(new Map<string, HTMLInputElement | HTMLTextAreaElement>());
 
   const isPublished = initialStatus === "published";
@@ -85,12 +86,12 @@ export function RecipeForm({ userId, isEditor, categories, activeTags = [...TAGS
       const raw = localStorage.getItem(draftKey);
       if (!raw) return;
       const draft = JSON.parse(raw) as { at: number; values: Partial<RecipeFormValues> };
-      const base = initial ?? blankValues(categories[0]?.id ?? "");
+      const base = initial ?? blankValues();
       // eslint-disable-next-line react-hooks/set-state-in-effect -- one-time restore from localStorage after mount
       setV(mergeRecipeDraft(base, draft.values));
       setRestoredAt(draft.at);
     } catch { /* ignore a corrupt draft */ }
-  }, [draftKey, initial, categories]);
+  }, [draftKey, initial]);
 
   useEffect(() => {
     if (submitted) return;
@@ -118,9 +119,46 @@ export function RecipeForm({ userId, isEditor, categories, activeTags = [...TAGS
 
   function startOver() {
     try { localStorage.removeItem(draftKey); } catch {}
-    setV(initial ?? blankValues(categories[0]?.id ?? ""));
+    setV(initial ?? blankValues());
     setRestoredAt(null);
     setErrors({});
+    setCategoryDraft("");
+  }
+
+  function toggleCategory(id: string, on: boolean) {
+    set("categoryIds", on ? [...v.categoryIds, id] : v.categoryIds.filter((x) => x !== id));
+  }
+
+  function addCategoryFromDraft() {
+    if (!isEditor) return;
+    const name = categoryDraft.trim().replace(/\s+/g, " ");
+    if (name.length < 2) {
+      setErrors((e) => ({ ...e, categories: "Category names need at least 2 characters." }));
+      return;
+    }
+    if (name.length > 40) {
+      setErrors((e) => ({ ...e, categories: "Keep category names under 40 characters." }));
+      return;
+    }
+    const id = (slugify(name) || "category").slice(0, 40);
+    const existing = categories.find((c) => c.id === id) || v.pendingCategories.find((c) => c.id === id);
+    if (existing) {
+      if (!v.categoryIds.includes(id)) set("categoryIds", [...v.categoryIds, id]);
+      setCategoryDraft("");
+      setErrors((e) => ({ ...e, categories: "" }));
+      return;
+    }
+    if (v.categoryIds.length + (v.categoryIds.includes(id) ? 0 : 1) > 12) {
+      setErrors((e) => ({ ...e, categories: "Up to 12 categories" }));
+      return;
+    }
+    setV((s) => ({
+      ...s,
+      pendingCategories: [...s.pendingCategories, { id, name, emoji: "🍌" }],
+      categoryIds: s.categoryIds.includes(id) ? s.categoryIds : [...s.categoryIds, id],
+    }));
+    setCategoryDraft("");
+    setErrors((e) => ({ ...e, categories: "" }));
   }
 
   /* ---- uploads */
@@ -406,8 +444,8 @@ export function RecipeForm({ userId, isEditor, categories, activeTags = [...TAGS
   function submit(intent: "draft" | "submit" | "publish") {
     const local: Record<string, string> = {};
     if (v.title.trim().length < 2) local.title = "Give your recipe a name";
-    if (!v.categoryId) local.categoryId = "Pick a category";
-    if (v.categoryId === "__new" && v.newCatName.trim().length < 2) local.categoryId = "Name the new category";
+    if (!v.categoryIds.length) local.categories = "Pick at least one category";
+    else if (v.categoryIds.length > 12) local.categories = "Up to 12 categories";
     const hasIngredient = v.ingredientGroups.some((g) => g.items.some((r) => r.text.trim()));
     const hasStep = v.stepGroups.some((g) => g.steps.some((s) => s.text.trim()));
     if (intent !== "draft") {
@@ -448,9 +486,13 @@ export function RecipeForm({ userId, isEditor, categories, activeTags = [...TAGS
           })),
       }))
       .filter((g) => g.steps.length > 0 || g.title);
+    const knownIds = new Set(categories.map((c) => c.id));
+    const newCategories = v.pendingCategories
+      .filter((c) => v.categoryIds.includes(c.id) && !knownIds.has(c.id))
+      .map((c) => ({ name: c.name, emoji: c.emoji }));
     const payload = {
-      title: v.title, description: v.description, categoryId: v.categoryId,
-      newCategory: v.categoryId === "__new" ? { name: v.newCatName, emoji: "" } : null,
+      title: v.title, description: v.description, categories: v.categoryIds,
+      newCategories: isEditor ? newCategories : [],
       emoji: v.emoji, totalMinutes: num(v.totalMinutes), notes: v.notes, servings: v.servings.trim(), difficulty: v.difficulty, tags: v.tags,
       ingredients: ingredientGroups.length ? ingredientGroups : [{ title: "", items: [] as string[] }],
       equipment: v.equipment.map((r) => r.text.trim()).filter(Boolean),
@@ -512,21 +554,56 @@ export function RecipeForm({ userId, isEditor, categories, activeTags = [...TAGS
           <input id={fid("title-in")} className="field" value={v.title} maxLength={100} placeholder="Grandma Rose's banana pudding" onChange={(e) => set("title", e.target.value)} aria-invalid={!!err("title")} aria-describedby={err("title") ? fid("title-err") : undefined} />
           {err("title") && <p className="f-err" id={fid("title-err")}>{err("title")}</p>}
         </div>
-        <div className="f" id={fid("categoryId")}>
-          <label htmlFor={fid("cat")}>Category</label>
-          <select id={fid("cat")} className="field" value={v.categoryId} onChange={(e) => set("categoryId", e.target.value)} aria-invalid={!!err("categoryId")}>
-            <option value="" disabled>Pick one…</option>
-            {categories.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
-            {isEditor && <option value="__new">New category…</option>}
-          </select>
-          {err("categoryId") && <p className="f-err">{err("categoryId")}</p>}
-        </div>
-        {v.categoryId === "__new" && (
-          <div className="f">
-            <label htmlFor={fid("nc")}>New category name</label>
-            <input id={fid("nc")} className="field" value={v.newCatName} maxLength={40} placeholder="Lunchbox" onChange={(e) => set("newCatName", e.target.value)} />
+        <fieldset className="f" id={fid("categories")}>
+          <legend>Categories</legend>
+          <p className="hint">Pick one or more. Tick every category that fits.</p>
+          <div className="tagbox" role="group" aria-label="Recipe categories">
+            {categories.map((c) => (
+              <label key={c.id}>
+                <input
+                  type="checkbox"
+                  checked={v.categoryIds.includes(c.id)}
+                  onChange={(e) => toggleCategory(c.id, e.target.checked)}
+                />{" "}
+                {c.emoji ? `${c.emoji} ` : ""}{c.name}
+              </label>
+            ))}
+            {v.pendingCategories.map((c) => (
+              <label key={c.id} className="tag-custom">
+                <input
+                  type="checkbox"
+                  checked={v.categoryIds.includes(c.id)}
+                  onChange={(e) => toggleCategory(c.id, e.target.checked)}
+                />{" "}
+                {c.name}
+              </label>
+            ))}
           </div>
-        )}
+          {isEditor && (
+            <div className="tag-add">
+              <label className="sr" htmlFor={fid("cat-in")}>Add a new category</label>
+              <input
+                id={fid("cat-in")}
+                className="field"
+                maxLength={40}
+                value={categoryDraft}
+                placeholder="Add a new category…"
+                aria-invalid={!!err("categories")}
+                onChange={(e) => setCategoryDraft(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    e.preventDefault();
+                    addCategoryFromDraft();
+                  }
+                }}
+              />
+              <button type="button" className="btn ghost small" onClick={addCategoryFromDraft} disabled={!categoryDraft.trim()}>
+                Add
+              </button>
+            </div>
+          )}
+          {err("categories") && <p className="f-err">{err("categories")}</p>}
+        </fieldset>
         <div className="f">
           <label htmlFor={fid("desc")}>Short description <small>{v.description.length}/300</small></label>
           <textarea id={fid("desc")} className="field" rows={2} maxLength={300} value={v.description} placeholder="One or two sentences that make people hungry." onChange={(e) => set("description", e.target.value)} />

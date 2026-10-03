@@ -20,12 +20,21 @@ export const DEFAULT_HOMEPAGE_PROMO: HomepagePromo = {
 };
 
 const CARD_FIELDS =
-  "id, slug, title, description, category_id, emoji, total_minutes, time_note, servings, difficulty, tags, cover_path, status, published_at, created_at";
+  "id, slug, title, description, categories, emoji, total_minutes, time_note, servings, difficulty, tags, cover_path, status, published_at, created_at";
 
 export type RecipeCardData = Pick<
   Recipe,
-  "id" | "slug" | "title" | "description" | "category_id" | "emoji" | "total_minutes" | "time_note" | "servings" | "difficulty" | "tags" | "cover_path" | "status" | "published_at" | "created_at"
+  "id" | "slug" | "title" | "description" | "categories" | "emoji" | "total_minutes" | "time_note" | "servings" | "difficulty" | "tags" | "cover_path" | "status" | "published_at" | "created_at"
 >;
+
+function normalizeRecipeCard(row: RecipeCardData): RecipeCardData {
+  return {
+    ...row,
+    categories: Array.isArray(row.categories)
+      ? row.categories.map((c) => String(c).trim()).filter(Boolean)
+      : [],
+  };
+}
 
 function normalizePost<T extends Post>(row: T): T {
   return {
@@ -178,7 +187,7 @@ export interface RecipeFilters {
 export async function listRecipes(f: RecipeFilters = {}): Promise<RecipeCardData[]> {
   const supabase = await createClient();
   let query = supabase.from("recipes").select(CARD_FIELDS).eq("status", "published");
-  if (f.category) query = query.eq("category_id", f.category);
+  if (f.category) query = query.contains("categories", [f.category]);
   if (f.tag) query = query.contains("tags", [f.tag]);
   if (f.maxMinutes) query = query.lte("total_minutes", f.maxMinutes);
   if (f.q) query = query.textSearch("search", f.q, { type: "websearch", config: "english" });
@@ -191,13 +200,13 @@ export async function listRecipes(f: RecipeFilters = {}): Promise<RecipeCardData
   const limit = f.limit ?? 60;
   const offset = f.offset ?? 0;
   const { data } = await query.range(offset, offset + limit - 1);
-  return (data as RecipeCardData[]) ?? [];
+  return ((data as RecipeCardData[]) ?? []).map(normalizeRecipeCard);
 }
 
 export async function countRecipes(f: RecipeFilters = {}): Promise<number> {
   const supabase = await createClient();
   let query = supabase.from("recipes").select("id", { count: "exact", head: true }).eq("status", "published");
-  if (f.category) query = query.eq("category_id", f.category);
+  if (f.category) query = query.contains("categories", [f.category]);
   if (f.tag) query = query.contains("tags", [f.tag]);
   if (f.maxMinutes) query = query.lte("total_minutes", f.maxMinutes);
   if (f.q) query = query.textSearch("search", f.q, { type: "websearch", config: "english" });
@@ -228,6 +237,9 @@ export const getRecipeBySlug = cache(async (slug: string): Promise<RecipeWithExt
     .maybeSingle();
   if (!data) return null;
   const recipe = data as RecipeWithExtras;
+  recipe.categories = Array.isArray(recipe.categories)
+    ? recipe.categories.map((c) => String(c).trim()).filter(Boolean)
+    : [];
   recipe.tags = recipe.tags ?? [];
   recipe.equipment = recipe.equipment ?? [];
   recipe.ingredients = normalizeIngredientGroups(recipe.ingredients);
@@ -247,17 +259,20 @@ export function canEdit(recipe: Pick<Recipe, "author_id" | "status">, userId: st
 
 export type AdminRecipeRow = Pick<
   Recipe,
-  "id" | "slug" | "title" | "status" | "category_id" | "updated_at" | "created_at" | "author_id"
+  "id" | "slug" | "title" | "status" | "categories" | "updated_at" | "created_at" | "author_id"
 >;
 
 export async function listAdminRecipes(limit = 100): Promise<AdminRecipeRow[]> {
   const supabase = await createClient();
   const { data } = await supabase
     .from("recipes")
-    .select("id, slug, title, status, category_id, updated_at, created_at, author_id")
+    .select("id, slug, title, status, categories, updated_at, created_at, author_id")
     .order("updated_at", { ascending: false })
     .limit(limit);
-  return (data as AdminRecipeRow[]) ?? [];
+  return ((data as AdminRecipeRow[]) ?? []).map((row) => ({
+    ...row,
+    categories: Array.isArray(row.categories) ? row.categories : [],
+  }));
 }
 
 export type PostListFilters = {

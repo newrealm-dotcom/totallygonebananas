@@ -47,6 +47,11 @@ export async function deleteCategory(id: string): Promise<{ ok: true } | { ok: f
   const { profile } = await getViewer();
   if (!isEditorRole(profile)) return { ok: false, error: "Only editors can delete categories." };
   const supabase = await createClient();
+  const { data: recipes } = await supabase.from("recipes").select("id, categories").contains("categories", [id]);
+  for (const recipe of recipes ?? []) {
+    const next = (recipe.categories ?? []).filter((c: string) => c !== id);
+    await supabase.from("recipes").update({ categories: next }).eq("id", recipe.id);
+  }
   const { error } = await supabase.from("categories").delete().eq("id", id);
   if (error) return { ok: false, error: error.message };
   revalidatePath("/");

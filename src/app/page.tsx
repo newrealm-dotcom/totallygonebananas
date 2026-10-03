@@ -20,9 +20,14 @@ function recipeOfTheDay<T>(list: T[]): T | null {
 
 async function categoryCounts() {
   const supabase = await createClient();
-  const { data } = await supabase.from("recipes").select("category_id").eq("status", "published");
+  const { data } = await supabase.from("recipes").select("categories").eq("status", "published");
   const m = new Map<string, number>();
-  data?.forEach((r) => r.category_id && m.set(r.category_id, (m.get(r.category_id) ?? 0) + 1));
+  data?.forEach((r) => {
+    const ids = Array.isArray(r.categories) ? r.categories : [];
+    ids.forEach((id) => {
+      if (id) m.set(id, (m.get(id) ?? 0) + 1);
+    });
+  });
   return m;
 }
 

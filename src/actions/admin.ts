@@ -60,7 +60,7 @@ export async function adminCloneRecipe(recipeId: string): Promise<Result> {
   const { data: recipe, error } = await supabase
     .from("recipes")
     .select(
-      "title, description, category_id, emoji, total_minutes, time_note, notes, nutrition, servings, difficulty, tags, equipment, ingredients, steps, cover_path, recipe_media(kind, path, caption, position)",
+      "title, description, categories, emoji, total_minutes, time_note, notes, nutrition, servings, difficulty, tags, equipment, ingredients, steps, cover_path, recipe_media(kind, path, caption, position)",
     )
     .eq("id", recipeId)
     .maybeSingle();
@@ -76,7 +76,7 @@ export async function adminCloneRecipe(recipeId: string): Promise<Result> {
       title,
       slug,
       description: recipe.description,
-      category_id: recipe.category_id,
+      categories: recipe.categories ?? [],
       emoji: recipe.emoji,
       total_minutes: recipe.total_minutes,
       time_note: recipe.time_note,
@@ -170,6 +170,11 @@ export async function adminDeleteCategory(categoryId: string): Promise<Result> {
   const gate = await requireAdmin();
   if ("ok" in gate) return gate;
   const supabase = await createClient();
+  const { data: recipes } = await supabase.from("recipes").select("id, categories").contains("categories", [categoryId]);
+  for (const recipe of recipes ?? []) {
+    const next = (recipe.categories ?? []).filter((c: string) => c !== categoryId);
+    await supabase.from("recipes").update({ categories: next }).eq("id", recipe.id);
+  }
   const { error } = await supabase.from("categories").delete().eq("id", categoryId);
   if (error) return { ok: false, error: error.message };
   revalidatePath("/", "layout");
@@ -241,6 +246,13 @@ export async function adminBulkDeleteCategories(ids: unknown): Promise<Result & 
   const list = cleanIds(ids);
   if (!list.length) return { ok: false, error: "Select at least one category." };
   const supabase = await createClient();
+  for (const categoryId of list) {
+    const { data: recipes } = await supabase.from("recipes").select("id, categories").contains("categories", [categoryId]);
+    for (const recipe of recipes ?? []) {
+      const next = (recipe.categories ?? []).filter((c: string) => c !== categoryId);
+      await supabase.from("recipes").update({ categories: next }).eq("id", recipe.id);
+    }
+  }
   const { data, error } = await supabase.from("categories").delete().in("id", list).select("id");
   if (error) return { ok: false, error: error.message };
   revalidatePath("/", "layout");

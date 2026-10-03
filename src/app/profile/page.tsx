@@ -34,7 +34,7 @@ export default async function ProfilePage({ searchParams }: PageProps<"/profile"
     supabase
       .from("saves")
       .select(
-        "created_at, recipe:recipes(id, slug, title, description, category_id, emoji, total_minutes, time_note, servings, difficulty, tags, cover_path, status, published_at, created_at)",
+        "created_at, recipe:recipes(id, slug, title, description, categories, emoji, total_minutes, time_note, servings, difficulty, tags, cover_path, status, published_at, created_at)",
       )
       .eq("user_id", userId)
       .order("created_at", { ascending: false }),
@@ -57,7 +57,11 @@ export default async function ProfilePage({ searchParams }: PageProps<"/profile"
     .map((s) => {
       const recipe = s.recipe as unknown as RecipeCardData | null;
       if (!recipe) return null;
-      return { ...recipe, savedAt: s.created_at as string };
+      return {
+        ...recipe,
+        categories: Array.isArray(recipe.categories) ? recipe.categories : [],
+        savedAt: s.created_at as string,
+      };
     })
     .filter((r): r is SavedRecipeItem => !!r);
 

@@ -18,11 +18,20 @@ const optionalInt = (min: number, max: number, label: string) =>
 export const recipeInput = z.object({
   title: z.string().trim().min(2, "Give your recipe a name").max(100, "Keep the name under 100 characters"),
   description: z.string().trim().max(300, "Keep the description under 300 characters").default(""),
-  categoryId: z.string().min(1, "Pick a category"),
-  newCategory: z
-    .object({ name: z.string().trim().min(2, "Name the new category").max(40), emoji: z.string().trim().max(8).default("") })
-    .nullable()
-    .default(null),
+  categories: z
+    .array(z.string().trim().min(1).max(40))
+    .min(1, "Pick at least one category")
+    .max(12, "Up to 12 categories")
+    .transform((ids) => [...new Set(ids)]),
+  newCategories: z
+    .array(
+      z.object({
+        name: z.string().trim().min(2, "Name the new category").max(40),
+        emoji: z.string().trim().max(8).default(""),
+      }),
+    )
+    .max(12)
+    .default([]),
   emoji: z.string().trim().max(8).default(""),
   totalMinutes: optionalInt(1, 2880, "Time"),
   notes: z.string().trim().max(20000, "Keep the notes under 20,000 characters").default(""),
