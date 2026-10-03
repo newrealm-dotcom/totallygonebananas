@@ -32,6 +32,14 @@ export function SiteFooter() {
         <div className="wrap footer-inner">
           <div className="footer-brand">
             <div className="footer-brand-copy">
+              <Image
+                className="footer-brand-mark"
+                src="/logo.png"
+                alt=""
+                width={150}
+                height={162}
+                sizes="150px"
+              />
               <p className="footer-name">Totally Gone Bananas</p>
               <p className="footer-tagline">Recipes for every banana, from green to gone.</p>
             </div>
