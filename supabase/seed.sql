@@ -4,7 +4,7 @@
 insert into public.categories (id, name, emoji, tagline, sort_order) values
   ('breakfast', 'Breakfast', '🥞', 'Rise and shine, it''s pancake time.', 0),
   ('breads', 'Breads & bakes', '🍞', 'Let''s get this bread.', 1),
-  ('snacks', 'Snacks & smoothies', '🥤', 'Quick bites for peel-good moments.', 2),
+  ('snacks', 'Snacks & bites', '🥤', 'Quick bites for peel-good moments.', 2),
   ('desserts', 'Desserts', '🍰', 'Split happens. Might as well be a banana split.', 3),
   ('frozen', 'Frozen treats', '🍨', 'Stay cool. Stay peeled.', 4),
   ('savory', 'Savory', '🌶️', 'Plot twist: bananas do dinner.', 5)
