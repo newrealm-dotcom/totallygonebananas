@@ -5,6 +5,7 @@ import { createClient } from "@/lib/supabase/server";
 import { getViewer, isEditorRole } from "@/lib/queries";
 import { fieldErrors, postInput } from "@/lib/validation";
 import { slugify } from "@/lib/format";
+import { enqueueSocialShare } from "@/lib/social-queue";
 import type { PostStatus } from "@/lib/types";
 
 export type SavePostResult = { ok: true; id: string; slug: string; status: PostStatus } | { ok: false; errors: Record<string, string> };
@@ -110,9 +111,9 @@ export async function savePost(raw: unknown, postId?: string): Promise<SavePostR
   if (!userId || !isEditorRole(profile)) return { ok: false, errors: { form: "Only editors can manage blog posts." } };
 
   const supabase = await createClient();
-  let existing: { id: string; slug: string; cover_path: string | null } | null = null;
+  let existing: { id: string; slug: string; cover_path: string | null; status: PostStatus } | null = null;
   if (postId) {
-    const { data } = await supabase.from("posts").select("id, slug, cover_path").eq("id", postId).maybeSingle();
+    const { data } = await supabase.from("posts").select("id, slug, cover_path, status").eq("id", postId).maybeSingle();
     if (!data) return { ok: false, errors: { form: "That post no longer exists." } };
     existing = data;
   }
@@ -170,6 +171,17 @@ export async function savePost(raw: unknown, postId?: string): Promise<SavePostR
     revalidatePath("/our-faves");
     revalidatePath(`/blog/${existing.slug}`);
     if (slug !== existing.slug) revalidatePath(`/blog/${slug}`);
+    if (status === "published" && existing.status !== "published") {
+      await enqueueSocialShare({
+        kind: "post",
+        targetId: existing.id,
+        slug,
+        title: input.title,
+        excerpt: input.excerpt,
+        coverPath: input.coverPath,
+      });
+      revalidatePath("/admin/social");
+    }
     return { ok: true, id: existing.id, slug, status };
   }
 
@@ -188,6 +200,17 @@ export async function savePost(raw: unknown, postId?: string): Promise<SavePostR
   revalidatePath("/admin/our-faves");
   revalidatePath("/blog");
   revalidatePath("/our-faves");
+  if (status === "published") {
+    await enqueueSocialShare({
+      kind: "post",
+      targetId: data.id,
+      slug: data.slug,
+      title: input.title,
+      excerpt: input.excerpt,
+      coverPath: input.coverPath,
+    });
+    revalidatePath("/admin/social");
+  }
   return { ok: true, id: data.id, slug: data.slug, status };
 }
 

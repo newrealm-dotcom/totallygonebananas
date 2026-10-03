@@ -10,6 +10,7 @@ import { flattenSteps, normalizeStepGroups } from "@/lib/steps";
 import { estimateRecipeNutrition } from "@/lib/nutrition";
 import { renderPostMarkdown } from "@/lib/render-post-markdown";
 import { REFERRAL_COOKIE, sanitizeReferral } from "@/lib/referral";
+import { enqueueSocialShare } from "@/lib/social-queue";
 import type { RecipeStatus } from "@/lib/types";
 export type SaveRecipeResult = { ok: true; slug: string; status: RecipeStatus } | { ok: false; errors: Record<string, string> };
 
@@ -151,6 +152,18 @@ export async function saveRecipe(raw: unknown, recipeId?: string): Promise<SaveR
     if (error) return { ok: false, errors: { gallery: "The recipe saved, but its photos didn't. Try saving again." } };
   }
 
+  if (status === "published" && existing?.status !== "published") {
+    await enqueueSocialShare({
+      kind: "recipe",
+      targetId: id,
+      slug,
+      title: input.title,
+      excerpt: input.description,
+      coverPath: cover,
+    });
+    revalidatePath("/admin/social");
+  }
+
   revalidatePath("/", "layout");
   return { ok: true, slug, status };
 }
@@ -170,12 +183,25 @@ export async function reviewRecipe(recipeId: string, decision: "publish" | "reje
   const { profile } = await getViewer();
   if (!isEditorRole(profile)) return { ok: false, error: "Only editors can review recipes." };
   const supabase = await createClient();
-  const { error } = await supabase
+  const { data, error } = await supabase
     .from("recipes")
     .update({ status: decision === "publish" ? "published" : "rejected", review_note: note.trim().slice(0, 500) || null })
     .eq("id", recipeId)
-    .eq("status", "pending");
-  if (error) return { ok: false, error: "Couldn't update that recipe." };
+    .eq("status", "pending")
+    .select("id, slug, title, description, cover_path")
+    .maybeSingle();
+  if (error || (decision === "publish" && !data)) return { ok: false, error: "Couldn't update that recipe." };
+  if (decision === "publish" && data) {
+    await enqueueSocialShare({
+      kind: "recipe",
+      targetId: data.id,
+      slug: data.slug,
+      title: data.title,
+      excerpt: data.description,
+      coverPath: data.cover_path,
+    });
+    revalidatePath("/admin/social");
+  }
   revalidatePath("/", "layout");
   return { ok: true };
 }

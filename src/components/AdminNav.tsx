@@ -15,10 +15,12 @@ export function AdminNav({
   isAdmin,
   pendingReview = 0,
   referralsRecent = 0,
+  socialPending = 0,
 }: {
   isAdmin: boolean;
   pendingReview?: number;
   referralsRecent?: number;
+  socialPending?: number;
 }) {
   const path = usePathname();
   const menuId = useId();
@@ -40,6 +42,12 @@ export function AdminNav({
       { href: "/admin/tags", label: "Tags", match: (p) => p.startsWith("/admin/tags") },
       { href: "/admin/our-faves", label: "Our Faves", match: (p) => p.startsWith("/admin/our-faves") },
       {
+        href: "/admin/social",
+        label: "Social queue",
+        match: (p) => p.startsWith("/admin/social"),
+        badge: socialPending > 0 ? socialPending : undefined,
+      },
+      {
         href: "/admin/review",
         label: "Review queue",
         match: (p) => p.startsWith("/admin/review"),
@@ -53,7 +61,7 @@ export function AdminNav({
       },
       ...(isAdmin ? [{ href: "/admin/users", label: "Users", match: (p: string) => p.startsWith("/admin/users") }] : []),
     ],
-    [isAdmin, pendingReview, referralsRecent],
+    [isAdmin, pendingReview, referralsRecent, socialPending],
   );
 
   const measure = useCallback(() => {
@@ -144,7 +152,7 @@ export function AdminNav({
         ))}
         <span className="admin-nav-more-btn" data-measure-more>
           More
-          {pendingReview > 0 || referralsRecent > 0 ? (
+          {pendingReview > 0 || referralsRecent > 0 || socialPending > 0 ? (
             <span className="admin-nav-badge" aria-hidden="true">
               9
             </span>
