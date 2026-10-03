@@ -11,7 +11,13 @@ export default async function SettingsPage() {
   if (!profile) redirect("/login?next=/profile/settings");
   return (
     <div className="wrap narrow">
-      <nav className="crumbs" aria-label="Breadcrumb"><Link href="/profile">My Banana Stand</Link><span aria-hidden="true">&gt;&gt;</span><span>Edit profile</span></nav>
+      <nav className="crumbs" aria-label="Breadcrumb">
+        <Link href="/profile">My Banana Stand</Link>
+        <span className="crumbs-item">
+          <span aria-hidden="true">&gt;</span>
+          <span>Edit profile</span>
+        </span>
+      </nav>
       <div className="page-head"><h1>Edit profile</h1></div>
       <ProfileForm profile={profile} />
     </div>

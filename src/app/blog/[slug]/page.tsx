@@ -78,8 +78,10 @@ export default async function BlogPostPage({ params }: PageProps<"/blog/[slug]">
         ) : null}
         <nav className="crumbs" aria-label="Breadcrumb">
           <Link href="/blog">Blog</Link>
-          <span aria-hidden="true">&gt;&gt;</span>
-          <span>{post.title}</span>
+          <span className="crumbs-item">
+            <span aria-hidden="true">&gt;</span>
+            <span>{post.title}</span>
+          </span>
         </nav>
         <header className="page-head">
           {post.status === "draft" && <p className="status s-draft">Draft — only editors can see this</p>}

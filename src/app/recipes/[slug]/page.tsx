@@ -80,8 +80,8 @@ export default async function RecipePage({ params, searchParams }: PageProps<"/r
       <nav className="crumbs" aria-label="Breadcrumb">
         <Link href="/recipes">Recipes</Link>
         {recipeCats.map((cat) => (
-          <span key={cat.id}>
-            <span aria-hidden="true">&gt;&gt;</span>
+          <span key={cat.id} className="crumbs-item">
+            <span aria-hidden="true">&gt;</span>
             <Link href={`/recipes?category=${cat.id}`}>{cat.name}</Link>
           </span>
         ))}

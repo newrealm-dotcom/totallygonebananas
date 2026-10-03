@@ -31,12 +31,13 @@ function makePieces(count: number): BananaPiece[] {
     id,
     x: -8 + Math.random() * 116,
     size: 12 + Math.random() * 38,
-    delay: Math.random() * 2.8,
-    dur: 1.5 + Math.random() * 3.6,
+    // Stagger so pieces enter from above at different times.
+    delay: Math.random() * 3.2,
+    dur: 2.2 + Math.random() * 3.4,
     drift: (Math.random() - 0.5) * 260,
     sway: (Math.random() - 0.5) * 90,
-    // Start well above the viewport so pieces look mid-fall when they enter.
-    startY: -(55 + Math.random() * 70),
+    // Fully above the viewport (vh); CSS fill-mode keeps this applied during delay.
+    startY: -(105 + Math.random() * 95),
     r0: Math.random() * 360,
     rMid: Math.random() * 720 - 360,
     r1: Math.random() * 1080 - 540,

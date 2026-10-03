@@ -1146,13 +1146,19 @@ html[data-theme="dark"] .filters-sort {
 /* ---------- recipe detail ---------- */
 .crumbs {
   display: flex;
-  gap: .5rem;
+  gap: .55rem;
   flex-wrap: wrap;
+  align-items: center;
   font-weight: 600;
   font-size: .75em;
-  padding-top: 1.4rem;
+  padding-block: 1.4rem 1.1rem;
   color: var(--muted);
   text-transform: uppercase;
+}
+.crumbs-item {
+  display: inline-flex;
+  align-items: center;
+  gap: .55rem;
 }
 .crumbs a { font-weight: 600; text-decoration: none; }
 .crumbs a:hover { font-weight: 800; text-decoration: underline; text-underline-offset: 3px; }
@@ -3473,8 +3479,10 @@ header.top.is-compact .top-actions { margin-left: 0; }
   display: grid;
   place-items: center;
   line-height: 1;
-  animation: banana-fall var(--dur) var(--delay) var(--ease) forwards;
-  will-change: transform, opacity;
+  /* `both`: hold off-screen start during delay, hold end past the bottom */
+  animation: banana-fall var(--dur) var(--delay) var(--ease) both;
+  will-change: transform;
+  opacity: 1;
 }
 .banana-rain-piece img {
   width: 100%;
@@ -3485,16 +3493,14 @@ header.top.is-compact .top-actions { margin-left: 0; }
 }
 @keyframes banana-fall {
   0% {
-    transform: translate3d(0, var(--startY, -70vh), 0) rotate(var(--r0));
-    opacity: 1;
+    transform: translate3d(0, var(--startY, -120vh), 0) rotate(var(--r0));
   }
   45% {
     transform: translate3d(var(--sway), 45vh, 0) rotate(var(--rMid));
-    opacity: 1;
   }
   100% {
-    transform: translate3d(var(--drift), calc(100vh + var(--size) + 48px), 0) rotate(var(--r1));
-    opacity: 0;
+    /* Clear the bottom edge (plus a little) before the piece is removed */
+    transform: translate3d(var(--drift), calc(100vh + var(--size) + 80px), 0) rotate(var(--r1));
   }
 }
 @media (prefers-reduced-motion: reduce) {
