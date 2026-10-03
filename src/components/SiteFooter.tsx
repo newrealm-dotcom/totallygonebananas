@@ -1,5 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
+import { FooterPeekImage } from "@/components/FooterPeekImage";
 
 function InstagramIcon() {
   return (
@@ -26,47 +27,68 @@ function FacebookIcon() {
 export function SiteFooter() {
   return (
     <footer>
-      <div className="wrap footer-inner">
-        <div className="footer-brand">
-          <Image src="/logo.png" alt="" width={120} height={130} sizes="120px" />
-          <div className="footer-brand-copy">
-            <p className="footer-name">Totally Gone Bananas</p>
-            <p className="footer-tagline">Recipes for every banana, from green to gone.</p>
+      <FooterPeekImage />
+      <div className="footer-surface">
+        <div className="wrap footer-inner">
+          <div className="footer-brand">
+            <div className="footer-brand-copy">
+              <p className="footer-name">Totally Gone Bananas</p>
+              <p className="footer-tagline">Recipes for every banana, from green to gone.</p>
+            </div>
           </div>
-        </div>
 
-        <nav aria-label="Footer">
-          <Link href="/">Home</Link>
-          <Link href="/recipes">Recipes</Link>
-          <Link href="/blog">Blog</Link>
-          <Link href="/our-faves">Our Faves</Link>
-          <Link href="/recipes/new">Share a recipe</Link>
-          <Link href="/profile">My Banana Stand</Link>
-          <a href="https://store.totallygonebananas.com/" target="_blank" rel="noopener noreferrer">
-            Merch
-          </a>
-          <Link href="/about">About</Link>
-        </nav>
+          <nav aria-label="Footer">
+            <Link href="/">Home</Link>
+            <Link href="/recipes">Recipes</Link>
+            <Link href="/blog">Blog</Link>
+            <Link href="/our-faves">Our Faves</Link>
+            <Link href="/recipes/new">Share a recipe</Link>
+            <Link href="/profile">My Banana Stand</Link>
+            <a href="https://store.totallygonebananas.com/" target="_blank" rel="noopener noreferrer">
+              Merch
+            </a>
+            <Link href="/about">About</Link>
+          </nav>
 
-        <div className="footer-aside">
-          <p className="footer-aside-label">Follow along</p>
-          <div className="footer-social">
-            <a
-              href="https://www.instagram.com/totallygonebananas.official/"
-              target="_blank"
-              rel="noopener noreferrer"
-              aria-label="Totally Gone Bananas on Instagram"
-            >
-              <InstagramIcon />
-            </a>
-            <a
-              href="https://www.facebook.com/totallygonebananas/"
-              target="_blank"
-              rel="noopener noreferrer"
-              aria-label="Totally Gone Bananas on Facebook"
-            >
-              <FacebookIcon />
-            </a>
+          <Link className="footer-header-logo" href="/" aria-label="Totally Gone Bananas home">
+            <Image
+              className="footer-header-logo-light"
+              src="/img-login.webp"
+              alt=""
+              width={186}
+              height={124}
+              sizes="186px"
+            />
+            <Image
+              className="footer-header-logo-dark"
+              src="/img-login-dark.webp"
+              alt=""
+              width={186}
+              height={124}
+              sizes="186px"
+            />
+          </Link>
+
+          <div className="footer-aside">
+            <p className="footer-aside-label">Follow along</p>
+            <div className="footer-social">
+              <a
+                href="https://www.instagram.com/totallygonebananas.official/"
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label="Totally Gone Bananas on Instagram"
+              >
+                <InstagramIcon />
+              </a>
+              <a
+                href="https://www.facebook.com/totallygonebananas/"
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label="Totally Gone Bananas on Facebook"
+              >
+                <FacebookIcon />
+              </a>
+            </div>
           </div>
         </div>
       </div>
