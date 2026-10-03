@@ -4,6 +4,7 @@ import { countRecipes, getCategories, getRatings, getRecipeTagsByPopularity, get
 import { CategoryStickers } from "@/components/CategoryStickers";
 import { FilterPillsScroller } from "@/components/FilterPillsScroller";
 import { FlipCounter } from "@/components/FlipCounter";
+import { HeroSlide } from "@/components/HeroSlide";
 import { RecipesInfiniteGrid } from "@/components/RecipesInfiniteGrid";
 import { isValidTag, normalizeTag } from "@/lib/tags";
 import { plural, titleCase } from "@/lib/format";
@@ -45,81 +46,101 @@ export default async function RecipesPage({ searchParams }: PageProps<"/recipes"
   const filtered = Boolean(f.q || f.category || f.tag);
 
   return (
-    <div className="wrap recipes-index">
-      <div className="page-head">
-        <h1>{titleCase(cat ? cat.name : "Every banana recipe")}</h1>
-        <p className="lede">{cat?.tagline ?? "Filter by category, tag or search for whatever's already in your kitchen."}</p>
-      </div>
-
-      <form className="filters" action="/recipes" role="search">
-        {f.category && <input type="hidden" name="category" value={f.category} />}
-        {f.tag && <input type="hidden" name="tag" value={f.tag} />}
-        <div className="f search-f">
-          <label htmlFor="q">Search</label>
-          <input id="q" name="q" type="search" className="field" defaultValue={f.q} placeholder="Chocolate, oats, walnuts…" />
-        </div>
-        <div className="f">
-          <label htmlFor="sort">Sort by</label>
-          <select id="sort" name="sort" className="field filters-sort" defaultValue={f.sort}>
-            <option value="new">Newest</option><option value="quick">Quickest</option><option value="easy">Easiest</option><option value="az">A to Z</option>
-          </select>
-        </div>
-        <button className="btn" type="submit">Apply</button>
-      </form>
-
-      <div className="filter-pills">
-        <div className="filter-pills-row">
-          <span className="filter-pills-label">Categories:</span>
-          <FilterPillsScroller label="categories">
-            <CategoryStickers small categories={categories} active={f.category} hrefFor={(id) => href({ category: id ?? undefined })} />
-          </FilterPillsScroller>
-        </div>
-        {recipeTags.length > 0 && (
-          <div className="filter-pills-row">
-            <span className="filter-pills-label">Tags:</span>
-            <FilterPillsScroller label="tags">
-              <nav className="chips" aria-label="Tags">
-                {recipeTags.map((t) => (
-                  <Link key={t.name} className="chip" href={href({ tag: f.tag === t.name ? undefined : t.name })} aria-current={f.tag === t.name ? "true" : undefined}>{t.name}</Link>
-                ))}
-              </nav>
-            </FilterPillsScroller>
+    <div className="recipes-index">
+      <div className="wrap">
+        <div className="page-head recipes-index-hero">
+          <div className="recipes-index-hero-copy">
+            <h1>{titleCase(cat ? cat.name : "Every banana recipe")}</h1>
+            <p className="lede">{cat?.tagline ?? "Filter by category, tag or search for whatever's already in your kitchen."}</p>
           </div>
-        )}
+          <div className="recipes-index-hero-art" aria-hidden="true">
+            <div className="recipes-index-peek">
+              <HeroSlide
+                lightSrc="/main-slider/main-banana-02.webp"
+                darkSrc="/main-slider/dark/dark-main-banana-02.webp"
+                alt=""
+              />
+            </div>
+          </div>
+        </div>
       </div>
 
-      <div className="result-bar">
-        <p aria-live="polite">
-          <span className="sr">{plural(total, "recipe")}{filtered ? " found" : ""}</span>
-          <span aria-hidden="true" className="result-bar-count">
-            <FlipCounter value={total} persistKey={filtered ? undefined : "recipes-index-count"} />
-            <span>
-              {total === 1 ? "recipe" : "recipes"}
-              {filtered ? " found" : ""}
-            </span>
-          </span>
-        </p>
-        {filtered && <Link className="btn ghost small" href="/recipes">Clear filters</Link>}
+      <div className="recipes-index-band">
+        <div className="recipes-index-rule" aria-hidden="true" />
       </div>
 
-      <RecipesInfiniteGrid
-        key={[f.q, f.category, f.tag, f.sort].join("|")}
-        initialRecipes={recipes}
-        initialRatings={Object.fromEntries(ratings)}
-        initialSaved={[...saved]}
-        categories={categories}
-        signedIn={!!viewer.userId}
-        showCategory={!cat}
-        total={total}
-        filters={{
-          q: f.q,
-          category: f.category,
-          tag: f.tag,
-          sort: f.sort,
-        }}
-        empty={<div className="empty"><span className="big">🍌🔍</span><p>Nothing matches all of those filters.</p><Link className="btn ghost" href="/recipes">Clear filters</Link></div>}
-      />
-      <div style={{ height: "3rem" }} />
+      <div className="recipes-index-panel">
+        <div className="wrap">
+          <form className="filters" action="/recipes" role="search">
+            {f.category && <input type="hidden" name="category" value={f.category} />}
+            {f.tag && <input type="hidden" name="tag" value={f.tag} />}
+            <div className="f search-f">
+              <label htmlFor="q">Search</label>
+              <input id="q" name="q" type="search" className="field" defaultValue={f.q} placeholder="Chocolate, oats, walnuts…" />
+            </div>
+            <div className="f">
+              <label htmlFor="sort">Sort by</label>
+              <select id="sort" name="sort" className="field filters-sort" defaultValue={f.sort}>
+                <option value="new">Newest</option><option value="quick">Quickest</option><option value="easy">Easiest</option><option value="az">A to Z</option>
+              </select>
+            </div>
+            <button className="btn" type="submit">Apply</button>
+          </form>
+
+          <div className="filter-pills">
+            <div className="filter-pills-row">
+              <span className="filter-pills-label">Categories:</span>
+              <FilterPillsScroller label="categories">
+                <CategoryStickers small categories={categories} active={f.category} hrefFor={(id) => href({ category: id ?? undefined })} />
+              </FilterPillsScroller>
+            </div>
+            {recipeTags.length > 0 && (
+              <div className="filter-pills-row">
+                <span className="filter-pills-label">Tags:</span>
+                <FilterPillsScroller label="tags">
+                  <nav className="chips" aria-label="Tags">
+                    {recipeTags.map((t) => (
+                      <Link key={t.name} className="chip" href={href({ tag: f.tag === t.name ? undefined : t.name })} aria-current={f.tag === t.name ? "true" : undefined}>{t.name}</Link>
+                    ))}
+                  </nav>
+                </FilterPillsScroller>
+              </div>
+            )}
+          </div>
+
+          <div className="result-bar">
+            <p aria-live="polite">
+              <span className="sr">{plural(total, "recipe")}{filtered ? " found" : ""}</span>
+              <span aria-hidden="true" className="result-bar-count">
+                <FlipCounter value={total} persistKey={filtered ? undefined : "recipes-index-count"} />
+                <span>
+                  {total === 1 ? "recipe" : "recipes"}
+                  {filtered ? " found" : ""}
+                </span>
+              </span>
+            </p>
+            {filtered && <Link className="btn ghost small" href="/recipes">Clear filters</Link>}
+          </div>
+
+          <RecipesInfiniteGrid
+            key={[f.q, f.category, f.tag, f.sort].join("|")}
+            initialRecipes={recipes}
+            initialRatings={Object.fromEntries(ratings)}
+            initialSaved={[...saved]}
+            categories={categories}
+            signedIn={!!viewer.userId}
+            showCategory={!cat}
+            total={total}
+            filters={{
+              q: f.q,
+              category: f.category,
+              tag: f.tag,
+              sort: f.sort,
+            }}
+            empty={<div className="empty"><span className="big">🍌🔍</span><p>Nothing matches all of those filters.</p><Link className="btn ghost" href="/recipes">Clear filters</Link></div>}
+          />
+        </div>
+      </div>
     </div>
   );
 }
