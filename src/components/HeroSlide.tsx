@@ -6,10 +6,12 @@ export function HeroSlide({
   lightSrc,
   darkSrc,
   alt = "The Totally Gone Bananas mascot",
+  sizes = "(max-width: 900px) 320px, 46vw",
 }: {
   lightSrc: string | null;
   darkSrc: string | null;
   alt?: string;
+  sizes?: string;
 }) {
   const light = lightSrc ?? darkSrc;
   const dark = darkSrc ?? lightSrc;
@@ -25,7 +27,7 @@ export function HeroSlide({
         width={920}
         height={520}
         priority
-        sizes="(max-width: 900px) 320px, 460px"
+        sizes={sizes}
       />
     );
   }
@@ -39,7 +41,7 @@ export function HeroSlide({
         width={920}
         height={520}
         priority
-        sizes="(max-width: 900px) 320px, 460px"
+        sizes={sizes}
       />
       <Image
         className="mascot hero-slide hero-slide-dark"
@@ -48,7 +50,7 @@ export function HeroSlide({
         width={920}
         height={520}
         priority
-        sizes="(max-width: 900px) 320px, 460px"
+        sizes={sizes}
       />
     </div>
   );

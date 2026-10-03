@@ -57,7 +57,7 @@ export default async function HomePage({ searchParams }: PageProps<"/">) {
     <>
       <section className="hero">
         <div className="wrap hero-grid">
-          <div>
+          <div className="hero-copy">
             <h1>What are we going bananas for today?</h1>
             <p className="lede">Pick a craving and dig in. Whether you&apos;re after something chocolatey, something fruity, or an easy bake for a slow Sunday morning, there&apos;s a recipe here for it. New ones go up all the time, so check back often to see what just came out of the oven.</p>
             <div className="hero-cats">
@@ -72,12 +72,16 @@ export default async function HomePage({ searchParams }: PageProps<"/">) {
               </FilterPillsScroller>
             </div>
           </div>
-          <div className="mascot-wrap">
+          <div className="mascot-wrap hero-art">
             <div className="bubble">
               <strong>{cat ? cat.name : "All recipes"}</strong>
               <span>{cat?.tagline ?? `${all.length} ways to go bananas.`}</span>
             </div>
-            <HeroSlide lightSrc={heroLight} darkSrc={heroDark} />
+            <HeroSlide
+              lightSrc={heroLight}
+              darkSrc={heroDark}
+              sizes="(max-width: 900px) 320px, min(38rem, 54vw)"
+            />
           </div>
         </div>
       </section>
