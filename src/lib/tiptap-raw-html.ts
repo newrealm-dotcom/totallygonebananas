@@ -174,6 +174,36 @@ export const StyleBlock = Node.create({
   },
 });
 
+/** Preserve YouTube/other embeds through Code ↔ Visual round-trips. */
+export const IframeBlock = Node.create({
+  name: "iframeBlock",
+  group: "block",
+  atom: true,
+  selectable: true,
+  parseHTML() {
+    return [{ tag: "iframe" }];
+  },
+  renderHTML({ HTMLAttributes }) {
+    return ["iframe", mergeAttributes(HTMLAttributes)];
+  },
+  addAttributes() {
+    return {
+      src: stringAttr("src"),
+      title: stringAttr("title"),
+      width: stringAttr("width"),
+      height: stringAttr("height"),
+      allow: stringAttr("allow"),
+      allowfullscreen: boolAttr("allowfullscreen"),
+      loading: stringAttr("loading"),
+      referrerpolicy: stringAttr("referrerpolicy"),
+      frameborder: stringAttr("frameborder"),
+      style: stringAttr("style"),
+      class: stringAttr("class"),
+      id: stringAttr("id"),
+    };
+  },
+});
+
 /** Preserve `<script>` blocks with source text intact. */
 export const ScriptBlock = Node.create({
   name: "scriptBlock",
