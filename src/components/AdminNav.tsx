@@ -14,10 +14,12 @@ interface AdminLink {
 export function AdminNav({
   isAdmin,
   pendingReview = 0,
+  pendingComments = 0,
   referralsRecent = 0,
 }: {
   isAdmin: boolean;
   pendingReview?: number;
+  pendingComments?: number;
   referralsRecent?: number;
 }) {
   const path = usePathname();
@@ -47,6 +49,12 @@ export function AdminNav({
         badge: pendingReview > 0 ? pendingReview : undefined,
       },
       {
+        href: "/admin/comments",
+        label: "Comments",
+        match: (p) => p.startsWith("/admin/comments"),
+        badge: pendingComments > 0 ? pendingComments : undefined,
+      },
+      {
         href: "/admin/referrals",
         label: "Referrals",
         match: (p) => p.startsWith("/admin/referrals"),
@@ -54,7 +62,7 @@ export function AdminNav({
       },
       ...(isAdmin ? [{ href: "/admin/users", label: "Users", match: (p: string) => p.startsWith("/admin/users") }] : []),
     ],
-    [isAdmin, pendingReview, referralsRecent],
+    [isAdmin, pendingReview, pendingComments, referralsRecent],
   );
 
   const measure = useCallback(() => {
@@ -145,7 +153,7 @@ export function AdminNav({
         ))}
         <span className="admin-nav-more-btn" data-measure-more>
           More
-          {pendingReview > 0 || referralsRecent > 0 ? (
+          {pendingReview > 0 || pendingComments > 0 || referralsRecent > 0 ? (
             <span className="admin-nav-badge" aria-hidden="true">
               9
             </span>

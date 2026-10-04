@@ -2,11 +2,12 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import Image from "next/image";
 import { notFound } from "next/navigation";
-import { getBlogCategories, getPostBySlug, getViewer, isEditorRole, listRelatedPosts } from "@/lib/queries";
+import { getBlogCategories, getPostBySlug, getViewer, isEditorRole, listApprovedPostComments, listRelatedPosts } from "@/lib/queries";
 import { easternDateKey, longDate } from "@/lib/format";
 import { mediaSrc } from "@/lib/media";
 import { BlogCoverCard } from "@/components/BlogCoverCard";
 import { HtmlWithScripts } from "@/components/HtmlWithScripts";
+import { PostCommentForm } from "@/components/PostCommentForm";
 import { renderPostMarkdown } from "@/lib/render-post-markdown";
 
 export async function generateMetadata({ params }: PageProps<"/blog/[slug]">): Promise<Metadata> {
@@ -29,7 +30,11 @@ export default async function BlogPostPage({ params }: PageProps<"/blog/[slug]">
   const post = await getPostBySlug(slug);
   if (!post) notFound();
 
-  const [{ profile }, blogCategories] = await Promise.all([getViewer(), getBlogCategories()]);
+  const [{ profile }, blogCategories, comments] = await Promise.all([
+    getViewer(),
+    getBlogCategories(),
+    listApprovedPostComments(post.id),
+  ]);
   const editor = isEditorRole(profile);
   if (post.status !== "published" && !editor) notFound();
 
@@ -106,6 +111,30 @@ export default async function BlogPostPage({ params }: PageProps<"/blog/[slug]">
             ))}
           </div>
         ) : null}
+
+        <section className="blog-comments" aria-labelledby="post-comments-h">
+          <h2 id="post-comments-h">Comments</h2>
+          {comments.length > 0 ? (
+            <ul className="blog-comment-list">
+              {comments.map((c) => (
+                <li key={c.id} className="blog-comment">
+                  <p className="blog-comment-meta">
+                    <strong>{c.display_name}</strong>
+                    <span>{longDate(c.created_at)}</span>
+                  </p>
+                  <p className="blog-comment-body">{c.body}</p>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p className="blog-comments-empty">No comments yet. Be the first.</p>
+          )}
+          {post.status === "published" ? (
+            <PostCommentForm postId={post.id} defaultName={profile?.display_name ?? ""} />
+          ) : (
+            <p className="hint">Comments open when this post is published.</p>
+          )}
+        </section>
       </article>
 
       {related.length > 0 ? (

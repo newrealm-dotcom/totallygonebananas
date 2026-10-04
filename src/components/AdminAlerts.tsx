@@ -4,12 +4,14 @@ import { plural } from "@/lib/format";
 /** Attention banners for pending reviews and recent referral submissions. */
 export function AdminAlerts({
   pending,
+  pendingComments = 0,
   referralsRecent,
 }: {
   pending: number;
+  pendingComments?: number;
   referralsRecent: number;
 }) {
-  if (pending <= 0 && referralsRecent <= 0) return null;
+  if (pending <= 0 && pendingComments <= 0 && referralsRecent <= 0) return null;
 
   return (
     <div className="admin-alerts" aria-label="Admin attention">
@@ -22,6 +24,18 @@ export function AdminAlerts({
           </p>
           <Link className="btn small" href="/admin/review">
             Review {plural(pending, "recipe")}
+          </Link>
+        </div>
+      ) : null}
+      {pendingComments > 0 ? (
+        <div className="notice-inline warn" role="status">
+          <p>
+            {pendingComments === 1
+              ? "There’s 1 comment waiting for approval."
+              : `There are ${pendingComments} comments waiting for approval.`}
+          </p>
+          <Link className="btn small" href="/admin/comments">
+            Review {plural(pendingComments, "comment")}
           </Link>
         </div>
       ) : null}

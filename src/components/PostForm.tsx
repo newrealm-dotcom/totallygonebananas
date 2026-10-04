@@ -8,7 +8,7 @@ import { checkFile, isRemoteMediaPath, kindOf, mediaSrc, RECIPE_BUCKET } from "@
 import { savePost, deletePost } from "@/actions/posts";
 import { PostBodyEditor } from "@/components/PostBodyEditor";
 import { slugify, toEasternDatetimeLocal, easternDatetimeLocalToIso } from "@/lib/format";
-import { MAX_TAGS, normalizeTag, tagIssue } from "@/lib/tags";
+import { normalizeTag, tagIssue } from "@/lib/tags";
 import type { BlogCategory, Post } from "@/lib/types";
 import { TAGS } from "@/lib/types";
 
@@ -134,24 +134,51 @@ export function PostForm({
   }
 
   function addCustomTag() {
-    const next = normalizeTag(customTag);
-    const issue = tagIssue(next, { limitLength: false });
-    if (issue) {
-      setTagError(issue);
+    const parts = customTag
+      .split(",")
+      .map((part) => normalizeTag(part))
+      .filter(Boolean);
+    if (parts.length === 0) {
+      setTagError("Enter a tag");
       return;
     }
-    if (tags.includes(next)) {
-      setTagError("That tag is already on this post");
+
+    const uniqueParts: string[] = [];
+    const seen = new Set<string>();
+    for (const part of parts) {
+      if (seen.has(part)) continue;
+      seen.add(part);
+      uniqueParts.push(part);
+    }
+
+    const issues: string[] = [];
+    const failed: string[] = [];
+    const toAdd: string[] = [];
+    for (const next of uniqueParts) {
+      const issue = tagIssue(next, { limitLength: false });
+      if (issue) {
+        failed.push(next);
+        issues.push(uniqueParts.length > 1 ? `“${next}”: ${issue}` : issue);
+        continue;
+      }
+      if (tags.includes(next)) continue;
+      toAdd.push(next);
+    }
+
+    if (toAdd.length > 0) {
+      setTags((prev) => [...prev, ...toAdd]);
+      setErrors((e) => ({ ...e, tags: "" }));
+    }
+    setCustomTag(failed.join(", "));
+    if (issues.length > 0) {
+      setTagError(issues[0]);
       return;
     }
-    if (tags.length >= MAX_TAGS) {
-      setTagError(`Up to ${MAX_TAGS} tags`);
+    if (toAdd.length === 0) {
+      setTagError(uniqueParts.length === 1 ? "That tag is already on this post" : "Those tags are already on this post");
       return;
     }
-    setTags((prev) => [...prev, next]);
-    setCustomTag("");
     setTagError("");
-    setErrors((e) => ({ ...e, tags: "" }));
   }
 
   function switchCoverMode(mode: CoverMode) {
@@ -453,12 +480,12 @@ export function PostForm({
           ))}
         </div>
         <div className="tag-add">
-          <label className="sr" htmlFor="post-tag-in">Add a custom tag</label>
+          <label className="sr" htmlFor="post-tag-in">Add custom tags</label>
           <input
             id="post-tag-in"
             className="field"
             value={customTag}
-            placeholder="Add your own tag…"
+            placeholder="tag one, tag two, tag three…"
             aria-invalid={!!(tagError || errors.tags)}
             aria-describedby={tagError || errors.tags ? "post-tag-err" : undefined}
             onChange={(e) => {
@@ -473,10 +500,10 @@ export function PostForm({
             }}
           />
           <button type="button" className="btn ghost small" onClick={addCustomTag} disabled={!customTag.trim()}>
-            Add tag
+            Add tags
           </button>
         </div>
-        <p className="hint">Letters, numbers, spaces, or hyphens. No profanity or nonsense.</p>
+        <p className="hint">Separate multiple tags with commas. Letters, numbers, spaces, or hyphens. No profanity or nonsense.</p>
         {(tagError || errors.tags) && (
           <p className="f-err" id="post-tag-err" role="alert">{tagError || errors.tags}</p>
         )}

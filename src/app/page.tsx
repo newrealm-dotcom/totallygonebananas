@@ -1,6 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
-import { getCategories, getHomepagePromo, listPosts, listRecipes } from "@/lib/queries";
+import { getBlogCategories, getCategories, getHomepagePromo, listPosts, listRecipes } from "@/lib/queries";
 import { createClient } from "@/lib/supabase/server";
 import { CategoryStickers } from "@/components/CategoryStickers";
 import { FilterPillsScroller } from "@/components/FilterPillsScroller";
@@ -8,8 +8,8 @@ import { RecipeGrid } from "@/components/RecipeGrid";
 import { HeroSlide } from "@/components/HeroSlide";
 import { MediaView } from "@/components/MediaView";
 import { titleCase } from "@/lib/format";
-import { mediaSrc, promoImageSrc } from "@/lib/media";
-import { stripInlineMarkdown } from "@/lib/render-post-markdown";
+import { promoImageSrc } from "@/lib/media";
+import { BlogCoverCard } from "@/components/BlogCoverCard";
 import { getDarkMainSliderImages, getMainSliderImages, FIRST_DARK_SLIDE, FIRST_LIGHT_SLIDE, pickPreferredSlide } from "@/lib/main-slider";
 
 /** Recipe of the day: the same pick for everyone for 24 hours (UTC). */
@@ -35,7 +35,7 @@ async function categoryCounts() {
 export default async function HomePage({ searchParams }: PageProps<"/">) {
   const sp = await searchParams;
   const active = typeof sp.category === "string" ? sp.category : undefined;
-  const [categories, counts, latest, all, lightSlides, darkSlides, promo, homePosts] = await Promise.all([
+  const [categories, counts, latest, all, lightSlides, darkSlides, promo, homePosts, blogCategories] = await Promise.all([
     getCategories(),
     categoryCounts(),
     listRecipes({ category: active, limit: 8 }),
@@ -44,7 +44,9 @@ export default async function HomePage({ searchParams }: PageProps<"/">) {
     getDarkMainSliderImages(),
     getHomepagePromo(),
     listPosts({ publishedOnly: true, limit: 3, offset: 0, excludeCategory: "favorites" }),
+    getBlogCategories(),
   ]);
+  const blogCategoryNames = Object.fromEntries(blogCategories.map((c) => [c.id, c.name]));
   const promoSrc = promoImageSrc(promo.image_path);
   const cat = categories.find((c) => c.id === active);
   const heroLight = pickPreferredSlide(lightSlides, FIRST_LIGHT_SLIDE);
@@ -165,29 +167,10 @@ export default async function HomePage({ searchParams }: PageProps<"/">) {
           {homePosts.length === 0 ? (
             <div className="empty"><p>No posts yet. Check back soon.</p></div>
           ) : (
-            <ul className="blog-grid home-blog-grid">
-              {homePosts.map((p) => {
-                const cover = mediaSrc(p.cover_path);
-                return (
-                  <li key={p.id} className="blog-card">
-                    {cover ? (
-                      <Link href={`/blog/${p.slug}`} className="blog-card-media" tabIndex={-1} aria-hidden>
-                        <Image src={cover} alt="" width={640} height={360} unoptimized />
-                      </Link>
-                    ) : (
-                      <Link href={`/blog/${p.slug}`} className="blog-card-media blog-card-media-ph" tabIndex={-1} aria-hidden />
-                    )}
-                    <div className="blog-card-body">
-                      <h3><Link href={`/blog/${p.slug}`}>{stripInlineMarkdown(p.title)}</Link></h3>
-                      {p.excerpt ? <p>{stripInlineMarkdown(p.excerpt)}</p> : null}
-                      <div className="blog-card-foot">
-                        <span />
-                        <Link className="blog-card-read" href={`/blog/${p.slug}`}>Read</Link>
-                      </div>
-                    </div>
-                  </li>
-                );
-              })}
+            <ul className="blog-cover-grid">
+              {homePosts.map((p) => (
+                <BlogCoverCard key={p.id} post={p} categoryNames={blogCategoryNames} />
+              ))}
             </ul>
           )}
         </div>

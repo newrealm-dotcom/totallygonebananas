@@ -19,9 +19,14 @@ export default async function AdminLayout({ children }: { children: React.ReactN
       <AdminNav
         isAdmin={isAdminRole(profile)}
         pendingReview={counts.pending}
+        pendingComments={counts.pendingComments}
         referralsRecent={counts.referralsRecent}
       />
-      <AdminAlerts pending={counts.pending} referralsRecent={counts.referralsRecent} />
+      <AdminAlerts
+        pending={counts.pending}
+        pendingComments={counts.pendingComments}
+        referralsRecent={counts.referralsRecent}
+      />
       {children}
       <div style={{ height: "3rem" }} />
     </div>

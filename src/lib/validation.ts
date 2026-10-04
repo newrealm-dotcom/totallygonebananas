@@ -277,6 +277,18 @@ export const contactInput = z.object({
 
 export type ContactInput = z.input<typeof contactInput>;
 
+export const postCommentInput = z.object({
+  postId: z.string().uuid("That post is missing."),
+  displayName: z.string().trim().min(2, "Add your name").max(80, "Keep your name under 80 characters"),
+  body: z
+    .string()
+    .trim()
+    .min(2, "Write a little more — at least 2 characters")
+    .max(4000, "Keep comments under 4,000 characters"),
+});
+
+export type PostCommentInput = z.input<typeof postCommentInput>;
+
 /** Turns zod issues into { "steps.2.text": "message" } for inline form errors. */
 export function fieldErrors(error: z.ZodError): Record<string, string> {
   const out: Record<string, string> = {};

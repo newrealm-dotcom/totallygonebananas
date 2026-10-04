@@ -6,7 +6,7 @@ import { pointsFromCounts, standingsFor } from "@/lib/standings";
 import { normalizeIngredientGroups } from "@/lib/ingredients";
 import { normalizeNutrition } from "@/lib/nutrition";
 import { normalizeStepGroups } from "@/lib/steps";
-import type { AdminRecipeTag, BlogCategory, Category, HomepagePromo, Post, PostWithAuthor, Profile, Rating, Recipe, RecipeTag, RecipeWithExtras } from "@/lib/types";
+import type { AdminRecipeTag, BlogCategory, Category, HomepagePromo, PendingPostComment, Post, PostComment, PostWithAuthor, Profile, Rating, Recipe, RecipeTag, RecipeWithExtras } from "@/lib/types";
 
 
 export const DEFAULT_HOMEPAGE_PROMO: HomepagePromo = {
@@ -504,6 +504,31 @@ export async function listProfiles(): Promise<Profile[]> {
   return (data as Profile[]) ?? [];
 }
 
+export async function listApprovedPostComments(postId: string): Promise<PostComment[]> {
+  const supabase = await createClient();
+  const { data } = await supabase
+    .from("post_comments")
+    .select("id, post_id, author_id, display_name, body, status, created_at, reviewed_at")
+    .eq("post_id", postId)
+    .eq("status", "approved")
+    .order("created_at", { ascending: true });
+  return (data as PostComment[]) ?? [];
+}
+
+export async function listPendingPostComments(): Promise<PendingPostComment[]> {
+  const supabase = await createClient();
+  const { data } = await supabase
+    .from("post_comments")
+    .select("id, post_id, author_id, display_name, body, status, created_at, reviewed_at, post:posts!post_comments_post_id_fkey(title, slug)")
+    .eq("status", "pending")
+    .order("created_at", { ascending: true });
+  return (data ?? []).map((row) => {
+    const related = row.post;
+    const post = Array.isArray(related) ? related[0] ?? null : related ?? null;
+    return { ...row, post } as PendingPostComment;
+  });
+}
+
 export const getHomepagePromo = cache(async (): Promise<HomepagePromo> => {
   const supabase = await createClient();
   const { data } = await supabase.from("homepage_promo").select("*").eq("id", "default").maybeSingle();
@@ -513,9 +538,10 @@ export const getHomepagePromo = cache(async (): Promise<HomepagePromo> => {
 export async function adminCounts() {
   const supabase = await createClient();
   const weekAgo = new Date(Date.now() - 7 * 86_400_000).toISOString();
-  const [recipes, pending, posts, categories, blogCategories, tags, profiles, referralsRecent] = await Promise.all([
+  const [recipes, pending, pendingComments, posts, categories, blogCategories, tags, profiles, referralsRecent] = await Promise.all([
     supabase.from("recipes").select("id", { count: "exact", head: true }),
     supabase.from("recipes").select("id", { count: "exact", head: true }).eq("status", "pending"),
+    supabase.from("post_comments").select("id", { count: "exact", head: true }).eq("status", "pending"),
     supabase.from("posts").select("id", { count: "exact", head: true }),
     supabase.from("categories").select("id", { count: "exact", head: true }),
     supabase.from("blog_categories").select("id", { count: "exact", head: true }),
@@ -530,6 +556,7 @@ export async function adminCounts() {
   return {
     recipes: recipes.count ?? 0,
     pending: pending.count ?? 0,
+    pendingComments: pendingComments.count ?? 0,
     posts: posts.count ?? 0,
     categories: categories.count ?? 0,
     blogCategories: blogCategories.count ?? 0,

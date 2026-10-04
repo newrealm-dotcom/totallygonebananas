@@ -144,6 +144,23 @@ export interface Post {
 
 export type PostWithAuthor = Post & { author: AuthorSummary | null };
 
+export type PostCommentStatus = "pending" | "approved" | "denied";
+
+export interface PostComment {
+  id: string;
+  post_id: string;
+  author_id: string | null;
+  display_name: string;
+  body: string;
+  status: PostCommentStatus;
+  created_at: string;
+  reviewed_at: string | null;
+}
+
+export interface PendingPostComment extends PostComment {
+  post: Pick<Post, "title" | "slug"> | null;
+}
+
 /** Default seed tags — prefer `getRecipeTags()` for the live list. */
 export const TAGS = ["vegan", "gluten-free", "dairy-free", "kid-friendly", "no added sugar", "quick"] as const;
 

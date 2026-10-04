@@ -12,6 +12,7 @@ export default async function AdminHomePage() {
       <ul className="admin-stats">
         <li className="stat"><b>{counts.recipes}</b><span>Recipes</span></li>
         <li className={`stat${counts.pending > 0 ? " is-alert" : ""}`}><b>{counts.pending}</b><span>Pending review</span></li>
+        <li className={`stat${counts.pendingComments > 0 ? " is-alert" : ""}`}><b>{counts.pendingComments}</b><span>Pending comments</span></li>
         <li className="stat"><b>{counts.posts}</b><span>Blog posts</span></li>
         <li className="stat"><b>{counts.categories}</b><span>Recipe categories</span></li>
         <li className="stat"><b>{counts.tags}</b><span>Tags</span></li>
@@ -29,6 +30,11 @@ export default async function AdminHomePage() {
         <Link className="btn ghost" href="/admin/blog-categories">Blog categories</Link>
         <Link className="btn ghost" href="/admin/referrals">View referrals</Link>
         {counts.pending > 0 && <Link className="btn dark" href="/admin/review">Review {counts.pending} pending</Link>}
+        {counts.pendingComments > 0 && (
+          <Link className="btn dark" href="/admin/comments">
+            Review {counts.pendingComments} comment{counts.pendingComments === 1 ? "" : "s"}
+          </Link>
+        )}
       </div>
     </>
   );
