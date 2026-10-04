@@ -20,7 +20,6 @@ export default async function AdminLayout({ children }: { children: React.ReactN
         isAdmin={isAdminRole(profile)}
         pendingReview={counts.pending}
         referralsRecent={counts.referralsRecent}
-        socialPending={counts.socialPending}
       />
       <AdminAlerts pending={counts.pending} referralsRecent={counts.referralsRecent} />
       {children}

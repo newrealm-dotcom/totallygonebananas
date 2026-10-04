@@ -513,7 +513,7 @@ export const getHomepagePromo = cache(async (): Promise<HomepagePromo> => {
 export async function adminCounts() {
   const supabase = await createClient();
   const weekAgo = new Date(Date.now() - 7 * 86_400_000).toISOString();
-  const [recipes, pending, posts, categories, blogCategories, tags, profiles, referralsRecent, socialPending] = await Promise.all([
+  const [recipes, pending, posts, categories, blogCategories, tags, profiles, referralsRecent] = await Promise.all([
     supabase.from("recipes").select("id", { count: "exact", head: true }),
     supabase.from("recipes").select("id", { count: "exact", head: true }).eq("status", "pending"),
     supabase.from("posts").select("id", { count: "exact", head: true }),
@@ -526,7 +526,6 @@ export async function adminCounts() {
       .select("id", { count: "exact", head: true })
       .not("referred_by", "is", null)
       .gte("created_at", weekAgo),
-    supabase.from("social_queue").select("id", { count: "exact", head: true }).eq("status", "pending"),
   ]);
   return {
     recipes: recipes.count ?? 0,
@@ -537,6 +536,5 @@ export async function adminCounts() {
     tags: tags.count ?? 0,
     profiles: profiles.count ?? 0,
     referralsRecent: referralsRecent.count ?? 0,
-    socialPending: socialPending.count ?? 0,
   };
 }
