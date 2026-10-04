@@ -2569,8 +2569,13 @@ ol.steps > li > div > p:first-child { margin-top: 0; }
   border-color: var(--brown);
 }
 .admin-stats { list-style: none; margin: 0 0 1.4rem; padding: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: .8rem; }
+.admin-stats .stat { align-items: center; justify-content: center; text-align: center; }
+.admin-stats .stat b { font-size: 1.425rem; }
+@media (min-width: 901px) {
+  .admin-stats .stat b { font-size: 3.5625rem; }
+}
 .ga-stats { grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); }
-.ga-stats .stat b { font-size: clamp(1.9rem, 3.2vw, 3rem); line-height: 1; overflow-wrap: anywhere; }
+.ga-stats .stat b { font-size: clamp(1.425rem, 2.4vw, 2.25rem); line-height: 1; overflow-wrap: anywhere; }
 .ga-stats .stat span { font-size: .95rem; margin-top: .3rem; }
 .ga-range { margin-top: .4rem; }
 .ga-range .f { min-width: 10.5rem; }
