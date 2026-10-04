@@ -51,7 +51,7 @@ export default async function RecipesPage({ searchParams }: PageProps<"/recipes"
         <div className="page-head recipes-index-hero">
           <div className="recipes-index-hero-copy">
             <h1>{titleCase(cat ? cat.name : "Every banana recipe")}</h1>
-            <p className="lede">{cat?.tagline ?? "Filter by category, tag or search for whatever's already in your kitchen."}</p>
+            <p className="lede">{cat?.tagline ?? "Every great recipe starts with what you've got. Filter by category or tag, or search for ingredients already in your kitchen. From quick snacks to slow Sunday loaves, there's a perfect match for every banana, no matter how spotty."}</p>
           </div>
           <div className="recipes-index-hero-art" aria-hidden="true">
             <div className="recipes-index-peek">
