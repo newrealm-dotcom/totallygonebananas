@@ -887,6 +887,52 @@ html[data-theme="dark"] .hero-slide-stack .hero-slide-dark { display: block; }
     margin-bottom: .15rem;
   }
 }
+@media (max-width: 900px) {
+  .hero-copy { text-align: center; }
+  .hero .bubble {
+    align-self: center;
+    margin-left: 0;
+    text-align: center;
+  }
+  .hero .bubble::after { left: 50%; margin-left: -11px; }
+  .hero-cats,
+  .hero-cats:has(.filter-pills-expand.is-expanded) {
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+  }
+  .hero-cats:has(.filter-pills-expand.is-expanded) .hero-cats-label { padding-top: 0; }
+  .hero-cats .filter-pills-expand,
+  .hero-cats .filter-pills-expand.is-expanded {
+    width: 100%;
+    flex-direction: column;
+    align-items: center;
+  }
+  .hero-cats .filter-pills-body { width: 100%; }
+  .hero-cats .cats { justify-content: center; }
+  .hero + .block .sec-head,
+  .home-blog .sec-head {
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+  }
+  .home-latest-lede { text-align: center; }
+  .home-latest .card .inner,
+  .home-latest .card h3,
+  .home-latest .card p { text-align: center; }
+  .home-latest .meta { justify-content: center; }
+  .rotd {
+    grid-template-columns: 1fr;
+    justify-items: center;
+    text-align: center;
+  }
+  .rotd p { margin-inline: auto; }
+  .rotd .actions { justify-content: center; }
+  .home-blog .blog-card-body,
+  .home-blog .blog-card-body h3,
+  .home-blog .blog-card-body p { text-align: center; }
+  .home-blog .blog-card-foot { justify-content: center; }
+}
 
 .home-latest .grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 @media (min-width: 901px) {
@@ -1418,6 +1464,17 @@ html[data-theme="dark"] .filters-sort {
   .recipes-index-peek {
     animation: none;
     transform: translate3d(-50%, -90%, 0);
+  }
+}
+@media (max-width: 900px) {
+  .recipes-index-hero-art { min-height: 0; }
+  .recipes-index-peek {
+    position: relative;
+    left: auto;
+    top: auto;
+    margin-inline: auto;
+    transform: none;
+    animation: none;
   }
 }
 @media (min-width: 901px) {
@@ -3189,6 +3246,18 @@ ol.steps > li > div > p:first-child { margin-top: 0; }
     max-width: none;
   }
 }
+@media (max-width: 900px) {
+  .faves-hero-copy,
+  .faves-spot-copy,
+  .faves-tile-copy {
+    justify-items: center;
+    text-align: center;
+  }
+  .our-faves-page .lede,
+  .faves-spot-excerpt {
+    margin-inline: auto;
+  }
+}
 .faves-feed {
   display: grid;
   gap: 1.6rem;
@@ -3321,6 +3390,10 @@ ol.steps > li > div > p:first-child { margin-top: 0; }
 .faves-tile-copy h2 a { text-decoration: none; }
 .faves-tile-copy h2 a:hover { text-decoration: underline; text-underline-offset: 3px; }
 .faves-tile-copy .blog-card-read { justify-self: start; }
+@media (max-width: 900px) {
+  .faves-spot-copy .blog-read-cta,
+  .faves-tile-copy .blog-card-read { justify-self: center; }
+}
 .faves-media-ph {
   display: block;
   min-height: 10rem;
@@ -3986,16 +4059,39 @@ header.top.is-compact .top-actions { margin-left: 0; }
 }
 @media (max-width: 900px) {
   footer .footer-inner {
-    grid-template-columns: 1fr auto;
+    grid-template-columns: 1fr;
     grid-template-areas:
-      "brand brand"
-      "nav social";
-    align-items: start;
-    gap: 1.75rem 2rem;
+      "brand"
+      "nav"
+      "social";
+    justify-items: center;
+    text-align: center;
+    gap: 1.75rem;
   }
-  .footer-brand { grid-area: brand; }
-  footer nav { grid-area: nav; justify-self: start; }
-  .footer-aside { grid-area: social; justify-items: end; }
+  .footer-brand {
+    grid-area: brand;
+    flex-direction: column;
+    align-items: center;
+    justify-self: center;
+    text-align: center;
+  }
+  .footer-brand-copy { justify-items: center; }
+  .footer-name,
+  .footer-tagline { text-align: center; }
+  .footer-tagline { max-width: 22rem; margin-inline: auto; }
+  footer nav {
+    grid-area: nav;
+    justify-self: center;
+    justify-items: center;
+    text-align: center;
+  }
+  .footer-aside {
+    grid-area: social;
+    justify-self: center;
+    justify-items: center;
+    text-align: center;
+  }
+  .footer-social { justify-content: center; }
   .footer-header-logo { display: none; }
 }
 @media (max-width: 640px) {
@@ -4017,8 +4113,8 @@ header.top.is-compact .top-actions { margin-left: 0; }
   .footer-tagline { max-width: 22rem; margin-inline: auto; }
   footer nav {
     justify-self: center;
-    justify-items: start;
-    text-align: left;
+    justify-items: center;
+    text-align: center;
   }
   .footer-aside { justify-items: center; }
   .footer-social { justify-content: center; }
