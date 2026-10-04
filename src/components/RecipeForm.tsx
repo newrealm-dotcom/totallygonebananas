@@ -460,7 +460,7 @@ export function RecipeForm({ userId, isEditor, categories, activeTags = [...TAGS
     }
     if (v.tags.length > MAX_TAGS) local.tags = `Up to ${MAX_TAGS} tags`;
     else {
-      const bad = v.tags.map(tagIssue).find(Boolean);
+      const bad = v.tags.map((t) => tagIssue(t)).find(Boolean);
       if (bad) local.tags = bad;
     }
     if (Object.keys(local).length) {

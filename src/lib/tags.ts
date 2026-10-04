@@ -91,12 +91,17 @@ function looksLikeGibberish(tag: string): boolean {
   return false;
 }
 
+interface TagRuleOptions {
+  /** Blog post tags are free-form text[] with no length cap; recipe tags are capped by the DB. */
+  limitLength?: boolean;
+}
+
 /** Returns an error message, or null if the tag is acceptable. */
-export function tagIssue(raw: string): string | null {
+export function tagIssue(raw: string, { limitLength = true }: TagRuleOptions = {}): string | null {
   const tag = normalizeTag(raw);
   if (!tag) return "Enter a tag";
   if (tag.length < TAG_MIN_LEN) return "Use at least 2 characters";
-  if (tag.length > TAG_MAX_LEN) return "Keep tags under 24 characters";
+  if (limitLength && tag.length > TAG_MAX_LEN) return `Keep tags under ${TAG_MAX_LEN} characters`;
   if (!TAG_RE.test(tag)) return "Use letters, numbers, spaces, or hyphens";
   if (containsBlockedWord(tag)) return "That tag isn't allowed";
   if (looksLikeGibberish(tag)) return "That doesn't look like a real tag";
@@ -104,6 +109,6 @@ export function tagIssue(raw: string): string | null {
 }
 
 /** True when a tag string is safe to store or filter on. */
-export function isValidTag(raw: string): boolean {
-  return tagIssue(raw) === null;
+export function isValidTag(raw: string, options?: TagRuleOptions): boolean {
+  return tagIssue(raw, options) === null;
 }

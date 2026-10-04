@@ -135,7 +135,7 @@ export function PostForm({
 
   function addCustomTag() {
     const next = normalizeTag(customTag);
-    const issue = tagIssue(next);
+    const issue = tagIssue(next, { limitLength: false });
     if (issue) {
       setTagError(issue);
       return;
@@ -457,7 +457,6 @@ export function PostForm({
           <input
             id="post-tag-in"
             className="field"
-            maxLength={24}
             value={customTag}
             placeholder="Add your own tag…"
             aria-invalid={!!(tagError || errors.tags)}

@@ -32,7 +32,7 @@ export default async function BlogPage({ searchParams }: PageProps<"/blog">) {
   const category = typeof sp.category === "string" ? sp.category.trim() : "";
   const date = typeof sp.date === "string" ? sp.date.trim() : "";
   const rawTag = typeof sp.tag === "string" ? sp.tag.trim() : "";
-  const tag = rawTag && isValidTag(rawTag) ? normalizeTag(rawTag) : "";
+  const tag = rawTag && isValidTag(rawTag, { limitLength: false }) ? normalizeTag(rawTag) : "";
   if (category === FAVORITES_CATEGORY) redirect("/our-faves");
 
   const filters = {

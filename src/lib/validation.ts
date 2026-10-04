@@ -151,7 +151,7 @@ export const postInput = z.object({
         .trim()
         .transform(normalizeTag)
         .superRefine((val, ctx) => {
-          const issue = tagIssue(val);
+          const issue = tagIssue(val, { limitLength: false });
           if (issue) ctx.addIssue({ code: "custom", message: issue });
         }),
     )
