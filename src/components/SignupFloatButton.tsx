@@ -3,52 +3,26 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 
-const HIDE_AFTER_MS = 15_000;
-const HIDE_AFTER_SCROLL = 0.25;
-const MOBILE_MQ = "(max-width: 900px)";
+const SHOW_AFTER_WINDOW = 0.75;
 
 export function SignupFloatButton() {
-  const [visible, setVisible] = useState(true);
+  const [visible, setVisible] = useState(false);
 
   useEffect(() => {
-    if (!visible) return;
-
-    const mq = window.matchMedia(MOBILE_MQ);
-    let timer = 0;
-
-    const hide = () => setVisible(false);
-
-    const clearTimer = () => {
-      if (timer) {
-        window.clearTimeout(timer);
-        timer = 0;
-      }
-    };
-
-    const armTimer = () => {
-      clearTimer();
-      if (mq.matches) timer = window.setTimeout(hide, HIDE_AFTER_MS);
-    };
-
     const onScroll = () => {
-      if (!mq.matches) return;
-      const max = document.documentElement.scrollHeight - window.innerHeight;
-      if (max <= 0) return;
       const y = window.scrollY || document.documentElement.scrollTop || 0;
-      if (y / max >= HIDE_AFTER_SCROLL) hide();
+      setVisible(y >= window.innerHeight * SHOW_AFTER_WINDOW);
     };
 
-    armTimer();
     onScroll();
-    mq.addEventListener("change", armTimer);
     window.addEventListener("scroll", onScroll, { passive: true });
+    window.addEventListener("resize", onScroll);
 
     return () => {
-      clearTimer();
-      mq.removeEventListener("change", armTimer);
       window.removeEventListener("scroll", onScroll);
+      window.removeEventListener("resize", onScroll);
     };
-  }, [visible]);
+  }, []);
 
   if (!visible) return null;
 

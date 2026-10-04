@@ -46,6 +46,15 @@ export function shortDate(iso: string) {
   });
 }
 
+export function longDate(iso: string) {
+  return new Date(iso).toLocaleDateString("en-US", {
+    timeZone: "America/New_York",
+    month: "long",
+    day: "numeric",
+    year: "numeric",
+  });
+}
+
 /** YYYY-MM-DD for an instant in Eastern Time (for /blog?date= filters). */
 export function easternDateKey(iso: string): string {
   const parts = easternParts(new Date(iso));

@@ -3,10 +3,11 @@ import Link from "next/link";
 import Image from "next/image";
 import { notFound } from "next/navigation";
 import { getBlogCategories, getPostBySlug, getViewer, isEditorRole, listRelatedPosts } from "@/lib/queries";
-import { easternDateKey, shortDate } from "@/lib/format";
+import { easternDateKey, longDate } from "@/lib/format";
 import { mediaSrc } from "@/lib/media";
+import { BlogCoverCard } from "@/components/BlogCoverCard";
 import { HtmlWithScripts } from "@/components/HtmlWithScripts";
-import { renderPostMarkdown, stripInlineMarkdown } from "@/lib/render-post-markdown";
+import { renderPostMarkdown } from "@/lib/render-post-markdown";
 
 export async function generateMetadata({ params }: PageProps<"/blog/[slug]">): Promise<Metadata> {
   const { slug } = await params;
@@ -45,20 +46,7 @@ export default async function BlogPostPage({ params }: PageProps<"/blog/[slug]">
   const cover = mediaSrc(post.cover_path);
   const bodyHtml = renderPostMarkdown(post.body);
   const headJson = headJsonScript(post.head_json);
-  const nameById = new Map(blogCategories.map((c) => [c.id, c.name]));
-  const categories = (post.categories ?? [])
-    .filter((id) => {
-      if (!id) return false;
-      // Favorites only appears on Favorites posts; never list it on archive posts.
-      if (id === "favorites") return isFavorite;
-      return true;
-    })
-    .map((id) => ({
-      id,
-      name: id === "favorites" ? (nameById.get(id) ?? "Favorites") : (nameById.get(id) ?? id),
-      href: id === "favorites" ? "/our-faves" : `/blog?category=${encodeURIComponent(id)}`,
-    }))
-    .filter((c) => c.name);
+  const categoryNames = Object.fromEntries(blogCategories.map((c) => [c.id, c.name]));
   const authorName = post.author?.display_name || "Totally Gone Bananas";
   const authorHref = post.author_id
     ? `/blog?author=${encodeURIComponent(post.author?.username || post.author_id)}`
@@ -66,6 +54,8 @@ export default async function BlogPostPage({ params }: PageProps<"/blog/[slug]">
   const dateHref = post.published_at
     ? `/blog?date=${encodeURIComponent(easternDateKey(post.published_at))}`
     : null;
+  const sectionHref = isFavorite ? "/our-faves" : "/blog";
+  const sectionLabel = isFavorite ? "Our Faves" : "Blog";
 
   return (
     <>
@@ -77,63 +67,45 @@ export default async function BlogPostPage({ params }: PageProps<"/blog/[slug]">
           />
         ) : null}
         <nav className="crumbs" aria-label="Breadcrumb">
-          <Link href="/blog">Blog</Link>
-          <span className="crumbs-item">
-            <span aria-hidden="true">&gt;</span>
-            <span>{post.title}</span>
-          </span>
+          <Link href="/">Home</Link>
+          <span className="crumbs-sep" aria-hidden="true">/</span>
+          <Link href={sectionHref}>{sectionLabel}</Link>
+          <span className="crumbs-sep" aria-hidden="true">/</span>
+          <span className="crumbs-current">{post.title}</span>
         </nav>
         <header className="page-head">
           {post.status === "draft" && <p className="status s-draft">Draft — only editors can see this</p>}
           <h1>{post.title}</h1>
-          <p className="lede blog-byline">
-            <span>
-              Author:{" "}
-              {authorHref ? <Link href={authorHref}>{authorName}</Link> : authorName}
-            </span>
-            <span className="blog-byline-sep" aria-hidden="true">|</span>
-            <span>
-              Date:{" "}
-              {dateHref && post.published_at ? (
-                <Link href={dateHref}>{shortDate(post.published_at)}</Link>
-              ) : (
-                "—"
-              )}
-            </span>
-            <span className="blog-byline-sep" aria-hidden="true">|</span>
-            <span>
-              Category:{" "}
-              {categories.length ? (
-                categories.map((c, i) => (
-                  <span key={c.id}>
-                    {i > 0 ? ", " : null}
-                    <Link href={c.href}>{c.name}</Link>
-                  </span>
-                ))
-              ) : (
-                "—"
-              )}
-            </span>
+          <p className="blog-byline">
+            {dateHref && post.published_at ? (
+              <Link href={dateHref}>{longDate(post.published_at)}</Link>
+            ) : (
+              <span>—</span>
+            )}
+            {" "}
+            {authorHref ? <Link href={authorHref}>{authorName}</Link> : <span>{authorName}</span>}
           </p>
-          {(post.tags?.length ?? 0) > 0 ? (
-            <div className="meta blog-post-tags" aria-label="Tags">
-              {post.tags.map((t) => (
-                <Link key={t} className="pill" href={`/blog?tag=${encodeURIComponent(t)}`}>
-                  {t}
-                </Link>
-              ))}
-            </div>
+          {editor ? (
+            <p className="blog-post-edit">
+              <Link className="btn small ghost" href={`/admin/posts/${post.id}/edit`}>Edit in admin</Link>
+            </p>
           ) : null}
-          {editor && (
-            <p><Link className="btn small ghost" href={`/admin/posts/${post.id}/edit`}>Edit in admin</Link></p>
-          )}
         </header>
-        {cover && (
+        {cover ? (
           <div className="blog-hero">
-            <Image src={cover} alt="" width={960} height={540} unoptimized priority />
+            <Image src={cover} alt="" width={1200} height={675} unoptimized priority />
           </div>
-        )}
+        ) : null}
         <HtmlWithScripts className="blog-body" html={bodyHtml} />
+        {(post.tags?.length ?? 0) > 0 ? (
+          <div className="meta blog-post-tags" aria-label="Tags">
+            {post.tags.map((t) => (
+              <Link key={t} className="pill" href={`/blog?tag=${encodeURIComponent(t)}`}>
+                {t}
+              </Link>
+            ))}
+          </div>
+        ) : null}
       </article>
 
       {related.length > 0 ? (
@@ -143,33 +115,14 @@ export default async function BlogPostPage({ params }: PageProps<"/blog/[slug]">
               <h2 id="related-posts-h">Related posts</h2>
               <p>{isFavorite ? "More from Our Faves." : "More from the blog."}</p>
             </div>
-            <Link className="btn ghost small" href={isFavorite ? "/our-faves" : "/blog"}>
+            <Link className="btn ghost small" href={sectionHref}>
               {isFavorite ? "View Our Faves" : "View all posts"}
             </Link>
           </div>
-          <ul className="blog-grid home-blog-grid">
-            {related.map((p) => {
-              const relatedCover = mediaSrc(p.cover_path);
-              return (
-                <li key={p.id} className="blog-card">
-                  {relatedCover ? (
-                    <Link href={`/blog/${p.slug}`} className="blog-card-media" tabIndex={-1} aria-hidden>
-                      <Image src={relatedCover} alt="" width={640} height={360} unoptimized />
-                    </Link>
-                  ) : (
-                    <Link href={`/blog/${p.slug}`} className="blog-card-media blog-card-media-ph" tabIndex={-1} aria-hidden />
-                  )}
-                  <div className="blog-card-body">
-                    <h3><Link href={`/blog/${p.slug}`}>{stripInlineMarkdown(p.title)}</Link></h3>
-                    {p.excerpt ? <p>{stripInlineMarkdown(p.excerpt)}</p> : null}
-                    <div className="blog-card-foot">
-                      <span />
-                      <Link className="blog-card-read" href={`/blog/${p.slug}`}>Read</Link>
-                    </div>
-                  </div>
-                </li>
-              );
-            })}
+          <ul className="blog-cover-grid">
+            {related.map((p) => (
+              <BlogCoverCard key={p.id} post={p} categoryNames={categoryNames} />
+            ))}
           </ul>
         </section>
       ) : null}

@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
+import { BlogCoverCard } from "@/components/BlogCoverCard";
 import { shortDate } from "@/lib/format";
 import { mediaSrc } from "@/lib/media";
 import { stripInlineMarkdown } from "@/lib/render-post-markdown";
@@ -22,12 +23,14 @@ function PostCard({
   featured = false,
   featuredLabel = "Latest story",
   showDates = true,
+  variant = "classic",
 }: {
   post: Post;
   categoryNames?: Record<string, string>;
   featured?: boolean;
   featuredLabel?: string;
   showDates?: boolean;
+  variant?: "classic" | "cover";
 }) {
   const cover = mediaSrc(post.cover_path);
   const topic = categoryLabel(post, categoryNames);
@@ -35,6 +38,10 @@ function PostCard({
   const excerpt = post.excerpt ? stripInlineMarkdown(post.excerpt) : null;
   const href = `/blog/${post.slug}`;
   const dateLabel = showDates && post.published_at ? shortDate(post.published_at) : null;
+
+  if (variant === "cover") {
+    return <BlogCoverCard post={post} categoryNames={categoryNames} />;
+  }
 
   if (featured) {
     return (
@@ -94,6 +101,8 @@ export function BlogInfiniteGrid({
   moreHint = "Pick a card and keep peeling",
   showDates = true,
   loadMode = "scroll",
+  variant = "classic",
+  loadMoreLabel = "More",
 }: {
   initialPosts: Post[];
   total: number;
@@ -108,6 +117,8 @@ export function BlogInfiniteGrid({
   showDates?: boolean;
   /** `scroll` uses an intersection sentinel; `button` shows a More control. */
   loadMode?: "scroll" | "button";
+  variant?: "classic" | "cover";
+  loadMoreLabel?: string;
 }) {
   const [posts, setPosts] = useState(initialPosts);
   const [hasMore, setHasMore] = useState(initialPosts.length < total);
@@ -183,9 +194,15 @@ export function BlogInfiniteGrid({
               {moreHint ? <p className="blog-more-hint">{moreHint}</p> : null}
             </div>
           ) : null}
-          <ul className={`blog-grid home-blog-grid${featured ? " blog-grid-rest" : ""}`}>
+          <ul className={`blog-grid${variant === "cover" ? " blog-cover-grid" : " home-blog-grid"}${featured ? " blog-grid-rest" : ""}`}>
             {gridPosts.map((p) => (
-              <PostCard key={p.id} post={p} categoryNames={categoryNames} showDates={showDates} />
+              <PostCard
+                key={p.id}
+                post={p}
+                categoryNames={categoryNames}
+                showDates={showDates}
+                variant={variant}
+              />
             ))}
           </ul>
         </>
@@ -195,16 +212,13 @@ export function BlogInfiniteGrid({
       ) : null}
       {loadMode === "button" && hasMore ? (
         <div className="blog-feed-more">
-          <button type="button" className="btn" disabled={loading} onClick={() => void loadMore()}>
-            {loading ? "Loading…" : "More"}
+          <button type="button" className="btn dark" disabled={loading} onClick={() => void loadMore()}>
+            {loading ? "Loading…" : loadMoreLabel}
           </button>
         </div>
       ) : null}
       {loadMode === "scroll" && loading ? (
         <p className="hint blog-feed-status" role="status">Loading more posts…</p>
-      ) : null}
-      {!hasMore && posts.length > PAGE_SIZE ? (
-        <p className="hint blog-feed-status">That&apos;s every post for now.</p>
       ) : null}
     </div>
   );

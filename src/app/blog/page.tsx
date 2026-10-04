@@ -9,6 +9,7 @@ import {
 } from "@/lib/queries";
 import { shortDate } from "@/lib/format";
 import { isValidTag, normalizeTag } from "@/lib/tags";
+import { BlogFeaturedCarousel } from "@/components/BlogFeaturedCarousel";
 import { BlogInfiniteGrid } from "@/components/BlogInfiniteGrid";
 import { FilterPillsScroller } from "@/components/FilterPillsScroller";
 import { FlipCounter } from "@/components/FlipCounter";
@@ -22,6 +23,7 @@ export const metadata: Metadata = {
 };
 
 const INITIAL_LIMIT = 12;
+const CAROUSEL_COUNT = 5;
 const FAVORITES_CATEGORY = "favorites";
 const ARCHIVE_LEDE =
   "History, weird science, botanical oddities, and banana lore — pick a topic or dive into the latest story.";
@@ -80,6 +82,7 @@ export default async function BlogPage({ searchParams }: PageProps<"/blog">) {
   }
 
   const categoryNames = Object.fromEntries(blogCategories.map((c) => [c.id, c.name]));
+  const carouselPosts = !filtered ? posts.slice(0, Math.min(CAROUSEL_COUNT, posts.length)) : [];
 
   return (
     <div className="wrap blog-index">
@@ -88,45 +91,6 @@ export default async function BlogPage({ searchParams }: PageProps<"/blog">) {
           <p className="blog-archive-kicker" aria-hidden="true">The archive</p>
           <h1>{heading}</h1>
           <p className="lede">{lede}</p>
-          {!filtered && total > 0 ? (
-            <p className="blog-archive-count">
-              <span className="sr">
-                {total} {total === 1 ? "story" : "stories"} waiting to be peeled open
-              </span>
-              <span aria-hidden="true" className="blog-archive-count-visual">
-                <FlipCounter value={total} persistKey="blog-archive-story-count" />
-                <span className="blog-archive-count-label">
-                  {total === 1 ? "story" : "stories"} waiting to be peeled open
-                </span>
-              </span>
-            </p>
-          ) : null}
-          {browseCategories.length > 0 && !author && !date ? (
-            <div className="blog-topic-row">
-              <span className="blog-topic-label">Categories:</span>
-              <FilterPillsScroller label="categories" moreText="more">
-                <nav className="blog-topic-nav" aria-label="Browse by topic">
-                  <Link
-                    className="blog-topic"
-                    href="/blog"
-                    aria-current={!category ? "page" : undefined}
-                  >
-                    All stories
-                  </Link>
-                  {browseCategories.map((c) => (
-                    <Link
-                      key={c.id}
-                      className="blog-topic"
-                      href={`/blog?category=${encodeURIComponent(c.id)}`}
-                      aria-current={category === c.id ? "page" : undefined}
-                    >
-                      {c.name}
-                    </Link>
-                  ))}
-                </nav>
-              </FilterPillsScroller>
-            </div>
-          ) : null}
           {filtered ? (
             <p className="blog-archive-reset">
               <Link className="btn ghost small" href="/blog">View all posts</Link>
@@ -140,21 +104,72 @@ export default async function BlogPage({ searchParams }: PageProps<"/blog">) {
         ) : null}
       </header>
 
+      {!filtered && total > 0 ? (
+        <p className="blog-archive-count blog-archive-count-foot">
+          <span className="sr">
+            {total} {total === 1 ? "story" : "stories"} waiting to be peeled open
+          </span>
+          <span aria-hidden="true" className="blog-archive-count-visual">
+            <FlipCounter value={total} persistKey="blog-archive-story-count" />
+            <span className="blog-archive-count-label">
+              {total === 1 ? "story" : "stories"} waiting to be peeled open
+            </span>
+          </span>
+        </p>
+      ) : null}
+
       {posts.length === 0 ? (
         <div className="empty">
           <p>{filtered ? "No posts match this filter." : "No posts yet. Check back soon."}</p>
           {filtered ? <Link className="btn" href="/blog">Back to the archive</Link> : null}
         </div>
       ) : (
-        <BlogInfiniteGrid
-          key={`${filters.author ?? ""}|${filters.category ?? ""}|${filters.date ?? ""}|${filters.tag ?? ""}|${filters.excludeCategory ?? ""}`}
-          initialPosts={posts}
-          total={total}
-          filters={filters}
-          showFeatured={!filtered}
-          categoryNames={categoryNames}
-          showDates={false}
-        />
+        <>
+          {carouselPosts.length > 0 ? (
+            <BlogFeaturedCarousel posts={carouselPosts} categoryNames={categoryNames} />
+          ) : null}
+
+          <section className="blog-read-more" aria-labelledby="blog-read-more-h">
+            <h2 id="blog-read-more-h" className="sr">Read more</h2>
+            {browseCategories.length > 0 && !author && !date ? (
+              <div className="blog-topic-row blog-read-filters">
+                <FilterPillsScroller label="categories" moreText="more">
+                  <nav className="blog-topic-nav" aria-label="Browse by topic">
+                    <Link
+                      className="blog-topic"
+                      href="/blog"
+                      aria-current={!category ? "page" : undefined}
+                    >
+                      All stories
+                    </Link>
+                    {browseCategories.map((c) => (
+                      <Link
+                        key={c.id}
+                        className="blog-topic"
+                        href={`/blog?category=${encodeURIComponent(c.id)}`}
+                        aria-current={category === c.id ? "page" : undefined}
+                      >
+                        {c.name}
+                      </Link>
+                    ))}
+                  </nav>
+                </FilterPillsScroller>
+              </div>
+            ) : null}
+
+            <BlogInfiniteGrid
+              key={`${filters.author ?? ""}|${filters.category ?? ""}|${filters.date ?? ""}|${filters.tag ?? ""}|${filters.excludeCategory ?? ""}`}
+              initialPosts={posts}
+              total={total}
+              filters={filters}
+              categoryNames={categoryNames}
+              showDates={false}
+              loadMode="button"
+              variant="cover"
+              loadMoreLabel="Load More"
+            />
+          </section>
+        </>
       )}
       <div style={{ height: "3rem" }} />
     </div>
