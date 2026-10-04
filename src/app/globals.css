@@ -3594,6 +3594,10 @@ ol.steps > li > div > p:first-child { margin-top: 0; }
 .faves-spot-copy .blog-read-cta {
   justify-self: start;
   margin-top: .4rem;
+  min-height: calc(80px * 0.67);
+  padding: calc(.8rem * 0.67) calc(2rem * 0.67);
+  font-size: calc(1.8rem * 0.67);
+  box-shadow: calc(5px * 0.67) calc(5px * 0.67) 0 var(--line);
 }
 .faves-grid {
   list-style: none;
