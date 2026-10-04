@@ -1,9 +1,9 @@
 export const LEVELS = [
   { min: 0, name: "Green Rookie" },
-  { min: 20, name: "Ripe Regular" },
-  { min: 50, name: "Peel Pro" },
-  { min: 100, name: "Bread Boss" },
-  { min: 180, name: "Top Banana" },
+  { min: 2_000, name: "Ripe Regular" },
+  { min: 5_000, name: "Peel Pro" },
+  { min: 10_000, name: "Bread Boss" },
+  { min: 20_000, name: "Top Banana" },
 ] as const;
 
 export function pointsFromCounts(counts: { saved: number; made: number; published: number }): number {

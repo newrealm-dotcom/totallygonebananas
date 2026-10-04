@@ -15,7 +15,7 @@ import {
   type MyRecipeItem,
   type SavedRecipeItem,
 } from "@/components/ProfileCollection";
-import { plural, siteUrlSafe } from "@/app/profile/helpers";
+import { siteUrlSafe } from "@/app/profile/helpers";
 import { getDarkMainSliderImages, getMainSliderImages, pickRandomSlide } from "@/lib/main-slider";
 import { referralHandle } from "@/lib/referral";
 import { LEVELS, meterTone, pointsFromCounts, standingsFor } from "@/lib/standings";
@@ -81,6 +81,7 @@ export default async function ProfilePage({ searchParams }: PageProps<"/profile"
       published: mine.filter((m) => m.status === "published").length,
     }),
   );
+  const pts = new Intl.NumberFormat("en-US");
   const pct = next ? Math.round(((points - LEVELS[level].min) / (next.min - LEVELS[level].min)) * 100) : 100;
   const tone = meterTone(points, LEVELS[level].min, next?.min);
   const avatar = publicUrl(profile.avatar_path, AVATAR_BUCKET);
@@ -128,8 +129,8 @@ export default async function ProfilePage({ searchParams }: PageProps<"/profile"
           </div>
           <p className="hint">
             {next
-              ? `${points} points. ${next.min - points} more to become a ${next.name}.`
-              : `${points} points. Top Banana. Crown secured.`}
+              ? `${pts.format(points)} points. ${pts.format(next.min - points)} more to become a ${next.name}.`
+              : `${pts.format(points)} points. Top Banana. Crown secured.`}
           </p>
           <div className="stats">
             <div className="stat">
@@ -231,7 +232,7 @@ export default async function ProfilePage({ searchParams }: PageProps<"/profile"
           />
         )}
         <p className="hint" style={{ marginTop: "1rem" }}>
-          {plural(points, "point")} so far: saves are worth 3, each dish you make 8, and each published recipe 15. All
+          {pts.format(points)} point{points === 1 ? "" : "s"} so far: saves are worth 3, each dish you make 8, and each published recipe 15. All
           points will have real value in the future so start collecting all you can now. Stay tuned!
         </p>
       </section>
