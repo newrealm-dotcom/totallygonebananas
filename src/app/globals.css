@@ -2825,7 +2825,7 @@ ol.steps > li > div > p:first-child { margin-top: 0; }
 }
 @media (min-width: 901px) {
   .blog-archive-hero:has(.blog-archive-slide) {
-    grid-template-columns: minmax(0, 70%) minmax(0, 30%);
+    grid-template-columns: minmax(0, 40%) minmax(0, 1fr);
     align-items: start;
   }
   .blog-index > .blog-archive-hero:has(.blog-archive-slide) {
@@ -2834,13 +2834,18 @@ ol.steps > li > div > p:first-child { margin-top: 0; }
     margin-bottom: .25rem;
   }
   .blog-index > .blog-archive-hero:has(.blog-archive-slide) .blog-archive-copy {
-    align-self: start;
-    padding-top: 50px;
-    padding-bottom: 50px;
+    align-self: center;
+    padding-top: 25px;
+    padding-bottom: 25px;
+  }
+  .blog-index > .blog-archive-hero:has(.blog-archive-slide) .blog-archive-copy > * {
+    width: 100%;
+    max-width: none;
   }
   .blog-index > .blog-archive-hero:has(.blog-archive-slide) .blog-archive-slide {
     align-self: start;
-    justify-self: stretch;
+    justify-self: end;
+    width: min(460px, 100%);
     max-width: none;
     margin-top: 0;
     padding-top: 0;
