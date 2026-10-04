@@ -32,6 +32,7 @@ export function AdminNav({
   const links = useMemo<AdminLink[]>(
     () => [
       { href: "/admin", label: "Overview", match: (p) => p === "/admin" },
+      { href: "/admin/analytics", label: "Analytics", match: (p) => p.startsWith("/admin/analytics") },
       { href: "/admin/homepage", label: "Homepage", match: (p) => p.startsWith("/admin/homepage") },
       { href: "/admin/recipes", label: "Recipes", match: (p) => p.startsWith("/admin/recipes") },
       { href: "/admin/categories", label: "Recipe Categories", match: (p) => p.startsWith("/admin/categories") },

@@ -2569,6 +2569,34 @@ ol.steps > li > div > p:first-child { margin-top: 0; }
   border-color: var(--brown);
 }
 .admin-stats { list-style: none; margin: 0 0 1.4rem; padding: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: .8rem; }
+.ga-stats { grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); }
+.ga-stats .stat b { font-size: clamp(1.9rem, 3.2vw, 3rem); line-height: 1; overflow-wrap: anywhere; }
+.ga-stats .stat span { font-size: .95rem; margin-top: .3rem; }
+.ga-range { margin-top: .4rem; }
+.ga-range .f { min-width: 10.5rem; }
+.ga-card { background: var(--paper); border: 3px solid var(--line); border-radius: 22px; padding: 1.1rem 1.2rem 1.2rem; margin-bottom: 1.2rem; min-width: 0; }
+.ga-card h3 { margin: 0 0 .8rem; }
+.ga-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 420px), 1fr)); gap: 0 1.2rem; align-items: start; }
+.ga-empty { margin: 0; color: var(--muted); font-weight: 700; }
+.ga-error { color: var(--muted); font-weight: 600; max-width: 60ch; overflow-wrap: anywhere; }
+.ga-chart { margin: 0; }
+.ga-chart svg { display: block; width: 100%; height: 220px; }
+.ga-chart rect { fill: var(--yellow); stroke: var(--brown); stroke-width: 1.5; vector-effect: non-scaling-stroke; }
+.ga-chart rect:hover { fill: var(--orange); }
+.ga-chart figcaption { display: flex; justify-content: space-between; gap: 1rem; margin-top: .5rem; font-weight: 800; font-size: .85rem; color: var(--muted); }
+.ga-table { width: 100%; border-collapse: collapse; font-weight: 700; font-size: .95rem; }
+.ga-table th { text-align: left; font-size: .8rem; text-transform: uppercase; letter-spacing: .04em; color: var(--muted); padding: 0 .4rem .5rem; border-bottom: 2px solid var(--line); }
+.ga-table td { padding: .45rem .4rem; border-bottom: 1px solid color-mix(in srgb, var(--line) 25%, transparent); }
+.ga-table th:not(:first-child), .ga-table td:not(:first-child) { text-align: right; white-space: nowrap; width: 1%; }
+.ga-table td:first-child { position: relative; max-width: 0; width: 100%; }
+.ga-bar { position: absolute; inset: .2rem auto .2rem 0; background: color-mix(in srgb, var(--yellow) 55%, transparent); border-radius: 6px; z-index: 0; }
+.ga-label { position: relative; z-index: 1; display: block; padding-left: .35rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ga-live { margin-top: 1rem; }
+.ga-live h3 small { font-size: .8rem; text-transform: uppercase; letter-spacing: .04em; color: var(--muted); margin-left: .4rem; }
+.ga-live-users { margin: 0 0 .8rem; font-weight: 800; }
+.ga-live-users b { font-size: 2rem; margin-right: .3rem; }
+.ga-live-events { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: .5rem; }
+.ga-live-events li { border: 2px solid var(--line); border-radius: 999px; padding: .25rem .8rem; font-weight: 700; font-size: .9rem; background: color-mix(in srgb, var(--yellow) 30%, transparent); }
 .admin-actions { display: flex; flex-wrap: wrap; gap: .7rem; margin-bottom: 1rem; }
 .admin-cat-edit { display: grid; grid-template-columns: 4rem 1fr 1.4fr 5rem auto; gap: .5rem; align-items: center; width: 100%; }
 .admin-cd { display: inline-flex; flex-wrap: wrap; gap: .4rem; align-items: center; }
