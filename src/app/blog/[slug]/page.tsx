@@ -82,13 +82,18 @@ export default async function BlogPostPage({ params }: PageProps<"/blog/[slug]">
           {post.status === "draft" && <p className="status s-draft">Draft — only editors can see this</p>}
           <h1>{post.title}</h1>
           <p className="blog-byline">
-            {dateHref && post.published_at ? (
-              <Link href={dateHref}>{longDate(post.published_at)}</Link>
-            ) : (
-              <span>—</span>
-            )}
-            {" "}
-            {authorHref ? <Link href={authorHref}>{authorName}</Link> : <span>{authorName}</span>}
+            <span className="blog-byline-item">
+              <strong>Date:</strong>{" "}
+              {dateHref && post.published_at ? (
+                <Link href={dateHref}>{longDate(post.published_at)}</Link>
+              ) : (
+                <span>—</span>
+              )}
+            </span>
+            <span className="blog-byline-item">
+              <strong>Author:</strong>{" "}
+              {authorHref ? <Link href={authorHref}>{authorName}</Link> : <span>{authorName}</span>}
+            </span>
           </p>
           {editor ? (
             <p className="blog-post-edit">

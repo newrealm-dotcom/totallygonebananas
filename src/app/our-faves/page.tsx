@@ -12,7 +12,8 @@ export const metadata: Metadata = {
 export const dynamic = "force-dynamic";
 
 const FAVORITES_CATEGORY = "favorites";
-const INITIAL_LIMIT = 12;
+/** Featured spot + 4 rows of 3 in the grid before infinite scroll. */
+const INITIAL_LIMIT = 13;
 
 export default async function OurFavesPage() {
   const filters = { category: FAVORITES_CATEGORY };

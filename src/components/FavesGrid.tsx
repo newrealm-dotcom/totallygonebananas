@@ -1,12 +1,13 @@
 "use client";
 
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { mediaSrc } from "@/lib/media";
 import { stripInlineMarkdown } from "@/lib/render-post-markdown";
 import type { Post } from "@/lib/types";
 
+/** 4 rows × 3 columns before infinite scroll kicks in. */
 const PAGE_SIZE = 12;
 
 function categoryLabel(post: Post, names?: Record<string, string>): string | null {
@@ -94,6 +95,7 @@ export function FavesGrid({
   const [posts, setPosts] = useState(initialPosts);
   const [hasMore, setHasMore] = useState(initialPosts.length < total);
   const [loading, setLoading] = useState(false);
+  const sentinelRef = useRef<HTMLDivElement | null>(null);
   const loadingRef = useRef(false);
 
   const featured = featuredPost ?? posts[0] ?? null;
@@ -118,12 +120,25 @@ export function FavesGrid({
       });
       setHasMore(data.hasMore);
     } catch {
-      /* keep hasMore so More can retry */
+      /* keep hasMore so the sentinel can retry */
     } finally {
       loadingRef.current = false;
       setLoading(false);
     }
   }, [hasMore, posts.length]);
+
+  useEffect(() => {
+    const el = sentinelRef.current;
+    if (!el || !hasMore) return;
+    const io = new IntersectionObserver(
+      (entries) => {
+        if (entries.some((e) => e.isIntersecting)) void loadMore();
+      },
+      { rootMargin: "400px 0px" },
+    );
+    io.observe(el);
+    return () => io.disconnect();
+  }, [hasMore, loadMore]);
 
   if (!featured) return null;
 
@@ -137,12 +152,9 @@ export function FavesGrid({
           ))}
         </ul>
       ) : null}
-      {hasMore ? (
-        <div className="blog-feed-more">
-          <button type="button" className="btn" disabled={loading} onClick={() => void loadMore()}>
-            {loading ? "Loading…" : "More faves"}
-          </button>
-        </div>
+      {hasMore ? <div ref={sentinelRef} className="blog-feed-sentinel" aria-hidden="true" /> : null}
+      {loading ? (
+        <p className="hint blog-feed-status" role="status">Loading more faves…</p>
       ) : null}
     </div>
   );
