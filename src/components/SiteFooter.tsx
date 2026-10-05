@@ -35,6 +35,17 @@ function YouTubeIcon() {
   );
 }
 
+function PatreonIcon() {
+  return (
+    <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" focusable="false">
+      <path
+        fill="currentColor"
+        d="M15.4 3.1a6.9 6.9 0 1 0 .1 13.8 6.9 6.9 0 0 0-.1-13.8zM2 21V3.1h3.5V21H2z"
+      />
+    </svg>
+  );
+}
+
 export function SiteFooter() {
   return (
     <footer>
@@ -114,6 +125,14 @@ export function SiteFooter() {
                 aria-label="Totally Gone Bananas on YouTube"
               >
                 <YouTubeIcon />
+              </a>
+              <a
+                href="https://www.patreon.com/TotallyGoneBananas/"
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label="Totally Gone Bananas on Patreon"
+              >
+                <PatreonIcon />
               </a>
             </div>
           </div>
