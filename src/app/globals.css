@@ -2673,7 +2673,7 @@ body:has(.admin) footer {
 .ga-live-events { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: .5rem; }
 .ga-live-events li { border: 2px solid var(--line); border-radius: 999px; padding: .25rem .8rem; font-weight: 700; font-size: .9rem; background: color-mix(in srgb, var(--yellow) 30%, transparent); }
 .admin-actions { display: flex; flex-wrap: wrap; gap: .7rem; margin-bottom: 1rem; }
-.admin-cat-edit { display: grid; grid-template-columns: 4rem 1fr 1.4fr 5rem auto; gap: .5rem; align-items: center; width: 100%; }
+.admin-cat-edit { display: grid; grid-template-columns: 1fr 5rem auto; gap: .5rem; align-items: center; width: 100%; }
 .admin-cd { display: inline-flex; flex-wrap: wrap; gap: .4rem; align-items: center; }
 .admin-bulk { display: grid; gap: .8rem; }
 .admin-row-main {

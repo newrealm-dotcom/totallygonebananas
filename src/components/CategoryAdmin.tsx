@@ -16,8 +16,6 @@ export function CategoryAdmin({ categories, isAdmin }: { categories: Category[];
   const [pending, startTransition] = useTransition();
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [name, setName] = useState("");
-  const [emoji, setEmoji] = useState("🍌");
-  const [tagline, setTagline] = useState("");
   const [sortOrder, setSortOrder] = useState(categories.length);
   const [selected, setSelected] = useState<Set<string>>(new Set());
 
@@ -43,26 +41,24 @@ export function CategoryAdmin({ categories, isAdmin }: { categories: Category[];
     e.preventDefault();
     setErrors({});
     startTransition(async () => {
-      const result = await saveCategory({ name, emoji, tagline, sortOrder });
+      const result = await saveCategory({ name, sortOrder });
       if (!result.ok) {
         setErrors(result.errors);
         return;
       }
       setName("");
-      setEmoji("🍌");
-      setTagline("");
       setSortOrder((n) => n + 1);
       router.refresh();
     });
   }
 
-  function update(cat: Category, patch: Partial<{ name: string; emoji: string; tagline: string; sortOrder: number }>) {
+  function update(cat: Category, patch: Partial<{ name: string; sortOrder: number }>) {
     startTransition(async () => {
       const result = await saveCategory(
         {
           name: patch.name ?? cat.name,
-          emoji: patch.emoji ?? cat.emoji ?? "🍌",
-          tagline: patch.tagline ?? cat.tagline ?? "",
+          emoji: cat.emoji ?? "🍌",
+          tagline: cat.tagline ?? "",
           sortOrder: patch.sortOrder ?? cat.sort_order,
         },
         cat.id,
@@ -134,23 +130,15 @@ export function CategoryAdmin({ categories, isAdmin }: { categories: Category[];
     <div className="stack">
       <form className="panel stack" onSubmit={create}>
         <h2>Add a category</h2>
-        <div className="f-grid three">
+        <div className="f-grid">
           <div className="f">
             <label htmlFor="cat-name">Name</label>
             <input id="cat-name" className="field" value={name} onChange={(e) => setName(e.target.value)} required />
           </div>
           <div className="f">
-            <label htmlFor="cat-emoji">Emoji</label>
-            <input id="cat-emoji" className="field" value={emoji} onChange={(e) => setEmoji(e.target.value)} />
-          </div>
-          <div className="f">
             <label htmlFor="cat-sort">Sort order</label>
             <input id="cat-sort" className="field" type="number" min={0} value={sortOrder} onChange={(e) => setSortOrder(Number(e.target.value))} />
           </div>
-        </div>
-        <div className="f">
-          <label htmlFor="cat-tagline">Tagline</label>
-          <input id="cat-tagline" className="field" value={tagline} onChange={(e) => setTagline(e.target.value)} />
         </div>
         {errors.form && <p className="f-err">{errors.form}</p>}
         {errors.name && <p className="f-err">{errors.name}</p>}
@@ -193,7 +181,6 @@ export function CategoryAdmin({ categories, isAdmin }: { categories: Category[];
               </label>
             )}
             <div className="admin-cat-edit">
-              <input className="field small" aria-label={`${c.name} emoji`} defaultValue={c.emoji ?? ""} onBlur={(e) => e.target.value !== (c.emoji ?? "") && update(c, { emoji: e.target.value })} />
               <input
                 id={`cat-name-${c.id}`}
                 className="field small"
@@ -201,7 +188,6 @@ export function CategoryAdmin({ categories, isAdmin }: { categories: Category[];
                 defaultValue={c.name}
                 onBlur={(e) => e.target.value !== c.name && update(c, { name: e.target.value })}
               />
-              <input className="field small" aria-label={`${c.name} tagline`} defaultValue={c.tagline ?? ""} onBlur={(e) => e.target.value !== (c.tagline ?? "") && update(c, { tagline: e.target.value })} />
               <input className="field small" type="number" aria-label={`${c.name} sort`} defaultValue={c.sort_order} onBlur={(e) => Number(e.target.value) !== c.sort_order && update(c, { sortOrder: Number(e.target.value) })} />
               <code className="muted">{c.id}</code>
             </div>
