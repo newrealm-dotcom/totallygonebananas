@@ -28,7 +28,6 @@ export default async function AdminLayout({ children }: { children: React.ReactN
         referralsRecent={counts.referralsRecent}
       />
       {children}
-      <div style={{ height: "3rem" }} />
     </div>
   );
 }

@@ -387,7 +387,7 @@ footer {
   position: relative;
   z-index: 2;
   border-top: 3px solid var(--line);
-  padding: clamp(2.75rem, 5vw, 4rem) 0 clamp(2.25rem, 4vw, 3rem);
+  padding: 25px 0;
   background:
     linear-gradient(180deg, color-mix(in srgb, var(--yellow) 22%, var(--paper)) 0%, var(--paper) 42%);
 }
@@ -493,9 +493,10 @@ footer nav {
   grid-template-rows: repeat(4, auto);
   grid-auto-flow: column;
   column-gap: 3.5rem;
-  row-gap: .45rem;
+  row-gap: .15rem;
   align-items: start;
-  font-size: 1.0625rem;
+  font-size: 0.85rem;
+  line-height: 1.4;
   font-weight: 800;
   text-transform: uppercase;
   letter-spacing: .02em;
@@ -506,6 +507,7 @@ footer nav a {
   white-space: nowrap;
   color: var(--ink);
   font-weight: 800;
+  line-height: 1.4;
   transition: color .15s ease;
 }
 footer nav a:hover {
@@ -529,9 +531,10 @@ footer nav a:hover {
   color: var(--muted);
 }
 .footer-social {
-  display: flex;
-  align-items: center;
-  gap: .55rem;
+  display: grid;
+  grid-template-columns: repeat(3, 44px);
+  gap: .45rem .55rem;
+  justify-content: end;
 }
 .footer-social a {
   display: grid;
@@ -2493,6 +2496,16 @@ ol.steps > li > div > p:first-child { margin-top: 0; }
 
 /* ---------- admin / blog ---------- */
 .admin .page-head { padding-bottom: 1.5rem; }
+.admin > :last-child { margin-bottom: 0; }
+/* Match space below last admin content to space above the page-head. */
+.admin { padding-bottom: clamp(1.8rem, 4vw, 3rem); }
+@media (min-width: 901px) {
+  .admin { padding-bottom: 50px; }
+}
+/* No extra footer margin; .admin padding-bottom is the only gap. */
+body:has(.admin) footer {
+  margin-top: 0;
+}
 .admin .page-head h1 { margin-bottom: 0; }
 .admin .page-head .lede {
   max-width: none;
