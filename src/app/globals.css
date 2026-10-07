@@ -1672,14 +1672,34 @@ body:has(.recipes-index) footer {
   line-height: 1.2;
   text-wrap: balance;
 }
+/* Phone: difficulty, servings, and ready-in stay in one row. */
 @media (max-width: 560px) {
-  .recipe-facts,
-  .recipe-facts:has(> :first-child:nth-last-child(2)),
-  .recipe-facts:has(> :only-child) {
-    grid-template-columns: 1fr;
-    justify-items: stretch;
+  .recipe-facts {
+    gap: .45rem .35rem;
+    margin: .7rem 0 .85rem;
+    padding: .7rem 0;
   }
-  .recipe-fact { justify-items: center; }
+  .recipe-facts:has(> :only-child) {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .recipe-facts:has(> :first-child:nth-last-child(2)) {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .recipe-facts-icon {
+    width: 1.85rem;
+    height: 1.85rem;
+    margin-bottom: .05rem;
+  }
+  .recipe-fact dt {
+    font-size: clamp(.62rem, 2.7vw, .78rem);
+    white-space: nowrap;
+  }
+  .recipe-fact dd {
+    max-width: 100%;
+    font-size: clamp(.78rem, 3.15vw, 1.05rem);
+    overflow-wrap: break-word;
+    text-wrap: balance;
+  }
 }
 .d-intro {
   display: grid;
