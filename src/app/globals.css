@@ -532,15 +532,15 @@ footer nav a:hover {
 }
 .footer-social {
   display: grid;
-  grid-template-columns: repeat(3, 44px);
-  gap: .45rem .55rem;
+  grid-template-columns: repeat(4, 40px);
+  gap: .3rem .3rem;
   justify-content: end;
 }
 .footer-social a {
   display: grid;
   place-items: center;
-  width: 44px;
-  height: 44px;
+  width: 40px;
+  height: 40px;
   border: 2.5px solid var(--line);
   border-radius: 50%;
   background: var(--paper);
