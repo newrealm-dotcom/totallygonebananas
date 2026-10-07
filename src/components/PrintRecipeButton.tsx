@@ -181,7 +181,13 @@ export function PrintRecipeButton({ recipe }: { recipe: PrintRecipePayload }) {
                       {group.title ? <h3>{group.title}</h3> : null}
                       <ul>
                         {group.items.map((item, i) => (
-                          <li key={i}>{item}</li>
+                          <li key={i}>
+                            {item.url ? (
+                              <a href={item.url} target="_blank" rel="noopener noreferrer">{item.text}</a>
+                            ) : (
+                              item.text
+                            )}
+                          </li>
                         ))}
                       </ul>
                     </div>

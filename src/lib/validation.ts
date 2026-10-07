@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { ingredientUrlError } from "@/lib/ingredients";
 import { MEDIA_PATH_RE } from "@/lib/media";
 import { MAX_TAGS, normalizeTag, tagIssue } from "@/lib/tags";
 
@@ -60,7 +61,20 @@ export const recipeInput = z.object({
       z.object({
         title: z.string().trim().max(80, "Keep the list title under 80 characters").default(""),
         items: z
-          .array(z.string().trim().min(1).max(200, "Each ingredient must be under 200 characters"))
+          .array(
+            z.object({
+              text: z.string().trim().min(1).max(200, "Each ingredient must be under 200 characters"),
+              url: z
+                .string()
+                .trim()
+                .max(500, "Keep the ingredient link under 500 characters")
+                .default("")
+                .superRefine((val, ctx) => {
+                  const issue = ingredientUrlError(val);
+                  if (issue) ctx.addIssue({ code: "custom", message: issue });
+                }),
+            }),
+          )
           .max(80, "That's a lot of ingredients in one list! Keep it to 80"),
       }),
     )

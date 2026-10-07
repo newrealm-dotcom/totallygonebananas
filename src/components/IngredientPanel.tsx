@@ -2,8 +2,31 @@
 
 import { useState } from "react";
 import { parseServingCount } from "@/lib/format";
+import type { IngredientGroup, IngredientItem } from "@/lib/ingredients";
 import { scaleLine } from "@/lib/scale";
-import type { IngredientGroup } from "@/lib/ingredients";
+
+function IngredientText({ item, k }: { item: IngredientItem; k: number }) {
+  const [q, rest] = scaleLine(item.text, k);
+  const body = (
+    <>
+      {q && <b className="scaled">{q}</b>}
+      {rest}
+    </>
+  );
+  if (!item.url) return <span>{body}</span>;
+  return (
+    <a
+      className="ing-link"
+      href={item.url}
+      target="_blank"
+      rel="noopener noreferrer"
+      onClick={(e) => e.stopPropagation()}
+    >
+      {body}
+      <span className="sr"> (opens in a new window)</span>
+    </a>
+  );
+}
 
 export function IngredientPanel({
   ingredients,
@@ -17,7 +40,8 @@ export function IngredientPanel({
   const [mult, setMult] = useState(1);
   const [checked, setChecked] = useState<Set<string>>(new Set());
   const k = baseServings ? serv / baseServings : mult;
-  const groups = ingredients.length ? ingredients : [{ title: "", items: [] as string[] }];
+  const groups = ingredients.length ? ingredients : [{ title: "", items: [] as IngredientItem[] }];
+  const hasLink = groups.some((g) => g.items.some((item) => item.url));
 
   const toggle = (key: string) =>
     setChecked((c) => {
@@ -30,7 +54,10 @@ export function IngredientPanel({
   return (
     <aside className="panel ing-panel" aria-labelledby="ing-title">
       <h2 id="ing-title">Ingredients</h2>
-      <p>Tick things off as you shop or cook.</p>
+      <p>
+        Tick things off as you shop or cook.
+        {hasLink ? " Linked ingredients open in a new window." : ""}
+      </p>
       <div className="scale">
         {baseServings ? (
           <>
@@ -54,14 +81,13 @@ export function IngredientPanel({
         <div key={gi} className="ing-group">
           {group.title ? <h3 className="ing-group-title">{group.title}</h3> : null}
           <ol className="checks">
-            {group.items.map((line, i) => {
+            {group.items.map((item, i) => {
               const key = `${gi}-${i}`;
-              const [q, rest] = scaleLine(line, k);
               return (
                 <li key={key}>
                   <label>
                     <input type="checkbox" checked={checked.has(key)} onChange={() => toggle(key)} />
-                    <span>{q && <b className="scaled">{q}</b>}{rest}</span>
+                    <IngredientText item={item} k={k} />
                   </label>
                 </li>
               );

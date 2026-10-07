@@ -13,6 +13,7 @@ import {
   emptyStepGroup,
   mergeRecipeDraft,
   type IngredientGroupRow,
+  type IngredientRow,
   type RecipeFormValues,
   type Row,
   type StepGroupRow,
@@ -20,6 +21,7 @@ import {
   type Upload,
 } from "@/lib/recipe-form-values";
 import { PostBodyEditor } from "@/components/PostBodyEditor";
+import { ingredientUrlError } from "@/lib/ingredients";
 import { slugify, titleCase } from "@/lib/format";
 
 export type { RecipeFormValues, Upload };
@@ -27,6 +29,7 @@ export { blankValues, valuesFromRecipe } from "@/lib/recipe-form-values";
 
 const uid = () => (typeof crypto !== "undefined" && "randomUUID" in crypto ? crypto.randomUUID() : Math.random().toString(36).slice(2));
 const emptyRow = (): Row => ({ id: uid(), text: "" });
+const emptyIngredient = (): IngredientRow => ({ id: uid(), text: "", url: "" });
 const emptyStep = (): StepRow => ({ id: uid(), text: "", media: null });
 
 /** Splits pasted text into clean lines, dropping bullets and numbering. */
@@ -248,7 +251,7 @@ export function RecipeForm({ userId, isEditor, categories, activeTags = [...TAGS
   }
 
   function addIngredientAfter(groupId: string, index: number) {
-    const row = emptyRow();
+    const row = emptyIngredient();
     updateIngredientGroups((groups) =>
       groups.map((g) => {
         if (g.id !== groupId) return g;
@@ -267,7 +270,7 @@ export function RecipeForm({ userId, isEditor, categories, activeTags = [...TAGS
         if (g.id !== groupId) return g;
         const i = g.items.findIndex((r) => r.id === rowId);
         const items = g.items.filter((r) => r.id !== rowId);
-        if (!items.length) items.push(emptyRow());
+        if (!items.length) items.push(emptyIngredient());
         focus = items[Math.max(0, i - 1)]?.id ?? items[0].id;
         return { ...g, items };
       }),
@@ -285,13 +288,23 @@ export function RecipeForm({ userId, isEditor, categories, activeTags = [...TAGS
     );
   }
 
+  function setIngredientUrl(groupId: string, rowId: string, url: string) {
+    updateIngredientGroups((groups) =>
+      groups.map((g) =>
+        g.id !== groupId
+          ? g
+          : { ...g, items: g.items.map((r) => (r.id === rowId ? { ...r, url } : r)) },
+      ),
+    );
+  }
+
   function setIngredientGroupTitle(groupId: string, title: string) {
     updateIngredientGroups((groups) => groups.map((g) => (g.id === groupId ? { ...g, title } : g)));
   }
 
   function addIngredientGroup() {
     const group = emptyIngredientGroup();
-    group.items = [emptyRow()];
+    group.items = [emptyIngredient()];
     updateIngredientGroups((groups) => [...groups, group]);
     setFocusId(group.items[0].id);
   }
@@ -389,7 +402,7 @@ export function RecipeForm({ userId, isEditor, categories, activeTags = [...TAGS
           groups.map((g) => {
             if (g.id !== groupId) return g;
             const existing = g.items.filter((r) => r.text.trim());
-            const added = lines.map((text) => ({ id: uid(), text: titleCase(text) }));
+            const added = lines.map((text) => ({ id: uid(), text: titleCase(text), url: "" }));
             return { ...g, items: [...existing, ...added] };
           }),
         );
@@ -447,6 +460,12 @@ export function RecipeForm({ userId, isEditor, categories, activeTags = [...TAGS
     if (!v.categoryIds.length) local.categories = "Pick at least one category";
     else if (v.categoryIds.length > 12) local.categories = "Up to 12 categories";
     const hasIngredient = v.ingredientGroups.some((g) => g.items.some((r) => r.text.trim()));
+    v.ingredientGroups.forEach((g, gi) => {
+      g.items.forEach((r, i) => {
+        const issue = ingredientUrlError(r.url);
+        if (issue) local[`ingredients.${gi}.items.${i}.url`] = issue;
+      });
+    });
     const hasStep = v.stepGroups.some((g) => g.steps.some((s) => s.text.trim()));
     if (intent !== "draft") {
       if (!hasIngredient) local.ingredients = "Add at least one ingredient";
@@ -472,7 +491,9 @@ export function RecipeForm({ userId, isEditor, categories, activeTags = [...TAGS
     const ingredientGroups = v.ingredientGroups
       .map((g) => ({
         title: titleCase(g.title.trim()),
-        items: g.items.map((r) => titleCase(r.text.trim())).filter(Boolean),
+        items: g.items
+          .map((r) => ({ text: titleCase(r.text.trim()), url: r.url.trim() }))
+          .filter((r) => r.text),
       }))
       .filter((g) => g.items.length > 0 || g.title);
     const stepGroups = v.stepGroups
@@ -494,7 +515,7 @@ export function RecipeForm({ userId, isEditor, categories, activeTags = [...TAGS
       title: v.title, description: v.description, categories: v.categoryIds,
       newCategories: isEditor ? newCategories : [],
       emoji: v.emoji, totalMinutes: num(v.totalMinutes), notes: v.notes, servings: v.servings.trim(), difficulty: v.difficulty, tags: v.tags,
-      ingredients: ingredientGroups.length ? ingredientGroups : [{ title: "", items: [] as string[] }],
+      ingredients: ingredientGroups.length ? ingredientGroups : [{ title: "", items: [] as { text: string; url: string }[] }],
       equipment: v.equipment.map((r) => r.text.trim()).filter(Boolean),
       steps: stepGroups.length ? stepGroups : [{ title: "", steps: [] as { text: string; media: null }[] }],
       gallery: v.gallery.filter((u) => u.status === "done" && u.path).map((u) => ({ kind: u.kind, path: u.path!, caption: u.caption })),
@@ -505,7 +526,7 @@ export function RecipeForm({ userId, isEditor, categories, activeTags = [...TAGS
     // Drafts may be incomplete; give the server something valid to hold on to.
     if (intent === "draft") {
       if (!payload.ingredients.some((g) => g.items.length)) {
-        payload.ingredients = [{ title: "", items: ["(ingredients to come)"] }];
+        payload.ingredients = [{ title: "", items: [{ text: "(ingredients to come)", url: "" }] }];
       }
       if (!payload.steps.some((g) => g.steps.length)) {
         payload.steps = [{ title: "", steps: [{ text: "(steps to come)", media: null }] }];
@@ -793,7 +814,7 @@ export function RecipeForm({ userId, isEditor, categories, activeTags = [...TAGS
         <h2 id={fid("ing-h")}><span className="num" aria-hidden="true">5</span>Ingredients</h2>
         <p className="hint">
           One per line, amount first (&ldquo;1 1/2 cups flour&rdquo;) so the servings scaler can adjust it.
-          Add another titled list for frostings, sauces, or mix-ins.
+          Add a link and that ingredient opens in a new window. Add another titled list for frostings, sauces, or mix-ins.
         </p>
         {v.ingredientGroups.map((group, gi) => {
           const pasteOpen = !!pasteFor && typeof pasteFor === "object" && "ingredientGroupId" in pasteFor && pasteFor.ingredientGroupId === group.id;
@@ -825,34 +846,51 @@ export function RecipeForm({ userId, isEditor, categories, activeTags = [...TAGS
                 </div>
               </div>
               <ol className="rows-edit">
-                {group.items.map((r, i) => (
-                  <li key={r.id}>
-                    <input
-                      ref={(el) => { if (el) inputs.current.set(r.id, el); else inputs.current.delete(r.id); }}
-                      className="field"
-                      value={r.text}
-                      maxLength={200}
-                      placeholder={i === 0 ? "3 Very Ripe Bananas" : i === 1 ? "1 1/2 Cups Flour" : "Another Ingredient"}
-                      aria-label={`${group.title || "Ingredients"} item ${i + 1}`}
-                      aria-invalid={!!errors[`ingredients.${gi}.items.${i}`]}
-                      onChange={(e) => setIngredientText(group.id, r.id, e.target.value)}
-                      onBlur={(e) => setIngredientText(group.id, r.id, titleCase(e.target.value))}
-                      onKeyDown={(e) => {
-                        if (e.key === "Enter") { e.preventDefault(); addIngredientAfter(group.id, i); }
-                        if (e.key === "Backspace" && !r.text && group.items.length > 1) {
-                          e.preventDefault();
-                          removeIngredient(group.id, r.id);
-                        }
-                      }}
-                      onPaste={(e) => {
-                        const text = e.clipboardData.getData("text");
-                        if (text.includes("\n")) {
-                          e.preventDefault();
-                          setPasteFor({ ingredientGroupId: group.id });
-                          setPasteText(text);
-                        }
-                      }}
-                    />
+                {group.items.map((r, i) => {
+                  const urlError = errors[`ingredients.${gi}.items.${i}.url`];
+                  return (
+                  <li key={r.id} className="ing-row">
+                    <div className="ing-row-fields">
+                      <input
+                        ref={(el) => { if (el) inputs.current.set(r.id, el); else inputs.current.delete(r.id); }}
+                        className="field"
+                        value={r.text}
+                        maxLength={200}
+                        placeholder={i === 0 ? "3 Very Ripe Bananas" : i === 1 ? "1 1/2 Cups Flour" : "Another Ingredient"}
+                        aria-label={`${group.title || "Ingredients"} item ${i + 1}`}
+                        aria-invalid={!!errors[`ingredients.${gi}.items.${i}`] || !!errors[`ingredients.${gi}.items.${i}.text`]}
+                        onChange={(e) => setIngredientText(group.id, r.id, e.target.value)}
+                        onBlur={(e) => setIngredientText(group.id, r.id, titleCase(e.target.value))}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter") { e.preventDefault(); addIngredientAfter(group.id, i); }
+                          if (e.key === "Backspace" && !r.text && group.items.length > 1) {
+                            e.preventDefault();
+                            removeIngredient(group.id, r.id);
+                          }
+                        }}
+                        onPaste={(e) => {
+                          const text = e.clipboardData.getData("text");
+                          if (text.includes("\n")) {
+                            e.preventDefault();
+                            setPasteFor({ ingredientGroupId: group.id });
+                            setPasteText(text);
+                          }
+                        }}
+                      />
+                      <input
+                        className="field ing-url"
+                        type="url"
+                        inputMode="url"
+                        value={r.url}
+                        maxLength={500}
+                        placeholder="Link (optional) — opens in a new window"
+                        aria-label={`Link for ${group.title || "ingredient"} ${i + 1}`}
+                        aria-invalid={!!urlError}
+                        aria-describedby={urlError ? fid(`ing-url-err-${r.id}`) : undefined}
+                        onChange={(e) => setIngredientUrl(group.id, r.id, e.target.value)}
+                      />
+                      {urlError && <p className="f-err" id={fid(`ing-url-err-${r.id}`)} role="alert">{urlError}</p>}
+                    </div>
                     <button
                       type="button"
                       className="icon-btn danger"
@@ -862,7 +900,8 @@ export function RecipeForm({ userId, isEditor, categories, activeTags = [...TAGS
                       ×
                     </button>
                   </li>
-                ))}
+                  );
+                })}
               </ol>
               <div className="row-actions">
                 <button

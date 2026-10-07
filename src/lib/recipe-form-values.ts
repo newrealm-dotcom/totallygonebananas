@@ -20,6 +20,12 @@ export interface Row {
   text: string;
 }
 
+export interface IngredientRow {
+  id: string;
+  text: string;
+  url: string;
+}
+
 export interface StepRow {
   id: string;
   text: string;
@@ -29,7 +35,7 @@ export interface StepRow {
 export interface IngredientGroupRow {
   id: string;
   title: string;
-  items: Row[];
+  items: IngredientRow[];
 }
 
 export interface StepGroupRow {
@@ -60,11 +66,12 @@ export interface RecipeFormValues {
 
 const uid = () => (typeof crypto !== "undefined" && "randomUUID" in crypto ? crypto.randomUUID() : Math.random().toString(36).slice(2));
 const emptyRow = (): Row => ({ id: uid(), text: "" });
+const emptyIngredientRow = (): IngredientRow => ({ id: uid(), text: "", url: "" });
 const emptyStep = (): StepRow => ({ id: uid(), text: "", media: null });
 const emptyIngredientGroup = (title = ""): IngredientGroupRow => ({
   id: uid(),
   title,
-  items: [emptyRow(), emptyRow(), emptyRow()],
+  items: [emptyIngredientRow(), emptyIngredientRow(), emptyIngredientRow()],
 });
 const emptyStepGroup = (title = ""): StepGroupRow => ({
   id: uid(),
@@ -90,9 +97,9 @@ export function blankValues(categoryIds: string[] = []): RecipeFormValues {
       id: "ing-group-0",
       title: "",
       items: [
-        { id: "ing-0-0", text: "" },
-        { id: "ing-0-1", text: "" },
-        { id: "ing-0-2", text: "" },
+        { id: "ing-0-0", text: "", url: "" },
+        { id: "ing-0-1", text: "", url: "" },
+        { id: "ing-0-2", text: "", url: "" },
       ],
     }],
     stepGroups: [{
@@ -113,7 +120,9 @@ function groupsToFormRows(groups: IngredientGroup[]): IngredientGroupRow[] {
   return groups.map((g) => ({
     id: uid(),
     title: g.title,
-    items: g.items.length ? g.items.map((text) => ({ id: uid(), text })) : [emptyRow()],
+    items: g.items.length
+      ? g.items.map((item) => ({ id: uid(), text: item.text, url: item.url }))
+      : [emptyIngredientRow()],
   }));
 }
 
@@ -200,9 +209,20 @@ export function mergeRecipeDraft(
   if (!draft) return base;
   let ingredientGroups = base.ingredientGroups;
   if (Array.isArray(draft.ingredientGroups) && draft.ingredientGroups.length) {
-    ingredientGroups = draft.ingredientGroups;
+    ingredientGroups = draft.ingredientGroups.map((g) => ({
+      ...g,
+      items: (g.items ?? []).map((r) => ({
+        id: r.id,
+        text: r.text ?? "",
+        url: typeof r.url === "string" ? r.url : "",
+      })),
+    }));
   } else if (Array.isArray(draft.ingredients) && draft.ingredients.length) {
-    ingredientGroups = [{ id: uid(), title: "", items: draft.ingredients }];
+    ingredientGroups = [{
+      id: uid(),
+      title: "",
+      items: draft.ingredients.map((r) => ({ id: r.id, text: r.text ?? "", url: "" })),
+    }];
   }
   let stepGroups = base.stepGroups;
   if (Array.isArray(draft.stepGroups) && draft.stepGroups.length) {
@@ -239,4 +259,4 @@ export function mergeRecipeDraft(
   };
 }
 
-export { emptyIngredientGroup, emptyRow, emptyStep, emptyStepGroup, uid };
+export { emptyIngredientGroup, emptyIngredientRow, emptyRow, emptyStep, emptyStepGroup, uid };
