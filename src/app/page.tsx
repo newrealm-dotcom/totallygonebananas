@@ -1,6 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
-import { getBlogCategories, getCategories, getHomepagePromo, listPosts, listRecipes } from "@/lib/queries";
+import { getBlogCategories, getCategories, getHomepagePromo, getViewer, listPosts, listRecipes } from "@/lib/queries";
 import { createClient } from "@/lib/supabase/server";
 import { CategoryStickers } from "@/components/CategoryStickers";
 import { FilterPillsScroller } from "@/components/FilterPillsScroller";
@@ -35,7 +35,7 @@ async function categoryCounts() {
 export default async function HomePage({ searchParams }: PageProps<"/">) {
   const sp = await searchParams;
   const active = typeof sp.category === "string" ? sp.category : undefined;
-  const [categories, counts, latest, all, lightSlides, darkSlides, promo, homePosts, blogCategories] = await Promise.all([
+  const [categories, counts, latest, all, lightSlides, darkSlides, promo, homePosts, blogCategories, viewer] = await Promise.all([
     getCategories(),
     categoryCounts(),
     listRecipes({ category: active, limit: 8 }),
@@ -45,6 +45,7 @@ export default async function HomePage({ searchParams }: PageProps<"/">) {
     getHomepagePromo(),
     listPosts({ publishedOnly: true, limit: 3, offset: 0, excludeCategory: "favorites" }),
     getBlogCategories(),
+    getViewer(),
   ]);
   const blogCategoryNames = Object.fromEntries(blogCategories.map((c) => [c.id, c.name]));
   const promoSrc = promoImageSrc(promo.image_path);
@@ -83,6 +84,36 @@ export default async function HomePage({ searchParams }: PageProps<"/">) {
               lightSrc={heroLight}
               darkSrc={heroDark}
               sizes="(max-width: 900px) 320px, min(38rem, 54vw)"
+            />
+          </div>
+        </div>
+      </section>
+
+      <section className="home-join" aria-labelledby="home-join-h">
+        <div className="wrap home-join-inner">
+          <div className="home-join-copy">
+            <p className="home-join-kicker">Join the bunch</p>
+            <h2 id="home-join-h">Share your favorite banana recipes</h2>
+            <p>
+              Sign up, submit the recipes you love, and be first in line for future contests, giveaways, and more from Totally Gone Bananas.
+            </p>
+            <div className="home-join-actions">
+              {!viewer.userId ? (
+                <Link className="btn" href="/login?next=/recipes/new">Sign Up Now</Link>
+              ) : null}
+              <Link className={viewer.userId ? "btn" : "btn ghost"} href="/recipes/new">
+                Share a recipe
+              </Link>
+            </div>
+          </div>
+          <div className="home-join-art" aria-hidden="true">
+            <Image
+              className="home-join-img"
+              src="/images/finish.webp"
+              alt=""
+              width={720}
+              height={480}
+              sizes="(max-width: 900px) 80vw, 65vw"
             />
           </div>
         </div>
