@@ -1736,7 +1736,7 @@ body:has(.recipes-index) footer {
   padding-top: 50px;
 }
 .d-cooks h2 { margin-bottom: 1rem; }
-.d-hero .lede { margin-bottom: .4rem; }
+.d-hero .lede { margin-bottom: .4rem; max-width: none; width: 100%; }
 .byline { font-weight: 700; color: var(--muted); margin: 0; }
 .adapted-from {
   margin: .55rem 0 0;
