@@ -1735,6 +1735,20 @@ body:has(.recipes-index) footer {
   min-width: 0;
 }
 .d-heading { min-width: 0; }
+.d-heading .h1 { margin-bottom: .35rem; }
+.recipe-disclosure {
+  margin: 0 0 .75rem;
+  font-size: 80%;
+  font-style: italic;
+  font-weight: 600;
+  color: var(--muted);
+  line-height: 1.4;
+}
+.recipe-disclosure a {
+  color: inherit;
+  font-weight: 800;
+  text-underline-offset: 2px;
+}
 .recipe-facts {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));

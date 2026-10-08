@@ -190,6 +190,10 @@ export default async function RecipePage({ params, searchParams }: PageProps<"/r
         <div className="d-right">
           <div className="d-heading">
             <h1 className="h1">{titleCase(r.title)}</h1>
+            <p className="recipe-disclosure">
+              This site runs ads and generates income from affiliate links.{" "}
+              <Link href="/policy">Read my disclosure policy</Link>.
+            </p>
             <RecipeFacts
               difficulty={r.difficulty}
               servings={r.servings}
