@@ -107,6 +107,19 @@ export default async function BlogPostPage({ params }: PageProps<"/blog/[slug]">
           </div>
         ) : null}
         <HtmlWithScripts className="blog-body" html={bodyHtml} />
+        <div className="blog-post-affiliate">
+          <a
+            target="_blank"
+            rel="noopener noreferrer sponsored"
+            href="https://click.linksynergy.com/fs-bin/click?id=VpCq3uDNXNY&offerid=2037571.369&subid=0&type=4"
+          >
+            {/* eslint-disable-next-line @next/next/no-img-element -- affiliate creatives must load from the network */}
+            <img
+              alt="Giftcards.com Gift Card"
+              src="https://ad.linksynergy.com/fs-bin/show?id=VpCq3uDNXNY&bids=2037571.369&subid=0&type=4&gridnum=0"
+            />
+          </a>
+        </div>
         {(post.tags?.length ?? 0) > 0 ? (
           <div className="meta blog-post-tags" aria-label="Tags">
             {post.tags.map((t) => (

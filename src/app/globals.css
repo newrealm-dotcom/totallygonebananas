@@ -4072,6 +4072,7 @@ body:has(.admin) footer {
   width: 100%;
 }
 .blog-post .blog-body,
+.blog-post-affiliate,
 .blog-post-tags,
 .blog-comments {
   max-width: 42rem;
@@ -4226,8 +4227,25 @@ article.blog-post {
   text-underline-offset: .12em;
 }
 .blog-post-edit { margin: 1rem 0 0; }
-.blog-post-tags {
+.blog-post-affiliate {
+  display: flex;
+  justify-content: center;
   margin: 2.6rem auto 0;
+  text-align: center;
+}
+.blog-post-affiliate a {
+  display: inline-block;
+  line-height: 0;
+}
+.blog-post-affiliate img {
+  display: block;
+  max-width: 100%;
+  height: auto;
+  margin-inline: auto;
+  border: 0;
+}
+.blog-post-tags {
+  margin: 1.4rem auto 0;
 }
 .blog-post-tags .pill { white-space: normal; overflow-wrap: anywhere; }
 
