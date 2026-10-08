@@ -1,11 +1,11 @@
 import type { Metadata, Viewport } from "next";
 import Script from "next/script";
 import "@fontsource/shrikhand/latin-400.css";
-import "@fontsource-variable/nunito/index.css";
+import "@fontsource-variable/nunito/wght.css";
 import "./globals.css";
 import { SiteHeader } from "@/components/SiteHeader";
 import { SiteFooter } from "@/components/SiteFooter";
-import { BackToTop } from "@/components/BackToTop";
+import { DeferredBackToTop } from "@/components/DeferredChrome";
 import { SignupFloat } from "@/components/SignupFloat";
 import { siteUrl } from "@/lib/env";
 
@@ -32,9 +32,6 @@ const themeInit = `(function(){try{var t=localStorage.getItem("theme");if(t!=="l
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en" data-theme="light" suppressHydrationWarning>
-      <head>
-        <script id="gtm-init" dangerouslySetInnerHTML={{ __html: gtmInit }} />
-      </head>
       <body>
         <noscript>
           <iframe
@@ -45,12 +42,14 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           />
         </noscript>
         <Script id="theme-init" strategy="beforeInteractive" dangerouslySetInnerHTML={{ __html: themeInit }} />
+        {/* Defer GTM so tag scripts don't compete with LCP / inflate TBT on mobile. */}
+        <Script id="gtm-init" strategy="lazyOnload" dangerouslySetInnerHTML={{ __html: gtmInit }} />
         <a className="skip" href="#main">Skip to content</a>
         <SiteHeader />
         <main id="main">{children}</main>
         <SiteFooter />
         <SignupFloat />
-        <BackToTop />
+        <DeferredBackToTop />
       </body>
     </html>
   );

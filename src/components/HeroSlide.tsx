@@ -43,13 +43,14 @@ export function HeroSlide({
         priority
         sizes={sizes}
       />
+      {/* Dark slide is CSS-hidden in light mode — don't mark it priority or it races LCP. */}
       <Image
         className="mascot hero-slide hero-slide-dark"
         src={dark}
         alt={alt}
         width={920}
         height={520}
-        priority
+        loading="lazy"
         sizes={sizes}
       />
     </div>

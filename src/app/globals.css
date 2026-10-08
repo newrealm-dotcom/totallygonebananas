@@ -931,7 +931,6 @@ html[data-theme="dark"] .hero-slide-stack .hero-slide-dark { display: block; }
   }
   .home-join-copy p { margin-inline: auto; }
   .home-join-actions { justify-content: center; }
-  .home-join-art { order: -1; }
   .home-latest-lede { text-align: center; }
   .home-latest .card .inner,
   .home-latest .card h3,

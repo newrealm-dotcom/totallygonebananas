@@ -1,8 +1,8 @@
 import { getViewer } from "@/lib/queries";
-import { SignupFloatButton } from "@/components/SignupFloatButton";
+import { DeferredSignupFloatButton } from "@/components/DeferredChrome";
 
 export async function SignupFloat() {
   const { userId } = await getViewer();
   if (userId) return null;
-  return <SignupFloatButton />;
+  return <DeferredSignupFloatButton />;
 }

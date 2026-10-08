@@ -1,6 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
-import { getBlogCategories, getCategories, getHomepagePromo, getViewer, listPosts, listRecipes } from "@/lib/queries";
+import { countRecipes, getBlogCategories, getCategories, getHomepagePromo, getViewer, listPosts, listRecipes } from "@/lib/queries";
 import { createClient } from "@/lib/supabase/server";
 import { CategoryStickers } from "@/components/CategoryStickers";
 import { FilterPillsScroller } from "@/components/FilterPillsScroller";
@@ -35,11 +35,12 @@ async function categoryCounts() {
 export default async function HomePage({ searchParams }: PageProps<"/">) {
   const sp = await searchParams;
   const active = typeof sp.category === "string" ? sp.category : undefined;
-  const [categories, counts, latest, all, lightSlides, darkSlides, promo, homePosts, blogCategories, viewer] = await Promise.all([
+  const [categories, counts, latest, recipeTotal, rotdPool, lightSlides, darkSlides, promo, homePosts, blogCategories, viewer] = await Promise.all([
     getCategories(),
     categoryCounts(),
     listRecipes({ category: active, limit: 8 }),
-    listRecipes({ limit: 200, sort: "az" }),
+    countRecipes(),
+    listRecipes({ limit: 40, sort: "new" }),
     getMainSliderImages(),
     getDarkMainSliderImages(),
     getHomepagePromo(),
@@ -54,7 +55,7 @@ export default async function HomePage({ searchParams }: PageProps<"/">) {
   const heroDark = pickPreferredSlide(darkSlides, FIRST_DARK_SLIDE);
   const moreHref = cat ? `/recipes?category=${cat.id}` : "/recipes";
 
-  const rotd = recipeOfTheDay(all);
+  const rotd = recipeOfTheDay(rotdPool);
 
   return (
     <>
@@ -78,7 +79,7 @@ export default async function HomePage({ searchParams }: PageProps<"/">) {
           <div className="mascot-wrap hero-art">
             <div className="bubble">
               <strong>{cat ? cat.name : "All recipes"}</strong>
-              <span>{cat?.tagline ?? `${all.length} ways to go bananas.`}</span>
+              <span>{cat?.tagline ?? `${recipeTotal} ways to go bananas.`}</span>
             </div>
             <HeroSlide
               lightSrc={heroLight}
@@ -111,9 +112,10 @@ export default async function HomePage({ searchParams }: PageProps<"/">) {
               className="home-join-img"
               src="/images/finish.webp"
               alt=""
-              width={720}
-              height={480}
-              sizes="(max-width: 900px) 80vw, 65vw"
+              width={1200}
+              height={638}
+              sizes="(max-width: 900px) 92vw, 65vw"
+              quality={75}
             />
           </div>
         </div>
