@@ -952,11 +952,18 @@ html[data-theme="dark"] .hero-slide-stack .hero-slide-dark { display: block; }
 /* Homepage join / submit CTA — sits between hero and latest recipes */
 .home-join {
   padding: clamp(1.6rem, 3.5vw, 2.4rem) 0;
-  background:
-    radial-gradient(ellipse 80% 90% at 100% 0%, color-mix(in srgb, var(--cream) 55%, transparent) 0%, transparent 55%),
-    linear-gradient(135deg, var(--yellow) 0%, color-mix(in srgb, var(--yellow) 70%, var(--orange)) 100%);
+  /* Match finish.webp character art fill so the illustration blends into the band. */
+  background: #f3d031;
   border-block: 3px solid var(--line);
   overflow: clip;
+}
+@media (min-width: 901px) {
+  .home-join {
+    padding: 50px 100px;
+  }
+  .home-join > .wrap {
+    padding-inline: 0;
+  }
 }
 html[data-theme="dark"] .home-join {
   background:
@@ -1015,7 +1022,6 @@ html[data-theme="dark"] .home-join-copy > p { color: var(--muted); }
   display: block;
   width: 100%;
   height: auto;
-  filter: drop-shadow(6px 8px 0 var(--line));
 }
 @keyframes home-join-rise {
   from { opacity: 0; transform: translateY(12px); }
