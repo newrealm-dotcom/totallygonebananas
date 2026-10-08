@@ -2,8 +2,10 @@
 
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
+import { normalizeEquipment } from "@/lib/equipment";
 import { getViewer, isAdminRole } from "@/lib/queries";
 import { slugify } from "@/lib/format";
+import { normalizeIngredientGroups } from "@/lib/ingredients";
 import type { RecipeStatus } from "@/lib/types";
 import type { StepGroup } from "@/lib/steps";
 
@@ -85,8 +87,8 @@ export async function adminCloneRecipe(recipeId: string): Promise<Result> {
       servings: recipe.servings,
       difficulty: recipe.difficulty,
       tags: recipe.tags ?? [],
-      equipment: recipe.equipment ?? [],
-      ingredients: recipe.ingredients ?? [],
+      equipment: normalizeEquipment(recipe.equipment),
+      ingredients: normalizeIngredientGroups(recipe.ingredients),
       steps: (recipe.steps ?? []) as StepGroup[],
       cover_path: recipe.cover_path,
       status: "draft" satisfies RecipeStatus,

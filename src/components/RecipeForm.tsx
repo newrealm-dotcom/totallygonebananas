@@ -15,7 +15,6 @@ import {
   type IngredientGroupRow,
   type IngredientRow,
   type RecipeFormValues,
-  type Row,
   type StepGroupRow,
   type StepRow,
   type Upload,
@@ -28,7 +27,7 @@ export type { RecipeFormValues, Upload };
 export { blankValues, valuesFromRecipe } from "@/lib/recipe-form-values";
 
 const uid = () => (typeof crypto !== "undefined" && "randomUUID" in crypto ? crypto.randomUUID() : Math.random().toString(36).slice(2));
-const emptyRow = (): Row => ({ id: uid(), text: "" });
+const emptyEquipment = (): IngredientRow => ({ id: uid(), text: "", url: "" });
 const emptyIngredient = (): IngredientRow => ({ id: uid(), text: "", url: "" });
 const emptyStep = (): StepRow => ({ id: uid(), text: "", media: null });
 
@@ -224,7 +223,7 @@ export function RecipeForm({ userId, isEditor, categories, activeTags = [...TAGS
 
   /* ---- equipment rows */
   function addEquipmentAfter(index: number) {
-    const row = emptyRow();
+    const row = emptyEquipment();
     setV((s) => {
       const list = s.equipment.slice();
       list.splice(index + 1, 0, row);
@@ -237,9 +236,17 @@ export function RecipeForm({ userId, isEditor, categories, activeTags = [...TAGS
     const list = v.equipment;
     const i = list.findIndex((r) => r.id === id);
     const next = list.filter((r) => r.id !== id);
-    if (!next.length) next.push(emptyRow());
+    if (!next.length) next.push(emptyEquipment());
     setV((s) => ({ ...s, equipment: next }));
     setFocusId(next[Math.max(0, i - 1)].id);
+  }
+
+  function setEquipmentText(id: string, text: string) {
+    setV((s) => ({ ...s, equipment: s.equipment.map((x) => (x.id === id ? { ...x, text } : x)) }));
+  }
+
+  function setEquipmentUrl(id: string, url: string) {
+    setV((s) => ({ ...s, equipment: s.equipment.map((x) => (x.id === id ? { ...x, url } : x)) }));
   }
 
   function updateIngredientGroups(updater: (groups: IngredientGroupRow[]) => IngredientGroupRow[]) {
@@ -419,7 +426,7 @@ export function RecipeForm({ userId, isEditor, categories, activeTags = [...TAGS
       } else if (pasteFor === "equipment") {
         setV((s) => {
           const existing = s.equipment.filter((r) => r.text.trim());
-          const added = lines.map((text) => ({ id: uid(), text }));
+          const added = lines.map((text) => ({ id: uid(), text, url: "" }));
           return { ...s, equipment: [...existing, ...added] };
         });
       }
@@ -465,6 +472,10 @@ export function RecipeForm({ userId, isEditor, categories, activeTags = [...TAGS
         const issue = ingredientUrlError(r.url);
         if (issue) local[`ingredients.${gi}.items.${i}.url`] = issue;
       });
+    });
+    v.equipment.forEach((r, i) => {
+      const issue = ingredientUrlError(r.url, "equipment");
+      if (issue) local[`equipment.${i}.url`] = issue;
     });
     const hasStep = v.stepGroups.some((g) => g.steps.some((s) => s.text.trim()));
     if (intent !== "draft") {
@@ -516,7 +527,9 @@ export function RecipeForm({ userId, isEditor, categories, activeTags = [...TAGS
       newCategories: isEditor ? newCategories : [],
       emoji: v.emoji, totalMinutes: num(v.totalMinutes), notes: v.notes, servings: v.servings.trim(), difficulty: v.difficulty, tags: v.tags,
       ingredients: ingredientGroups.length ? ingredientGroups : [{ title: "", items: [] as { text: string; url: string }[] }],
-      equipment: v.equipment.map((r) => r.text.trim()).filter(Boolean),
+      equipment: v.equipment
+        .map((r) => ({ text: titleCase(r.text.trim()), url: r.url.trim() }))
+        .filter((r) => r.text),
       steps: stepGroups.length ? stepGroups : [{ title: "", steps: [] as { text: string; media: null }[] }],
       gallery: v.gallery.filter((u) => u.status === "done" && u.path).map((u) => ({ kind: u.kind, path: u.path!, caption: u.caption })),
       adaptedFromName: v.adaptedFromName.trim(),
@@ -779,27 +792,53 @@ export function RecipeForm({ userId, isEditor, categories, activeTags = [...TAGS
       {/* 4. Equipment */}
       <section className="rf-sec" id={fid("equipment")} aria-labelledby={fid("equip-h")}>
         <h2 id={fid("equip-h")}><span className="num" aria-hidden="true">4</span>Equipment <small>(optional)</small></h2>
-        <p className="hint">Tools and gear the cook will need. Leave blank to hide this section on the recipe page. Press Enter for a new line.</p>
+        <p className="hint">
+          Tools and gear the cook will need. Leave blank to hide this section on the recipe page.
+          Add a link and that item opens in a new window. Press Enter for a new line.
+        </p>
         <ol className="rows-edit">
-          {v.equipment.map((r, i) => (
-            <li key={r.id}>
-              <input
-                ref={(el) => { if (el) inputs.current.set(r.id, el); else inputs.current.delete(r.id); }}
-                className="field" value={r.text} maxLength={200} placeholder={i === 0 ? "Mixing bowls" : i === 1 ? "Loaf pan" : "Another tool"}
-                aria-label={`Equipment ${i + 1}`} aria-invalid={!!errors[`equipment.${i}`]}
-                onChange={(e) => set("equipment", v.equipment.map((x) => (x.id === r.id ? { ...x, text: e.target.value } : x)))}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter") { e.preventDefault(); addEquipmentAfter(i); }
-                  if (e.key === "Backspace" && !r.text && v.equipment.length > 1) { e.preventDefault(); removeEquipment(r.id); }
-                }}
-                onPaste={(e) => {
-                  const text = e.clipboardData.getData("text");
-                  if (text.includes("\n")) { e.preventDefault(); setPasteFor("equipment"); setPasteText(text); }
-                }}
-              />
+          {v.equipment.map((r, i) => {
+            const urlError = errors[`equipment.${i}.url`];
+            return (
+            <li key={r.id} className="ing-row">
+              <div className="ing-row-fields">
+                <input
+                  ref={(el) => { if (el) inputs.current.set(r.id, el); else inputs.current.delete(r.id); }}
+                  className="field"
+                  value={r.text}
+                  maxLength={200}
+                  placeholder={i === 0 ? "Mixing bowls" : i === 1 ? "Loaf pan" : "Another tool"}
+                  aria-label={`Equipment ${i + 1}`}
+                  aria-invalid={!!errors[`equipment.${i}`] || !!errors[`equipment.${i}.text`]}
+                  onChange={(e) => setEquipmentText(r.id, e.target.value)}
+                  onBlur={(e) => setEquipmentText(r.id, titleCase(e.target.value))}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") { e.preventDefault(); addEquipmentAfter(i); }
+                    if (e.key === "Backspace" && !r.text && v.equipment.length > 1) { e.preventDefault(); removeEquipment(r.id); }
+                  }}
+                  onPaste={(e) => {
+                    const text = e.clipboardData.getData("text");
+                    if (text.includes("\n")) { e.preventDefault(); setPasteFor("equipment"); setPasteText(text); }
+                  }}
+                />
+                <input
+                  className="field ing-url"
+                  type="url"
+                  inputMode="url"
+                  value={r.url}
+                  maxLength={500}
+                  placeholder="Link (optional) — opens in a new window"
+                  aria-label={`Link for equipment ${i + 1}`}
+                  aria-invalid={!!urlError}
+                  aria-describedby={urlError ? fid(`equip-url-err-${r.id}`) : undefined}
+                  onChange={(e) => setEquipmentUrl(r.id, e.target.value)}
+                />
+                {urlError && <p className="f-err" id={fid(`equip-url-err-${r.id}`)} role="alert">{urlError}</p>}
+              </div>
               <button type="button" className="icon-btn danger" aria-label={`Remove equipment ${i + 1}`} onClick={() => removeEquipment(r.id)}>×</button>
             </li>
-          ))}
+            );
+          })}
         </ol>
         {err("equipment") && <p className="f-err" role="alert">{err("equipment")}</p>}
         <div className="row-actions">

@@ -13,10 +13,10 @@ export interface IngredientGroup {
 const HTTP_URL = /^https?:\/\/.+/i;
 
 /** Empty when the value is blank. A message when it is not a full http(s) link. */
-export function ingredientUrlError(url: string): string | null {
+export function ingredientUrlError(url: string, label = "ingredient"): string | null {
   const s = url.trim();
   if (!s) return null;
-  if (s.length > 500) return "Keep the ingredient link under 500 characters";
+  if (s.length > 500) return `Keep the ${label} link under 500 characters`;
   if (!HTTP_URL.test(s)) return "Use a full http:// or https:// link";
   return null;
 }

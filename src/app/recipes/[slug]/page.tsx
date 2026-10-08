@@ -203,7 +203,16 @@ export default async function RecipePage({ params, searchParams }: PageProps<"/r
                 <h2 id="equip-title">Equipment</h2>
                 <ol className="equip-list">
                   {r.equipment.map((item, i) => (
-                    <li key={i}>{item}</li>
+                    <li key={i}>
+                      {item.url ? (
+                        <a className="equip-link" href={item.url} target="_blank" rel="noopener noreferrer">
+                          {item.text}
+                          <span className="sr"> (opens in a new window)</span>
+                        </a>
+                      ) : (
+                        item.text
+                      )}
+                    </li>
                   ))}
                 </ol>
               </div>

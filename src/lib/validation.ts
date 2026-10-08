@@ -53,7 +53,20 @@ export const recipeInput = z.object({
     .default([])
     .transform((tags) => [...new Set(tags)]),
   equipment: z
-    .array(z.string().trim().min(1).max(200, "Each equipment item must be under 200 characters"))
+    .array(
+      z.object({
+        text: z.string().trim().min(1).max(200, "Each equipment item must be under 200 characters"),
+        url: z
+          .string()
+          .trim()
+          .max(500, "Keep the equipment link under 500 characters")
+          .default("")
+          .superRefine((val, ctx) => {
+            const issue = ingredientUrlError(val, "equipment");
+            if (issue) ctx.addIssue({ code: "custom", message: issue });
+          }),
+      }),
+    )
     .max(40, "That's a lot of equipment! Keep it to 40")
     .default([]),
   ingredients: z

@@ -1,6 +1,7 @@
 // Row shapes for the tables in supabase/migrations.
 // Tip: once your project is linked, `npm run db:types` generates exact types.
 
+import type { EquipmentItem } from "@/lib/equipment";
 import type { IngredientGroup } from "@/lib/ingredients";
 import type { RecipeNutrition } from "@/lib/nutrition";
 import type { StepGroup } from "@/lib/steps";
@@ -83,7 +84,7 @@ export interface Recipe {
   servings: string | null;
   difficulty: number | null;
   tags: string[];
-  equipment: string[];
+  equipment: EquipmentItem[];
   /** Titled ingredient lists; first group title may be empty. */
   ingredients: IngredientGroup[];
   /** Titled step lists; first group title may be empty. */

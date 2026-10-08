@@ -1,3 +1,4 @@
+import { normalizeEquipment } from "@/lib/equipment";
 import { publicUrl } from "@/lib/media";
 import { normalizeIngredientGroups, type IngredientGroup } from "@/lib/ingredients";
 import { normalizeStepGroups, type StepGroup } from "@/lib/steps";
@@ -56,7 +57,7 @@ export interface RecipeFormValues {
   servings: string;
   difficulty: number | null;
   tags: string[];
-  equipment: Row[];
+  equipment: IngredientRow[];
   ingredientGroups: IngredientGroupRow[];
   stepGroups: StepGroupRow[];
   gallery: Upload[];
@@ -92,7 +93,7 @@ export function blankValues(categoryIds: string[] = []): RecipeFormValues {
     servings: "",
     difficulty: null,
     tags: [],
-    equipment: [{ id: "equip-0", text: "" }],
+    equipment: [{ id: "equip-0", text: "", url: "" }],
     ingredientGroups: [{
       id: "ing-group-0",
       title: "",
@@ -153,7 +154,7 @@ export function valuesFromRecipe(r: {
   servings: string | number | null;
   difficulty: number | null;
   tags: string[] | null;
-  equipment?: string[] | null;
+  equipment?: unknown;
   ingredients: unknown;
   steps: unknown;
   recipe_media: { kind: MediaKind; path: string; caption: string | null }[] | null;
@@ -169,7 +170,7 @@ export function valuesFromRecipe(r: {
     caption,
     fresh: false,
   });
-  const equipment = r.equipment ?? [];
+  const equipment = normalizeEquipment(r.equipment);
   const media = r.recipe_media ?? [];
   const ingredientGroups = normalizeIngredientGroups(r.ingredients);
   const stepGroups = normalizeStepGroups(r.steps);
@@ -192,7 +193,9 @@ export function valuesFromRecipe(r: {
     servings: r.servings != null && String(r.servings).trim() ? String(r.servings) : "",
     difficulty: r.difficulty ?? null,
     tags: r.tags ?? [],
-    equipment: equipment.length ? equipment.map((text) => ({ id: uid(), text })) : [emptyRow()],
+    equipment: equipment.length
+      ? equipment.map((item) => ({ id: uid(), text: item.text, url: item.url }))
+      : [emptyIngredientRow()],
     ingredientGroups: groupsToFormRows(ingredientGroups.length ? ingredientGroups : [{ title: "", items: [] }]),
     stepGroups: stepGroupsToFormRows(stepGroups.length ? stepGroups : [{ title: "", steps: [] }], existing),
     gallery: media.map((m) => existing(m.kind, m.path, m.caption ?? "")),
@@ -250,7 +253,13 @@ export function mergeRecipeDraft(
     categoryIds,
     pendingCategories: Array.isArray(draft.pendingCategories) ? draft.pendingCategories : base.pendingCategories,
     tags: Array.isArray(draft.tags) ? draft.tags : base.tags,
-    equipment: Array.isArray(draft.equipment) && draft.equipment.length ? draft.equipment : base.equipment,
+    equipment: Array.isArray(draft.equipment) && draft.equipment.length
+      ? draft.equipment.map((r) => ({
+          id: r.id,
+          text: r.text ?? "",
+          url: typeof (r as IngredientRow).url === "string" ? (r as IngredientRow).url : "",
+        }))
+      : base.equipment,
     ingredientGroups,
     stepGroups,
     gallery: Array.isArray(draft.gallery) ? draft.gallery : base.gallery,

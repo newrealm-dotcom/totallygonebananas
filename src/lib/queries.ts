@@ -3,6 +3,7 @@ import { randomInt } from "node:crypto";
 import { createClient } from "@/lib/supabase/server";
 import { easternDayRange } from "@/lib/format";
 import { pointsFromCounts, standingsFor } from "@/lib/standings";
+import { normalizeEquipment } from "@/lib/equipment";
 import { normalizeIngredientGroups } from "@/lib/ingredients";
 import { normalizeNutrition } from "@/lib/nutrition";
 import { normalizeStepGroups } from "@/lib/steps";
@@ -271,7 +272,7 @@ export const getRecipeBySlug = cache(async (slug: string): Promise<RecipeWithExt
     ? recipe.categories.map((c) => String(c).trim()).filter(Boolean)
     : [];
   recipe.tags = recipe.tags ?? [];
-  recipe.equipment = recipe.equipment ?? [];
+  recipe.equipment = normalizeEquipment(recipe.equipment);
   recipe.ingredients = normalizeIngredientGroups(recipe.ingredients);
   recipe.steps = normalizeStepGroups(recipe.steps);
   recipe.notes = recipe.notes ?? null;

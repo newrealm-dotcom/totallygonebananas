@@ -2,6 +2,7 @@
 
 import { useEffect, useId, useState } from "react";
 import { createPortal } from "react-dom";
+import type { EquipmentItem } from "@/lib/equipment";
 import type { IngredientGroup } from "@/lib/ingredients";
 import { RecipeFacts } from "@/components/RecipeFacts";
 
@@ -13,7 +14,7 @@ export interface PrintRecipePayload {
   difficulty: number | null;
   servings: string | null;
   totalMinutes: number | null;
-  equipment: string[];
+  equipment: EquipmentItem[];
   ingredients: IngredientGroup[];
   steps: { title: string; steps: string[] }[];
 }
@@ -31,7 +32,9 @@ export function PrintRecipeButton({ recipe }: { recipe: PrintRecipePayload }) {
     (typeof recipe.difficulty === "number" && recipe.difficulty >= 1 && recipe.difficulty <= 5) ||
     !!recipe.servings?.trim() ||
     (typeof recipe.totalMinutes === "number" && recipe.totalMinutes > 0);
-  const equipment = recipe.equipment.map((item) => item.trim()).filter(Boolean);
+  const equipment = recipe.equipment
+    .map((item) => ({ text: item.text.trim(), url: item.url.trim() }))
+    .filter((item) => item.text);
   const hasEquipment = equipment.length > 0;
   const hasOpts = hasImage || hasBlurb || hasFacts || hasEquipment;
 
@@ -168,7 +171,13 @@ export function PrintRecipeButton({ recipe }: { recipe: PrintRecipePayload }) {
                     <h2 id="print-equip-title">Equipment</h2>
                     <ol className="print-preview-equipment">
                       {equipment.map((item, i) => (
-                        <li key={i}>{item}</li>
+                        <li key={i}>
+                          {item.url ? (
+                            <a href={item.url} target="_blank" rel="noopener noreferrer">{item.text}</a>
+                          ) : (
+                            item.text
+                          )}
+                        </li>
                       ))}
                     </ol>
                   </section>

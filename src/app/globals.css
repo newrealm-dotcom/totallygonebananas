@@ -2360,6 +2360,17 @@ html[data-theme="dark"] .print-preview-sheet {
   color: var(--muted);
   flex-shrink: 0;
 }
+.equip-list a.equip-link {
+  color: inherit;
+  font-weight: inherit;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  text-decoration-thickness: 2px;
+}
+.equip-list a.equip-link:hover,
+.equip-list a.equip-link:focus-visible {
+  color: var(--brown);
+}
 .d-steps { margin-top: 50px; }
 .d-steps h2 { margin: 0 0 1rem; }
 .ing-panel { position: static; }
