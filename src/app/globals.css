@@ -3601,6 +3601,11 @@ body:has(.admin) footer {
   display: grid;
   gap: 1.6rem;
 }
+.faves-feed-more {
+  display: flex;
+  justify-content: center;
+  margin: .4rem 0 .4rem;
+}
 .faves-spot {
   display: grid;
   grid-template-columns: 1fr;

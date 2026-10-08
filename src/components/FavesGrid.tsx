@@ -7,8 +7,8 @@ import { mediaSrc } from "@/lib/media";
 import { stripInlineMarkdown } from "@/lib/render-post-markdown";
 import type { Post } from "@/lib/types";
 
-/** 4 rows × 3 columns before infinite scroll kicks in. */
-const PAGE_SIZE = 12;
+/** 3 rows × 3 columns per page after the featured spot. */
+const PAGE_SIZE = 9;
 
 function categoryLabel(post: Post, names?: Record<string, string>): string | null {
   const id = post.categories?.find((c) => c && c !== "favorites");
@@ -95,6 +95,8 @@ export function FavesGrid({
   const [posts, setPosts] = useState(initialPosts);
   const [hasMore, setHasMore] = useState(initialPosts.length < total);
   const [loading, setLoading] = useState(false);
+  /** After the first Load more click, further pages load via infinite scroll. */
+  const [scrollEnabled, setScrollEnabled] = useState(false);
   const sentinelRef = useRef<HTMLDivElement | null>(null);
   const loadingRef = useRef(false);
 
@@ -120,7 +122,7 @@ export function FavesGrid({
       });
       setHasMore(data.hasMore);
     } catch {
-      /* keep hasMore so the sentinel can retry */
+      /* keep hasMore so the sentinel / button can retry */
     } finally {
       loadingRef.current = false;
       setLoading(false);
@@ -128,6 +130,7 @@ export function FavesGrid({
   }, [hasMore, posts.length]);
 
   useEffect(() => {
+    if (!scrollEnabled) return;
     const el = sentinelRef.current;
     if (!el || !hasMore) return;
     const io = new IntersectionObserver(
@@ -138,7 +141,12 @@ export function FavesGrid({
     );
     io.observe(el);
     return () => io.disconnect();
-  }, [hasMore, loadMore]);
+  }, [hasMore, loadMore, scrollEnabled]);
+
+  async function onLoadMoreClick() {
+    await loadMore();
+    setScrollEnabled(true);
+  }
 
   if (!featured) return null;
 
@@ -152,8 +160,17 @@ export function FavesGrid({
           ))}
         </ul>
       ) : null}
-      {hasMore ? <div ref={sentinelRef} className="blog-feed-sentinel" aria-hidden="true" /> : null}
-      {loading ? (
+      {hasMore && !scrollEnabled ? (
+        <div className="faves-feed-more">
+          <button type="button" className="btn dark" disabled={loading} onClick={() => void onLoadMoreClick()}>
+            {loading ? "Loading…" : "Load more"}
+          </button>
+        </div>
+      ) : null}
+      {scrollEnabled && hasMore ? (
+        <div ref={sentinelRef} className="blog-feed-sentinel" aria-hidden="true" />
+      ) : null}
+      {scrollEnabled && loading ? (
         <p className="hint blog-feed-status" role="status">Loading more faves…</p>
       ) : null}
     </div>
