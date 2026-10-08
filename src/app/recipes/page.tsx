@@ -11,7 +11,7 @@ import { plural, titleCase } from "@/lib/format";
 
 export const metadata: Metadata = { title: "Recipes" };
 
-const PAGE_SIZE = 40;
+const PAGE_SIZE = 12;
 const str = (v: string | string[] | undefined) => (typeof v === "string" ? v : undefined);
 
 export default async function RecipesPage({ searchParams }: PageProps<"/recipes">) {

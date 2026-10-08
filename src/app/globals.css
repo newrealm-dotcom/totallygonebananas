@@ -1179,6 +1179,11 @@ html[data-theme="dark"] .rotd .btn.dark:hover {
 }
 .recipes-feed-sentinel { height: 1px; }
 .recipes-feed-status { text-align: center; margin: 1.2rem 0 0; }
+.recipes-feed-more {
+  display: flex;
+  justify-content: center;
+  margin: 1.6rem 0 .4rem;
+}
 .card { position: relative; background: var(--paper); border: 3px solid var(--line); border-radius: 26px; box-shadow: 6px 6px 0 var(--line); display: flex; flex-direction: column; overflow: hidden; transition: transform .15s, box-shadow .15s; }
 .card:hover { transform: translate(-2px, -2px); box-shadow: 8px 8px 0 var(--line); }
 .card:has(h3 a:focus-visible) { outline: 3px solid var(--orange); outline-offset: 4px; }

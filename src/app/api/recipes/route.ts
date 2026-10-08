@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { countRecipes, getRatings, getSavedIds, getViewer, listRecipes, type RecipeFilters } from "@/lib/queries";
 import { isValidTag, normalizeTag } from "@/lib/tags";
 
-export const PAGE_SIZE = 40;
+export const PAGE_SIZE = 12;
 
 const str = (v: string | null) => (v && v.trim() ? v.trim() : undefined);
 

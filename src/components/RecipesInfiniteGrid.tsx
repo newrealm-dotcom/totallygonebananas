@@ -5,7 +5,7 @@ import type { RecipeCardData } from "@/lib/queries";
 import type { Category, Rating } from "@/lib/types";
 import { RecipeCard } from "@/components/RecipeCard";
 
-const PAGE_SIZE = 40;
+const PAGE_SIZE = 12;
 
 interface RecipesInfiniteGridProps {
   initialRecipes: RecipeCardData[];
@@ -35,6 +35,8 @@ export function RecipesInfiniteGrid({
   const [saved, setSaved] = useState(() => new Set(initialSaved));
   const [hasMore, setHasMore] = useState(initialRecipes.length < total);
   const [loading, setLoading] = useState(false);
+  /** After the first Load more click, further pages load via infinite scroll. */
+  const [scrollEnabled, setScrollEnabled] = useState(false);
   const sentinelRef = useRef<HTMLDivElement | null>(null);
   const loadingRef = useRef(false);
 
@@ -71,7 +73,7 @@ export function RecipesInfiniteGrid({
       });
       setHasMore(data.hasMore);
     } catch {
-      /* keep hasMore so the sentinel can retry */
+      /* keep hasMore so the sentinel / button can retry */
     } finally {
       loadingRef.current = false;
       setLoading(false);
@@ -79,6 +81,7 @@ export function RecipesInfiniteGrid({
   }, [filters, hasMore, recipes.length]);
 
   useEffect(() => {
+    if (!scrollEnabled) return;
     const el = sentinelRef.current;
     if (!el || !hasMore) return;
     const io = new IntersectionObserver(
@@ -89,7 +92,12 @@ export function RecipesInfiniteGrid({
     );
     io.observe(el);
     return () => io.disconnect();
-  }, [hasMore, loadMore]);
+  }, [hasMore, loadMore, scrollEnabled]);
+
+  async function onLoadMoreClick() {
+    await loadMore();
+    setScrollEnabled(true);
+  }
 
   if (!recipes.length) return <>{empty}</>;
 
@@ -108,8 +116,19 @@ export function RecipesInfiniteGrid({
           />
         ))}
       </div>
-      <div ref={sentinelRef} className="recipes-feed-sentinel" aria-hidden="true" />
-      {loading && <p className="hint recipes-feed-status" role="status">Loading more recipes…</p>}
+      {hasMore && !scrollEnabled ? (
+        <div className="recipes-feed-more">
+          <button type="button" className="btn dark" disabled={loading} onClick={() => void onLoadMoreClick()}>
+            {loading ? "Loading…" : "Load more"}
+          </button>
+        </div>
+      ) : null}
+      {scrollEnabled && hasMore ? (
+        <div ref={sentinelRef} className="recipes-feed-sentinel" aria-hidden="true" />
+      ) : null}
+      {scrollEnabled && loading ? (
+        <p className="hint recipes-feed-status" role="status">Loading more recipes…</p>
+      ) : null}
       {!hasMore && recipes.length > PAGE_SIZE && (
         <p className="hint recipes-feed-status">That&apos;s every recipe in this list.</p>
       )}
