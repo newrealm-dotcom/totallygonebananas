@@ -122,6 +122,7 @@ export function SiteFooter() {
               Merch
             </a>
             <Link href="/about">About</Link>
+            <Link href="/policy">Privacy Policy</Link>
           </nav>
 
           <Link className="footer-header-logo" href="/" aria-label="Totally Gone Bananas home">

@@ -17,6 +17,7 @@ const LINKS = [
     external: true,
   },
   { href: "/about", label: "About", match: (p: string) => p === "/about" },
+  { href: "/policy", label: "Privacy Policy", match: (p: string) => p === "/policy" },
 ] as const;
 
 /** Compact menu for small screens — sits between the theme toggle and Sign in. */
