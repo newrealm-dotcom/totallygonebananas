@@ -16,15 +16,26 @@ html[data-theme="dark"] {
 
 *, *::before, *::after { box-sizing: border-box; }
 html { scroll-padding-top: 220px; }
-body { margin: 0; background: var(--bg); color: var(--ink); font-family: var(--body); font-size: 1.0625rem; line-height: 1.55; -webkit-font-smoothing: antialiased; padding-bottom: env(safe-area-inset-bottom, 0px); }
-/* Same gold → cream wash as the homepage hero, on every page (light mode only). */
-#main {
+body {
+  margin: 0;
+  color: var(--ink);
+  font-family: var(--body);
+  font-size: 1.0625rem;
+  line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+  /* Gold → white from the very top of the page (behind the transparent header). */
   background-color: var(--cream);
-  background-image: linear-gradient(180deg, var(--yellow) 0%, var(--cream) 100%);
+  background-image: linear-gradient(180deg, var(--yellow) 0%, #fff 100%);
   background-repeat: no-repeat;
   background-size: 100% min(70vh, 40rem);
 }
-html[data-theme="dark"] #main {
+html[data-theme="dark"] body {
+  background-color: var(--bg);
+  background-image: none;
+}
+/* #main stays clear so the page-top wash reads through the header into the hero. */
+#main {
   background: transparent;
 }
 img, svg, video { max-width: 100%; }
@@ -182,42 +193,136 @@ html.header-scrolled .theme-toggle {
   background: var(--ink);
   transition: transform .18s ease, opacity .18s ease;
 }
+.mobile-nav.is-open .hamburger {
+  position: fixed;
+  top: max(.85rem, env(safe-area-inset-top, 0px));
+  left: max(.85rem, env(safe-area-inset-left, 0px));
+  z-index: 90;
+}
 .mobile-nav.is-open .hamburger-lines i:nth-child(1) { transform: translateY(13.5px) rotate(45deg); }
 .mobile-nav.is-open .hamburger-lines i:nth-child(2) { opacity: 0; }
 .mobile-nav.is-open .hamburger-lines i:nth-child(3) { transform: translateY(-13.5px) rotate(-45deg); }
+.mobile-nav-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 84;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  cursor: default;
+}
 .mobile-nav-panel {
-  position: absolute;
-  top: calc(100% + .55rem);
-  right: 0;
-  min-width: min(18rem, calc(100vw - 2rem));
-  display: grid;
-  gap: .25rem;
-  padding: .7rem;
-  background: var(--paper);
-  border: 3px solid var(--line);
-  border-radius: 20px;
-  box-shadow: 5px 5px 0 var(--line);
-  z-index: 60;
+  position: fixed;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  width: 20%;
+  min-width: 12.5rem;
+  max-width: 100%;
+  height: 100vh;
+  height: 100dvh;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  padding: max(5.5rem, calc(env(safe-area-inset-top, 0px) + 4.5rem)) clamp(1rem, 2vw, 1.5rem) max(1.5rem, env(safe-area-inset-bottom, 0px));
+  background: #fff;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+  overflow-y: auto;
+  z-index: 85;
+}
+html[data-theme="dark"] .mobile-nav-panel {
+  background: var(--bg);
 }
 .mobile-nav-panel[hidden] { display: none !important; }
-.mobile-nav-panel a {
+.mobile-nav-links {
+  display: grid;
+  gap: .15rem;
+  justify-items: start;
+}
+.mobile-nav-links a {
   display: block;
-  padding: .7rem .9rem;
-  border-radius: 999px;
+  padding: .5rem 0;
+  border-radius: 0;
   font-weight: 800;
+  font-size: clamp(0.86rem, 1.8vw, 1.09rem);
   text-decoration: none;
   text-transform: uppercase;
+  letter-spacing: .04em;
+  color: var(--ink);
+  box-shadow: none;
 }
-.mobile-nav-panel a[aria-current="page"] {
+.mobile-nav-links a[aria-current="page"] {
+  background: transparent;
+  color: var(--ink);
+  text-decoration: underline;
+  text-underline-offset: 6px;
+  text-decoration-thickness: 3px;
+  box-shadow: none;
+}
+.mobile-nav-links a:not([aria-current]):hover {
+  background: transparent;
+  color: var(--orange);
+}
+.mobile-nav-social {
+  display: grid;
+  grid-template-columns: repeat(5, 42px);
+  justify-content: start;
+  gap: .45rem;
+  margin-top: .25rem;
+}
+.mobile-nav-social a {
+  display: grid;
+  place-items: center;
+  width: 42px;
+  height: 42px;
+  border: 2.5px solid var(--line);
+  border-radius: 50%;
+  background: var(--paper);
+  color: var(--ink);
+  text-decoration: none;
+  transition: transform .15s ease, background .15s ease, box-shadow .15s ease;
+}
+.mobile-nav-social a:hover {
   background: var(--yellow);
   color: var(--on-yellow);
-  box-shadow: inset 0 0 0 2.5px var(--brown);
+  transform: translate(-1px, -1px);
+  box-shadow: 3px 3px 0 var(--line);
 }
-.mobile-nav-panel a:not([aria-current]):hover { background: var(--panel); }
+.mobile-nav-actions {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: .75rem;
+  margin-top: auto;
+  padding-top: 1rem;
+}
+.mobile-nav-actions .btn {
+  width: 100%;
+  justify-content: center;
+  text-align: center;
+}
 
 /* ---------- header / footer ---------- */
-header.top { position: sticky; top: 0; z-index: 20; background: #fff; border-bottom: 3px solid var(--line); padding-top: env(safe-area-inset-top, 0px); }
-html[data-theme="dark"] header.top { background: var(--bg); }
+header.top {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  background: transparent;
+  border-bottom: none;
+  padding-top: env(safe-area-inset-top, 0px);
+  transition: background .2s ease, border-bottom .2s ease, box-shadow .2s ease;
+}
+/* Solid bar + bottom border only with the compact (scrolled) logo — never with the big mark. */
+html.header-scrolled header.top {
+  background: #fff;
+  border-bottom: 3px solid var(--line);
+}
+html[data-theme="dark"].header-scrolled header.top {
+  background: var(--bg);
+}
 /* Desktop: hamburger left | logo center | actions right (Humble Grape–style). */
 .top .wrap {
   position: relative;
@@ -297,16 +402,25 @@ nav.main { display: none; }
 .profile-logout:hover { color: var(--ink); }
 @media (min-width: 1101px) {
   .profile-chip-meta { display: flex; }
+  .top-actions .profile-menu {
+    border: 2.5px solid var(--line);
+    border-radius: 14px;
+    background: color-mix(in srgb, var(--paper) 92%, transparent);
+    padding: .3rem .7rem .3rem .3rem;
+    margin-right: .55rem;
+  }
   /* Pin hamburger to the left of the bar; theme toggle stays fixed top-left. */
   .top .wrap > .top-end .mobile-nav {
     position: absolute;
-    left: 5.5rem;
+    left: calc(5.5rem + 50px);
     top: 50%;
     transform: translateY(-50%);
   }
-  .top .wrap > .top-end .mobile-nav-panel {
+  /* Drop transform while open so position:fixed panel/close control use the viewport. */
+  .top .wrap > .top-end .mobile-nav.is-open {
+    transform: none;
+    top: 0;
     left: 0;
-    right: auto;
   }
 }
 
@@ -899,7 +1013,7 @@ textarea.field { resize: vertical; line-height: 1.45; }
 /* ---------- home ---------- */
 .hero {
   padding: 25px 0 1.25rem;
-  /* Site-wide #main wash supplies the gold → cream gradient. */
+  /* Page-top body wash supplies the gold → white gradient. */
   background: transparent;
 }
 html[data-theme="dark"] .hero {

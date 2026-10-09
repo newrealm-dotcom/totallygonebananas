@@ -11,10 +11,11 @@ export function BrandLogo() {
   useEffect(() => {
     const update = () => {
       const doc = document.documentElement;
-      const threshold = Math.max(doc.scrollHeight * 0.2, 1);
-      const next = window.scrollY >= threshold;
+      // Compact sticky chrome (solid bar + small logo) only after this threshold.
+      const next = window.scrollY >= Math.max(doc.scrollHeight * 0.2, 1);
       setScrolled(next);
       doc.classList.toggle("header-scrolled", next);
+      doc.classList.remove("header-stuck");
     };
     update();
     window.addEventListener("scroll", update, { passive: true });
@@ -22,7 +23,7 @@ export function BrandLogo() {
     return () => {
       window.removeEventListener("scroll", update);
       window.removeEventListener("resize", update);
-      document.documentElement.classList.remove("header-scrolled");
+      document.documentElement.classList.remove("header-scrolled", "header-stuck");
     };
   }, []);
 

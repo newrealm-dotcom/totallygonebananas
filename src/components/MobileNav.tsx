@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useId, useState } from "react";
+import { SocialIcons } from "@/components/SocialIcons";
 
 const LINKS = [
   { href: "/", label: "Home", match: (p: string) => p === "/" },
@@ -37,17 +38,18 @@ export function MobileNav() {
     const onKey = (e: KeyboardEvent) => {
       if (e.key === "Escape") setOpen(false);
     };
-    const onPointer = (e: MouseEvent) => {
-      const root = document.querySelector(".mobile-nav");
-      if (root && !root.contains(e.target as Node)) setOpen(false);
-    };
+    const prevOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
     window.addEventListener("keydown", onKey);
-    document.addEventListener("mousedown", onPointer);
     return () => {
+      document.body.style.overflow = prevOverflow;
       window.removeEventListener("keydown", onKey);
-      document.removeEventListener("mousedown", onPointer);
     };
   }, [open]);
+
+  function close() {
+    setOpen(false);
+  }
 
   return (
     <div className={`mobile-nav${open ? " is-open" : ""}`}>
@@ -60,33 +62,56 @@ export function MobileNav() {
         onClick={() => setOpen((v) => !v)}
       >
         <span className="hamburger-lines" aria-hidden="true">
-          <i /><i /><i />
+          <i />
+          <i />
+          <i />
         </span>
       </button>
-      <nav id={panelId} className="mobile-nav-panel" aria-label="Site" hidden={!open}>
-        {LINKS.map((l) =>
-          "external" in l && l.external ? (
-            <a
-              key={l.href}
-              href={l.href}
-              target="_blank"
-              rel="noopener noreferrer"
-              onClick={() => setOpen(false)}
-            >
-              {l.label}
-            </a>
-          ) : (
-            <Link
-              key={l.href}
-              href={l.href}
-              aria-current={l.match(path) ? "page" : undefined}
-              onClick={() => setOpen(false)}
-            >
-              {l.label}
-            </Link>
-          ),
-        )}
-      </nav>
+      {open ? (
+        <button
+          type="button"
+          className="mobile-nav-backdrop"
+          aria-label="Close menu"
+          onClick={close}
+        />
+      ) : null}
+      <div id={panelId} className="mobile-nav-panel" hidden={!open}>
+        <nav className="mobile-nav-links" aria-label="Site">
+          {LINKS.map((l) =>
+            "external" in l && l.external ? (
+              <a
+                key={l.href}
+                href={l.href}
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={close}
+              >
+                {l.label}
+              </a>
+            ) : (
+              <Link
+                key={l.href}
+                href={l.href}
+                aria-current={l.match(path) ? "page" : undefined}
+                onClick={close}
+              >
+                {l.label}
+              </Link>
+            ),
+          )}
+        </nav>
+
+        <SocialIcons className="mobile-nav-social" onNavigate={close} />
+
+        <div className="mobile-nav-actions">
+          <Link className="btn" href="/login" onClick={close}>
+            Sign in / Sign up
+          </Link>
+          <Link className="btn ghost" href="/recipes/new" onClick={close}>
+            Add a recipe
+          </Link>
+        </div>
+      </div>
     </div>
   );
 }
