@@ -408,6 +408,7 @@ nav.main { display: none; }
     background: color-mix(in srgb, var(--paper) 92%, transparent);
     padding: .3rem .7rem .3rem .3rem;
     margin-right: .55rem;
+    box-shadow: 4px 4px 0 var(--line);
   }
   /* Pin hamburger to the left of the bar; theme toggle stays fixed top-left. */
   .top .wrap > .top-end .mobile-nav {
@@ -441,7 +442,7 @@ nav.main { display: none; }
     border: 3px solid #462018;
     border-radius: 5px;
     padding: 10px 50px;
-    box-shadow: none;
+    box-shadow: 4px 4px 0 #462018;
     max-width: min(24rem, calc(100vw - 1rem));
   }
   .profile-menu .profile-chip-meta,
@@ -492,7 +493,7 @@ header.top.is-compact .profile-menu {
   border: 3px solid #462018;
   border-radius: 5px;
   padding: 10px 50px;
-  box-shadow: none;
+  box-shadow: 4px 4px 0 #462018;
   max-width: min(24rem, calc(100vw - 1rem));
 }
 header.top.is-compact .profile-menu .profile-chip-meta,
@@ -837,6 +838,16 @@ section.block { padding: clamp(2rem, 5vw, 3.5rem) 0; }
 .btn:disabled { opacity: .55; cursor: not-allowed; transform: none; }
 .btn.ghost { background: var(--paper); color: var(--ink); border-color: var(--line); }
 .btn.dark { background: var(--brown); color: var(--cream); border-color: var(--brown); box-shadow: 4px 4px 0 var(--brown); }
+.btn.footer-newsletter-btn {
+  background: var(--orange);
+  color: var(--brown);
+  border-color: var(--brown);
+}
+.btn.footer-newsletter-btn:hover {
+  background: color-mix(in srgb, var(--orange) 88%, #fff);
+  color: var(--brown);
+  border-color: var(--brown);
+}
 .btn.danger {
   background: var(--danger);
   color: #fff;
