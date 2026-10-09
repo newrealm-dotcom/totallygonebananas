@@ -32,24 +32,24 @@ export function BrandLogo() {
         className="brand-logo brand-logo-default"
         src="/logo.png"
         alt=""
-        width={186}
-        height={201}
+        width={158}
+        height={171}
         priority
       />
       <Image
         className="brand-logo brand-logo-scroll brand-logo-scroll-light"
         src="/img-login.webp"
         alt=""
-        width={186}
-        height={124}
+        width={158}
+        height={105}
         priority
       />
       <Image
         className="brand-logo brand-logo-scroll brand-logo-scroll-dark"
         src="/img-login-dark.webp"
         alt=""
-        width={186}
-        height={124}
+        width={158}
+        height={105}
         priority
       />
     </Link>

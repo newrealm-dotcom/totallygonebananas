@@ -146,35 +146,45 @@ html.header-scrolled .theme-toggle {
 }
 .theme-toggle-label { min-width: 2.4rem; text-align: left; }
 
-.mobile-nav { display: none; position: relative; z-index: 50; }
+.mobile-nav { display: block; position: relative; z-index: 50; }
 .hamburger {
-  width: 66px;
-  height: 66px;
-  border-radius: 18px;
-  border: 2.5px solid var(--line);
-  background: var(--paper);
-  box-shadow: 3px 3px 0 var(--line);
+  width: auto;
+  height: auto;
+  min-height: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
   display: grid;
   place-items: center;
   cursor: pointer;
-  padding: 0;
+  padding: .55rem;
 }
-.hamburger:hover { transform: translate(-1px, -1px); box-shadow: 4px 4px 0 var(--line); }
+.hamburger:hover,
+.hamburger:active {
+  transform: none;
+  box-shadow: none;
+  background: transparent;
+}
 .hamburger-lines {
-  display: grid;
-  gap: 7.5px;
-  width: 27px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 9px;
+  width: 42px;
 }
 .hamburger-lines i {
   display: block;
-  height: 3.75px;
-  border-radius: 3px;
+  width: 100%;
+  height: 4.5px;
+  flex-shrink: 0;
+  border-radius: 999px;
   background: var(--ink);
   transition: transform .18s ease, opacity .18s ease;
 }
-.mobile-nav.is-open .hamburger-lines i:nth-child(1) { transform: translateY(11.25px) rotate(45deg); }
+.mobile-nav.is-open .hamburger-lines i:nth-child(1) { transform: translateY(13.5px) rotate(45deg); }
 .mobile-nav.is-open .hamburger-lines i:nth-child(2) { opacity: 0; }
-.mobile-nav.is-open .hamburger-lines i:nth-child(3) { transform: translateY(-11.25px) rotate(-45deg); }
+.mobile-nav.is-open .hamburger-lines i:nth-child(3) { transform: translateY(-13.5px) rotate(-45deg); }
 .mobile-nav-panel {
   position: absolute;
   top: calc(100% + .55rem);
@@ -208,10 +218,18 @@ html.header-scrolled .theme-toggle {
 /* ---------- header / footer ---------- */
 header.top { position: sticky; top: 0; z-index: 20; background: #fff; border-bottom: 3px solid var(--line); padding-top: env(safe-area-inset-top, 0px); }
 html[data-theme="dark"] header.top { background: var(--bg); }
-.top .wrap { display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: 1rem; padding-block: .5rem; }
-.brand { position: relative; display: grid; flex-shrink: 0; grid-column: 2; justify-self: center; width: 186px; }
+/* Desktop: hamburger left | logo center | actions right (Humble Grape–style). */
+.top .wrap {
+  position: relative;
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  gap: 1rem;
+  padding-block: .5rem;
+}
+.brand { position: relative; display: grid; flex-shrink: 0; grid-column: 2; justify-self: center; width: 158px; }
 .brand img,
-.brand .brand-logo { width: 186px; height: auto; transition: transform .25s, opacity .35s ease; }
+.brand .brand-logo { width: 158px; height: auto; transition: transform .25s, opacity .35s ease; }
 .brand:hover img,
 .brand:hover .brand-logo { transform: rotate(-6deg); }
 .brand .brand-logo-default { grid-area: 1 / 1; }
@@ -222,7 +240,7 @@ html[data-theme="dark"] header.top { background: var(--bg); }
   position: absolute;
   inset: 0;
   margin: auto;
-  width: 186px;
+  width: 158px;
   height: fit-content;
 }
 .brand .brand-logo-scroll-dark { display: none; }
@@ -234,7 +252,7 @@ html[data-theme="dark"] .brand .brand-logo-scroll-dark { display: block; }
   inset: 0;
   margin: auto;
   pointer-events: none;
-  width: 186px;
+  width: 158px;
   height: fit-content;
 }
 .brand.brand-scrolled .brand-logo-scroll-light {
@@ -253,14 +271,22 @@ html[data-theme="dark"] .brand.brand-scrolled .brand-logo-scroll-light {
   inset: 0;
   margin: auto;
 }
-nav.main { display: flex; gap: .25rem; overflow: hidden; scrollbar-width: none; min-width: 0; }
-nav.main.left { grid-column: 1; justify-self: end; justify-content: flex-end; }
-nav.main::-webkit-scrollbar { display: none; }
-nav.main a { padding: .45rem .8rem; border-radius: 999px; font-weight: 800; white-space: nowrap; font-size: .95rem; text-decoration: none; text-transform: uppercase; }
-nav.main a[aria-current="page"] { background: var(--yellow); color: var(--on-yellow); box-shadow: inset 0 0 0 2.5px var(--brown); }
-nav.main a:not([aria-current]):hover { background: var(--panel); }
-.top-end { display: flex; align-items: center; gap: .6rem; grid-column: 3; justify-self: start; justify-content: flex-start; min-width: 0; }
-.top-right { flex-shrink: 0; }
+nav.main { display: none; }
+.top-end {
+  display: flex;
+  align-items: center;
+  gap: .6rem;
+  grid-column: 3;
+  justify-self: end;
+  justify-content: flex-end;
+  min-width: 0;
+}
+.top-right {
+  display: flex;
+  align-items: center;
+  gap: .55rem;
+  flex-shrink: 0;
+}
 .top-actions { display: flex; align-items: center; gap: .6rem; flex-shrink: 0; }
 .profile-menu { display: inline-flex; align-items: center; gap: .55rem; min-width: 0; }
 .profile-chip-meta { display: none; flex-direction: column; align-items: flex-start; gap: .15rem; line-height: 1.15; min-width: 0; }
@@ -269,8 +295,19 @@ nav.main a:not([aria-current]):hover { background: var(--panel); }
 .profile-chip-stats span { font-size: .72rem; font-weight: 800; color: var(--muted); white-space: nowrap; }
 .profile-logout { background: none; border: 0; padding: 0; margin: 0; font-size: .68rem; font-weight: 800; color: var(--muted); cursor: pointer; text-decoration: underline; text-underline-offset: 2px; text-transform: uppercase; min-height: 0; line-height: 1.1; }
 .profile-logout:hover { color: var(--ink); }
-@media (min-width: 901px) {
+@media (min-width: 1101px) {
   .profile-chip-meta { display: flex; }
+  /* Pin hamburger to the left of the bar; theme toggle stays fixed top-left. */
+  .top .wrap > .top-end .mobile-nav {
+    position: absolute;
+    left: 5.5rem;
+    top: 50%;
+    transform: translateY(-50%);
+  }
+  .top .wrap > .top-end .mobile-nav-panel {
+    left: 0;
+    right: auto;
+  }
 }
 
 /* Floating profile dock when the header is in compact/hamburger mode */
@@ -4672,6 +4709,7 @@ html[data-theme="dark"] .login-hero-stack .login-hero-dark { display: block; }
   .ing-panel { position: static; }
   .stand-hero .mascot, .stand-hero .hero-slide-stack { max-width: min(360px, 100%); margin-inline: auto; }
 }
+/* Mobile / tablet: keep the previous stacked tools layout. */
 @media (max-width: 1100px) {
   header.top { position: static; }
   .top .wrap {
@@ -4687,8 +4725,7 @@ html[data-theme="dark"] .login-hero-stack .login-hero-dark { display: block; }
     width: auto;
   }
   .brand img,
-  .brand .brand-logo { width: 170px; }
-  nav.main { display: none; }
+  .brand .brand-logo { width: 145px; }
   .top-end {
     display: flex;
     grid-column: 2;
@@ -4711,51 +4748,15 @@ html[data-theme="dark"] .login-hero-stack .login-hero-dark { display: block; }
     right: auto;
     margin: 0;
   }
+  .top .wrap > .top-end .mobile-nav {
+    position: relative;
+    left: auto;
+    top: auto;
+    transform: none;
+  }
   .mobile-nav { display: block; }
   .top-actions { margin-left: 0; }
 }
-
-/* JS overlap detection — same compact chrome above the CSS floor. */
-header.top.is-compact { position: static; }
-header.top.is-compact > .wrap {
-  display: grid;
-  grid-template-columns: auto 1fr;
-  align-items: center;
-  gap: 1rem;
-}
-header.top.is-compact .brand {
-  grid-column: 1;
-  justify-self: start;
-  align-self: center;
-  width: auto;
-}
-header.top.is-compact .brand img,
-header.top.is-compact .brand .brand-logo { width: 170px; }
-header.top.is-compact nav.main { display: none; }
-header.top.is-compact .top-end {
-  display: flex;
-  grid-column: 2;
-  justify-self: end;
-  justify-content: flex-end;
-  align-items: center;
-  min-width: 0;
-}
-header.top.is-compact .top-right {
-  flex-direction: column;
-  align-items: flex-end;
-  gap: .45rem;
-}
-header.top.is-compact .theme-toggle,
-html.header-scrolled header.top.is-compact .theme-toggle {
-  position: static;
-  top: auto;
-  bottom: auto;
-  left: auto;
-  right: auto;
-  margin: 0;
-}
-header.top.is-compact .mobile-nav { display: block; }
-header.top.is-compact .top-actions { margin-left: 0; }
 
 @media (max-width: 900px) {
   .footer-meta {

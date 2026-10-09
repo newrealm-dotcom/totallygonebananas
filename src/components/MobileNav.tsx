@@ -20,7 +20,7 @@ const LINKS = [
   { href: "/policy", label: "Privacy Policy", match: (p: string) => p === "/policy" },
 ] as const;
 
-/** Compact menu for small screens — sits between the theme toggle and Sign in. */
+/** Site hamburger menu — left on desktop, in the mobile tools stack on small screens. */
 export function MobileNav() {
   const path = usePathname();
   const panelId = useId();
@@ -37,8 +37,16 @@ export function MobileNav() {
     const onKey = (e: KeyboardEvent) => {
       if (e.key === "Escape") setOpen(false);
     };
+    const onPointer = (e: MouseEvent) => {
+      const root = document.querySelector(".mobile-nav");
+      if (root && !root.contains(e.target as Node)) setOpen(false);
+    };
     window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
+    document.addEventListener("mousedown", onPointer);
+    return () => {
+      window.removeEventListener("keydown", onKey);
+      document.removeEventListener("mousedown", onPointer);
+    };
   }, [open]);
 
   return (
