@@ -142,7 +142,10 @@ export default async function HomePage({ searchParams }: PageProps<"/">) {
 
       <section className="home-band-section" aria-labelledby="home-band-kicker">
         <div className="wrap">
-          <h2 id="home-band-kicker" className="home-band-kicker">Check Out Our Current Obsession</h2>
+          <h2 id="home-band-kicker" className="home-band-kicker">
+            <span className="home-band-kicker-accent">Check Out</span> Our Current{" "}
+            <span className="home-band-kicker-accent">Obsession</span>
+          </h2>
         </div>
         <div className="home-band" aria-labelledby="home-band-h">
           <div className="home-band-bg" aria-hidden="true">

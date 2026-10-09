@@ -1266,8 +1266,20 @@ html[data-theme="dark"] .home-join-copy > p { color: var(--muted); }
   align-items: center;
   animation: home-join-rise .55s ease .18s both;
 }
-.home-join-actions .btn {
+.home-join-actions .btn,
+.home-join-actions .btn.ghost {
   text-transform: uppercase;
+  background: #fff;
+  color: var(--brown);
+  border-color: var(--brown);
+  box-shadow: 4px 4px 0 var(--brown);
+}
+.home-join-actions .btn:hover,
+.home-join-actions .btn.ghost:hover {
+  background: #fff;
+  color: var(--brown);
+  border-color: var(--brown);
+  box-shadow: 5px 5px 0 var(--brown);
 }
 .home-join-art {
   animation: home-join-float 4.5s ease-in-out infinite;
@@ -1323,6 +1335,8 @@ html[data-theme="dark"] .home-join-copy > p { color: var(--muted); }
   text-align: center;
   text-wrap: balance;
 }
+.home-band-kicker-accent { color: var(--orange); }
+html[data-theme="dark"] .home-band-kicker-accent { color: inherit; }
 
 .rotd-section {
   background-color: var(--yellow);
@@ -1506,6 +1520,18 @@ html[data-theme="dark"] .home-join-copy > p { color: var(--muted); }
 .rotd p { font-weight: 700; margin: .4rem 0 1rem; max-width: 50ch; }
 .rotd .actions { display: flex; gap: .8rem; flex-wrap: wrap; align-items: center; }
 .rotd .btn { text-transform: uppercase; }
+.rotd .btn.dark {
+  background: var(--orange);
+  color: var(--brown);
+  border-color: var(--brown);
+  box-shadow: 4px 4px 0 var(--brown);
+}
+.rotd .btn.dark:hover {
+  background: color-mix(in srgb, var(--orange) 88%, #fff);
+  color: var(--brown);
+  border-color: var(--brown);
+  box-shadow: 5px 5px 0 var(--brown);
+}
 html[data-theme="dark"] .rotd .kicker,
 html[data-theme="dark"] .rotd > div > p { color: #fff; }
 html[data-theme="dark"] .rotd h2 { color: var(--yellow); }
@@ -4896,9 +4922,23 @@ html[data-theme="dark"] .login-hero-stack .login-hero-dark { display: block; }
   }
   .footer-newsletter-row {
     flex-direction: column;
+    align-items: stretch;
     width: min(100%, 20rem);
   }
-  .footer-newsletter-btn { width: 100%; }
+  .footer-newsletter-input {
+    flex: 0 0 auto;
+    width: 100%;
+    min-height: 40px;
+    height: 40px;
+    padding: .35rem .7rem;
+    font-size: .9rem;
+    line-height: 1.2;
+    border-width: 2.5px;
+  }
+  .footer-newsletter-btn {
+    width: 100%;
+    min-height: 44px;
+  }
   .footer-social { grid-template-columns: repeat(3, 40px); }
   .grid, .home-latest .grid { grid-template-columns: 1fr; }
   .f-grid, .f-grid.three { grid-template-columns: 1fr; }
