@@ -333,14 +333,14 @@ export function canEdit(recipe: Pick<Recipe, "author_id" | "status">, userId: st
 
 export type AdminRecipeRow = Pick<
   Recipe,
-  "id" | "slug" | "title" | "status" | "categories" | "updated_at" | "created_at" | "author_id"
+  "id" | "slug" | "title" | "status" | "categories" | "cover_path" | "updated_at" | "created_at" | "author_id"
 >;
 
 export async function listAdminRecipes(limit = 100): Promise<AdminRecipeRow[]> {
   const supabase = await createClient();
   const { data } = await supabase
     .from("recipes")
-    .select("id, slug, title, status, categories, updated_at, created_at, author_id")
+    .select("id, slug, title, status, categories, cover_path, updated_at, created_at, author_id")
     .order("updated_at", { ascending: false })
     .limit(limit);
   return ((data as AdminRecipeRow[]) ?? []).map((row) => ({
