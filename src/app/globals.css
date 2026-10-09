@@ -878,6 +878,17 @@ html:not([data-theme="dark"]) .btn:not(.ghost):not(.dark):not(.danger):not(.foot
   background: var(--orange);
   color: var(--brown);
   border-color: var(--brown);
+  gap: 0.55rem;
+  padding-inline: 1.55rem;
+}
+.btn.btn-load-more:not(:disabled)::after {
+  content: "";
+  width: 0.4em;
+  height: 0.4em;
+  margin-top: -0.2em;
+  border-right: 2.5px solid currentColor;
+  border-bottom: 2.5px solid currentColor;
+  transform: rotate(45deg);
 }
 .btn.btn-load-more:hover {
   background: color-mix(in srgb, var(--orange) 88%, #fff);
