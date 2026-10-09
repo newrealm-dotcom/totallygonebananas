@@ -1,6 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { FooterPeekImage } from "@/components/FooterPeekImage";
+import { NewsletterSignup } from "@/components/NewsletterSignup";
 
 function InstagramIcon() {
   return (
@@ -101,28 +102,33 @@ function PinterestIcon() {
   );
 }
 
+function FooterDivider() {
+  return (
+    <div className="footer-divider" aria-hidden="true">
+      <Image
+        src="/images/footer-img.png"
+        alt=""
+        width={1400}
+        height={280}
+        sizes="(max-width: 900px) 100vw, 900px"
+      />
+    </div>
+  );
+}
+
+const year = new Date().getFullYear();
+
 export function SiteFooter() {
   return (
     <footer>
       <FooterPeekImage />
       <div className="footer-surface">
-        <div className="wrap footer-inner">
-          <div className="footer-brand">
-            <div className="footer-brand-copy">
-              <Image
-                className="footer-brand-mark"
-                src="/logo.png"
-                alt=""
-                width={150}
-                height={162}
-                sizes="150px"
-              />
-              <p className="footer-name">Totally Gone Bananas</p>
-              <p className="footer-tagline">Recipes for every banana, from green to gone.</p>
-            </div>
-          </div>
+        <div className="wrap footer-stack">
+          <NewsletterSignup />
 
-          <nav aria-label="Footer">
+          <FooterDivider />
+
+          <nav className="footer-nav" aria-label="Footer">
             <Link href="/">Home</Link>
             <Link href="/recipes">Recipes</Link>
             <Link href="/blog">Blog</Link>
@@ -136,28 +142,35 @@ export function SiteFooter() {
             <Link href="/policy">Privacy Policy</Link>
           </nav>
 
-          <Link className="footer-header-logo" href="/" aria-label="Totally Gone Bananas home">
-            <Image
-              className="footer-header-logo-light"
-              src="/img-login.webp"
-              alt=""
-              width={186}
-              height={124}
-              sizes="186px"
-            />
-            <Image
-              className="footer-header-logo-dark"
-              src="/img-login-dark.webp"
-              alt=""
-              width={186}
-              height={124}
-              sizes="186px"
-            />
-          </Link>
+          <div className="footer-meta">
+            <p>
+              Questions &amp; ideas:{" "}
+              <Link href="/about#contact-h">Contact form</Link>
+            </p>
+            <p>
+              Got a banana win?{" "}
+              <Link href="/recipes/new">Share a recipe</Link>
+            </p>
+          </div>
 
-          <div className="footer-aside">
-            <p className="footer-aside-label">Follow along</p>
-            <div className="footer-social">
+          <div className="footer-base">
+            <div className="footer-brand">
+              <Link href="/" className="footer-brand-link" aria-label="Totally Gone Bananas home">
+                <Image
+                  className="footer-brand-mark"
+                  src="/logo.png"
+                  alt=""
+                  width={132}
+                  height={143}
+                  sizes="132px"
+                />
+                <p className="footer-name">Totally Gone Bananas</p>
+              </Link>
+              <p className="footer-tagline">Recipes for every banana, from green to gone.</p>
+              <p className="footer-copy">© {year}. Totally Gone Bananas. All Rights Reserved.</p>
+            </div>
+
+            <div className="footer-social" aria-label="Social links">
               <a
                 href="https://www.instagram.com/totallygonebananas.official/"
                 target="_blank"

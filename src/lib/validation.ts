@@ -304,6 +304,16 @@ export const contactInput = z.object({
 
 export type ContactInput = z.input<typeof contactInput>;
 
+export const newsletterInput = z.object({
+  email: z
+    .string()
+    .trim()
+    .email("Enter a valid email address")
+    .max(120, "Keep your email under 120 characters"),
+});
+
+export type NewsletterInput = z.input<typeof newsletterInput>;
+
 export const postCommentInput = z.object({
   postId: z.string().uuid("That post is missing."),
   displayName: z.string().trim().min(2, "Add your name").max(80, "Keep your name under 80 characters"),

@@ -1,6 +1,7 @@
 import { cache } from "react";
 import { randomInt } from "node:crypto";
 import { createClient } from "@/lib/supabase/server";
+import { createPublicClient } from "@/lib/supabase/public";
 import { easternDayRange } from "@/lib/format";
 import { pointsFromCounts, standingsFor } from "@/lib/standings";
 import { normalizeEquipment } from "@/lib/equipment";
@@ -259,15 +260,8 @@ export async function getSavedIds(userId: string | null): Promise<Set<string>> {
   return new Set(data?.map((s) => s.recipe_id as string) ?? []);
 }
 
-export const getRecipeBySlug = cache(async (slug: string): Promise<RecipeWithExtras | null> => {
-  const supabase = await createClient();
-  const { data } = await supabase
-    .from("recipes")
-    .select("*, author:profiles!recipes_author_id_fkey(username, display_name, avatar_path), recipe_media(*)")
-    .eq("slug", slug)
-    .maybeSingle();
-  if (!data) return null;
-  const recipe = data as RecipeWithExtras;
+function normalizeRecipeRow(data: RecipeWithExtras): RecipeWithExtras {
+  const recipe = data;
   recipe.categories = Array.isArray(recipe.categories)
     ? recipe.categories.map((c) => String(c).trim()).filter(Boolean)
     : [];
@@ -279,7 +273,56 @@ export const getRecipeBySlug = cache(async (slug: string): Promise<RecipeWithExt
   recipe.nutrition = normalizeNutrition(recipe.nutrition);
   recipe.recipe_media = [...(recipe.recipe_media ?? [])].sort((a, b) => a.position - b.position);
   return recipe;
+}
+
+const RECIPE_DETAIL_SELECT =
+  "*, author:profiles!recipes_author_id_fkey(username, display_name, avatar_path), recipe_media(*)";
+
+/** Published recipe only — cookie-free, safe for static/ISR HTML. */
+export const getPublishedRecipeBySlug = cache(async (slug: string): Promise<RecipeWithExtras | null> => {
+  const supabase = createPublicClient();
+  const { data } = await supabase
+    .from("recipes")
+    .select(RECIPE_DETAIL_SELECT)
+    .eq("slug", slug)
+    .eq("status", "published")
+    .maybeSingle();
+  if (!data) return null;
+  return normalizeRecipeRow(data as RecipeWithExtras);
 });
+
+/** Any recipe the current viewer may see (published, own drafts, editor). Uses session cookies. */
+export const getRecipeBySlug = cache(async (slug: string): Promise<RecipeWithExtras | null> => {
+  const supabase = await createClient();
+  const { data } = await supabase
+    .from("recipes")
+    .select(RECIPE_DETAIL_SELECT)
+    .eq("slug", slug)
+    .maybeSingle();
+  if (!data) return null;
+  return normalizeRecipeRow(data as RecipeWithExtras);
+});
+
+/** Slugs for static generation of published recipe pages. */
+export async function listPublishedRecipeSlugs(): Promise<string[]> {
+  const supabase = createPublicClient();
+  const pageSize = 1000;
+  const slugs: string[] = [];
+  for (let from = 0; ; from += pageSize) {
+    const { data } = await supabase
+      .from("recipes")
+      .select("slug")
+      .eq("status", "published")
+      .order("published_at", { ascending: false, nullsFirst: false })
+      .range(from, from + pageSize - 1);
+    const batch = (data as { slug: string }[] | null) ?? [];
+    for (const row of batch) {
+      if (row.slug) slugs.push(row.slug);
+    }
+    if (batch.length < pageSize) break;
+  }
+  return slugs;
+}
 
 /** Can this viewer edit this recipe? Mirrors the database policy. */
 export function canEdit(recipe: Pick<Recipe, "author_id" | "status">, userId: string | null, profile: Profile | null) {

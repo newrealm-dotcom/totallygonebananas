@@ -1,10 +1,21 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { canEdit, getCategories, getRatings, getRecipeBySlug, getSavedIds, getViewer, isEditorRole } from "@/lib/queries";
+import {
+  canEdit,
+  getCategories,
+  getPublishedRecipeBySlug,
+  getRatings,
+  getRecipeBySlug,
+  getSavedIds,
+  getViewer,
+  isEditorRole,
+  listPublishedRecipeSlugs,
+} from "@/lib/queries";
 import { createClient } from "@/lib/supabase/server";
 import { publicUrl } from "@/lib/media";
 import { shortDate, tintFor, titleCase } from "@/lib/format";
+import { buildRecipeJsonLd, jsonLdScript } from "@/lib/recipe-jsonld";
 import { HtmlWithScripts } from "@/components/HtmlWithScripts";
 import { renderPostMarkdown } from "@/lib/render-post-markdown";
 import { MediaView } from "@/components/MediaView";
@@ -18,13 +29,25 @@ import { DeleteRecipeButton, RemoveLogButton, ReviewButtons } from "@/components
 import { BananaRain } from "@/components/BananaRain";
 import type { CookLog } from "@/lib/types";
 
+/** Revalidate published recipe HTML periodically (ISR). */
+export const revalidate = 600;
+
+export async function generateStaticParams() {
+  const slugs = await listPublishedRecipeSlugs();
+  return slugs.map((slug) => ({ slug }));
+}
+
 export async function generateMetadata({ params }: PageProps<"/recipes/[slug]">): Promise<Metadata> {
   const { slug } = await params;
-  const r = await getRecipeBySlug(slug);
+  const r = (await getPublishedRecipeBySlug(slug)) ?? (await getRecipeBySlug(slug));
   if (!r) return { title: "Recipe not found" };
   const img = publicUrl(r.cover_path);
   const title = titleCase(r.title);
-  return { title, description: r.description ?? undefined, openGraph: { title, description: r.description ?? undefined, images: img ? [img] : undefined } };
+  return {
+    title,
+    description: r.description ?? undefined,
+    openGraph: { title, description: r.description ?? undefined, images: img ? [img] : undefined },
+  };
 }
 
 const SAVED_MSG: Record<string, string> = {
@@ -36,13 +59,29 @@ const SAVED_MSG: Record<string, string> = {
 export default async function RecipePage({ params, searchParams }: PageProps<"/recipes/[slug]">) {
   const { slug } = await params;
   const sp = await searchParams;
-  const r = await getRecipeBySlug(slug);
+
+  // Prefer cookie-free published fetch so ingredients/steps land in cacheable HTML.
+  let r = await getPublishedRecipeBySlug(slug);
+  if (!r) r = await getRecipeBySlug(slug);
   if (!r) notFound();
 
-  const [{ userId, profile }, categories, ratings] = await Promise.all([getViewer(), getCategories(), getRatings([r.id])]);
+  const [{ userId, profile }, categories, ratings] = await Promise.all([
+    getViewer(),
+    getCategories(),
+    getRatings([r.id]),
+  ]);
+  if (r.status !== "published" && !canEdit(r, userId, profile) && !isEditorRole(profile)) {
+    notFound();
+  }
+
   const saved = (await getSavedIds(userId)).has(r.id);
   const supabase = await createClient();
-  const { data: logsData } = await supabase.from("cook_logs").select("*").eq("recipe_id", r.id).order("created_at", { ascending: false }).limit(30);
+  const { data: logsData } = await supabase
+    .from("cook_logs")
+    .select("*")
+    .eq("recipe_id", r.id)
+    .order("created_at", { ascending: false })
+    .limit(30);
   const logs = (logsData as CookLog[] | null) ?? [];
   const { data: names } = logs.length
     ? await supabase.from("profiles").select("id, display_name").in("id", [...new Set(logs.map((l) => l.user_id))])
@@ -58,9 +97,14 @@ export default async function RecipePage({ params, searchParams }: PageProps<"/r
   const savedMsg = typeof sp.saved === "string" ? SAVED_MSG[sp.saved] : undefined;
   const gallery = r.recipe_media;
   const hero = gallery[0];
+  const recipeLd =
+    r.status === "published" ? jsonLdScript(buildRecipeJsonLd(r)) : null;
 
   return (
     <div className="wrap">
+      {recipeLd ? (
+        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: recipeLd }} />
+      ) : null}
       {sp.saved === "published" && <BananaRain active />}
       {savedMsg && (
         <div className="notice-inline" role="status">
@@ -73,7 +117,8 @@ export default async function RecipePage({ params, searchParams }: PageProps<"/r
         <p className="notice-inline warn" role="status">
           {r.status === "pending" && "This recipe is waiting for review. Only you and the editors can see it."}
           {r.status === "draft" && "This is a draft. Only you can see it."}
-          {r.status === "rejected" && `An editor sent this back${r.review_note ? `: “${r.review_note}”` : "."} Edit it and resubmit when you're ready.`}
+          {r.status === "rejected" &&
+            `An editor sent this back${r.review_note ? `: “${r.review_note}”` : "."} Edit it and resubmit when you're ready.`}
         </p>
       )}
 
@@ -90,10 +135,22 @@ export default async function RecipePage({ params, searchParams }: PageProps<"/r
       <section className="d-hero">
         <div className="d-media">
           <div className="d-art" style={{ background: tintFor(primary?.id ?? null, categories) }}>
-            {hero ? <MediaView path={hero.path} kind={hero.kind} alt={hero.caption || r.title} priority sizes="(max-width: 900px) 100vw, 520px" /> : <span aria-hidden="true">{r.emoji || primary?.emoji || "🍌"}</span>}
+            {hero ? (
+              <MediaView
+                path={hero.path}
+                kind={hero.kind}
+                alt={hero.caption || r.title}
+                priority
+                sizes="(max-width: 900px) 100vw, 520px"
+              />
+            ) : (
+              <span aria-hidden="true">{r.emoji || primary?.emoji || "🍌"}</span>
+            )}
           </div>
           <div className="d-actions">
-            <a className="btn" href="#made">I made it!</a>
+            <a className="btn" href="#made">
+              I made it!
+            </a>
             <SaveButton recipeId={r.id} title={r.title} initialSaved={saved} signedIn={!!userId} className="inline" />
             <PrintRecipeButton
               recipe={{
@@ -114,15 +171,25 @@ export default async function RecipePage({ params, searchParams }: PageProps<"/r
             />
             {editable && (
               <div className="d-actions-owner">
-                <Link className="btn ghost small" href={`/recipes/${r.slug}/edit`}>Edit recipe</Link>
+                <Link className="btn ghost small" href={`/recipes/${r.slug}/edit`}>
+                  Edit recipe
+                </Link>
                 <DeleteRecipeButton recipeId={r.id} />
               </div>
             )}
           </div>
           {(rating || r.tags.length > 0) && (
             <div className="meta">
-              {rating && <span className="pill rate">★ {rating.avg_rating} ({rating.ratings_count})</span>}
-              {r.tags.map((t) => <Link key={t} className="pill" href={`/recipes?tag=${encodeURIComponent(t)}`}>{t}</Link>)}
+              {rating && (
+                <span className="pill rate">
+                  ★ {rating.avg_rating} ({rating.ratings_count})
+                </span>
+              )}
+              {r.tags.map((t) => (
+                <Link key={t} className="pill" href={`/recipes?tag=${encodeURIComponent(t)}`}>
+                  {t}
+                </Link>
+              ))}
             </div>
           )}
           {(r.author || r.adapted_from_name || r.adapted_from_url) && (
@@ -162,7 +229,9 @@ export default async function RecipePage({ params, searchParams }: PageProps<"/r
                     <li key={l.id} className="review">
                       <div className="who">
                         <span>{l.user_id === userId ? "You" : nameOf.get(l.user_id) || "A banana fan"}</span>
-                        <span role="img" aria-label={`${l.rating} out of 5`}>{"🍌".repeat(l.rating)}</span>
+                        <span role="img" aria-label={`${l.rating} out of 5`}>
+                          {"🍌".repeat(l.rating)}
+                        </span>
                         <span className="muted">{shortDate(l.created_at)}</span>
                         {(l.user_id === userId || isEditorRole(profile)) && <RemoveLogButton id={l.id} />}
                       </div>
@@ -179,7 +248,9 @@ export default async function RecipePage({ params, searchParams }: PageProps<"/r
             <ul className="thumbs" aria-label="More photos and videos">
               {gallery.slice(1).map((m) => (
                 <li key={m.id}>
-                  <div className="thumb-media"><MediaView path={m.path} kind={m.kind} alt={m.caption || `${r.title} photo`} sizes="160px" /></div>
+                  <div className="thumb-media">
+                    <MediaView path={m.path} kind={m.kind} alt={m.caption || `${r.title} photo`} sizes="160px" />
+                  </div>
                   {m.caption && <span>{m.caption}</span>}
                 </li>
               ))}
@@ -194,11 +265,7 @@ export default async function RecipePage({ params, searchParams }: PageProps<"/r
               This site runs ads and generates income from affiliate links.{" "}
               <Link href="/policy">Read my disclosure policy</Link>.
             </p>
-            <RecipeFacts
-              difficulty={r.difficulty}
-              servings={r.servings}
-              totalMinutes={r.total_minutes}
-            />
+            <RecipeFacts difficulty={r.difficulty} servings={r.servings} totalMinutes={r.total_minutes} />
             {r.description && <p className="lede">{r.description}</p>}
           </div>
           <div className="d-intro">
@@ -221,7 +288,9 @@ export default async function RecipePage({ params, searchParams }: PageProps<"/r
                 </ol>
               </div>
             ) : null}
+
             <IngredientPanel ingredients={r.ingredients} servings={r.servings} />
+
             <div className="d-steps" aria-labelledby="steps-h">
               <h2 id="steps-h">Steps</h2>
               {r.steps.map((group, gi) => (
