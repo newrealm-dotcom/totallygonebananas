@@ -4,15 +4,15 @@ import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 
-/** Sticky header brand mark — swaps to the login art after scrolling 20% down the page. */
+/** Sticky header brand mark — swaps to the compact logo after scrolling 10% down the page. */
 export function BrandLogo() {
   const [scrolled, setScrolled] = useState(false);
 
   useEffect(() => {
     const update = () => {
       const doc = document.documentElement;
-      // Compact sticky chrome (solid bar + small logo) only after this threshold.
-      const next = window.scrollY >= Math.max(doc.scrollHeight * 0.2, 1);
+      // Compact sticky chrome (solid bar + small logo) after this threshold.
+      const next = window.scrollY >= Math.max(doc.scrollHeight * 0.1, 1);
       setScrolled(next);
       doc.classList.toggle("header-scrolled", next);
       doc.classList.remove("header-stuck");
