@@ -1,5 +1,6 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
+import { HAS_ACCOUNT_COOKIE, hasAccountCookieOptions } from "@/lib/auth-next";
 import { getSupabaseEnv } from "@/lib/env";
 import { REFERRAL_COOKIE, sanitizeReferral } from "@/lib/referral";
 
@@ -27,6 +28,11 @@ export async function updateSession(request: NextRequest) {
   // Do not put code between createServerClient and getClaims: it keeps the session fresh.
   const { data } = await supabase.auth.getClaims();
   const signedIn = Boolean(data?.claims?.sub);
+
+  // Remember that this browser has an account so the header can say "Sign In" after logout.
+  if (signedIn && request.cookies.get(HAS_ACCOUNT_COOKIE)?.value !== "1") {
+    response.cookies.set(HAS_ACCOUNT_COOKIE, "1", hasAccountCookieOptions());
+  }
 
   const path = request.nextUrl.pathname;
 

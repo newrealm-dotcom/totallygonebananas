@@ -9,6 +9,7 @@ import {
 } from "@/lib/queries";
 import { shortDate } from "@/lib/format";
 import { isValidTag, normalizeTag } from "@/lib/tags";
+import { BlogCategorySelect } from "@/components/BlogCategorySelect";
 import { BlogFeaturedCarousel } from "@/components/BlogFeaturedCarousel";
 import { BlogInfiniteGrid } from "@/components/BlogInfiniteGrid";
 import { FilterPillsScroller } from "@/components/FilterPillsScroller";
@@ -132,29 +133,32 @@ export default async function BlogPage({ searchParams }: PageProps<"/blog">) {
           <section className="blog-read-more" aria-labelledby="blog-read-more-h">
             <h2 id="blog-read-more-h" className="sr">Read more</h2>
             {browseCategories.length > 0 && !author && !date ? (
-              <div className="blog-topic-row blog-read-filters">
-                <FilterPillsScroller label="categories" moreText="more">
-                  <nav className="blog-topic-nav" aria-label="Browse by topic">
-                    <Link
-                      className="blog-topic"
-                      href="/blog"
-                      aria-current={!category ? "page" : undefined}
-                    >
-                      All stories
-                    </Link>
-                    {browseCategories.map((c) => (
+              <>
+                <BlogCategorySelect categories={browseCategories} value={category} />
+                <div className="blog-topic-row blog-read-filters filters-desktop-only">
+                  <FilterPillsScroller label="categories" moreText="more">
+                    <nav className="blog-topic-nav" aria-label="Browse by topic">
                       <Link
-                        key={c.id}
                         className="blog-topic"
-                        href={`/blog?category=${encodeURIComponent(c.id)}`}
-                        aria-current={category === c.id ? "page" : undefined}
+                        href="/blog"
+                        aria-current={!category ? "page" : undefined}
                       >
-                        {c.name}
+                        All stories
                       </Link>
-                    ))}
-                  </nav>
-                </FilterPillsScroller>
-              </div>
+                      {browseCategories.map((c) => (
+                        <Link
+                          key={c.id}
+                          className="blog-topic"
+                          href={`/blog?category=${encodeURIComponent(c.id)}`}
+                          aria-current={category === c.id ? "page" : undefined}
+                        >
+                          {c.name}
+                        </Link>
+                      ))}
+                    </nav>
+                  </FilterPillsScroller>
+                </div>
+              </>
             ) : null}
 
             <BlogInfiniteGrid

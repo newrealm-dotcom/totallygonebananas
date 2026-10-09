@@ -1,5 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
+import { cookies } from "next/headers";
+import { HAS_ACCOUNT_COOKIE } from "@/lib/auth-next";
 import { getViewer, getViewerStandings } from "@/lib/queries";
 import { publicUrl, AVATAR_BUCKET } from "@/lib/media";
 import { BrandLogo } from "@/components/BrandLogo";
@@ -7,9 +9,15 @@ import { ThemeToggle } from "@/components/ThemeToggle";
 import { MobileNav } from "@/components/MobileNav";
 
 export async function SiteHeader() {
-  const [{ userId, profile }, standings] = await Promise.all([getViewer(), getViewerStandings()]);
+  const [{ userId, profile }, standings, jar] = await Promise.all([
+    getViewer(),
+    getViewerStandings(),
+    cookies(),
+  ]);
   const avatar = publicUrl(profile?.avatar_path, AVATAR_BUCKET);
   const name = profile?.display_name || "You";
+  const hasAccount = jar.get(HAS_ACCOUNT_COOKIE)?.value === "1";
+  const authLabel = hasAccount || userId ? "Sign In" : "Sign Up";
 
   return (
     <header className="top">
@@ -19,7 +27,7 @@ export async function SiteHeader() {
         <div className="top-end">
           <div className="top-right">
             <ThemeToggle />
-            <MobileNav />
+            <MobileNav signedIn={Boolean(userId)} authLabel={authLabel} />
             <div className="top-actions">
               {userId ? (
                 <div className="profile-menu">
@@ -49,12 +57,12 @@ export async function SiteHeader() {
                   </div>
                 </div>
               ) : null}
-              <Link className="btn small" href="/recipes/new">
+              <Link className="btn small top-add-recipe" href="/recipes/new">
                 Add a recipe
               </Link>
               {!userId ? (
                 <Link className="btn small ghost" href="/login">
-                  Sign in / Sign up
+                  {authLabel}
                 </Link>
               ) : null}
             </div>

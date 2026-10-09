@@ -212,7 +212,7 @@ export function BlogInfiniteGrid({
       ) : null}
       {loadMode === "button" && hasMore ? (
         <div className="blog-feed-more">
-          <button type="button" className="btn" disabled={loading} onClick={() => void loadMore()}>
+          <button type="button" className="btn btn-load-more" disabled={loading} onClick={() => void loadMore()}>
             {loading ? "Loading…" : loadMoreLabel}
           </button>
         </div>

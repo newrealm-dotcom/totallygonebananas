@@ -18,9 +18,9 @@ export default async function RecipesPage({ searchParams }: PageProps<"/recipes"
   const sp = await searchParams;
   const f: RecipeFilters = {
     q: str(sp.q)?.trim().slice(0, 100) || undefined,
-    category: str(sp.category),
+    category: str(sp.category)?.trim() || undefined,
     tag: (() => {
-      const t = str(sp.tag);
+      const t = str(sp.tag)?.trim();
       return t && isValidTag(t) ? normalizeTag(t) : undefined;
     })(),
     sort: (["new", "quick", "easy", "az"] as const).find((s) => s === str(sp.sort)) ?? "new",
@@ -72,12 +72,39 @@ export default async function RecipesPage({ searchParams }: PageProps<"/recipes"
       <div className="recipes-index-panel">
         <div className="wrap">
           <form className="filters" action="/recipes" role="search">
-            {f.category && <input type="hidden" name="category" value={f.category} />}
-            {f.tag && <input type="hidden" name="tag" value={f.tag} />}
             <div className="f search-f">
               <label htmlFor="q">Search</label>
               <input id="q" name="q" type="search" className="field" defaultValue={f.q} placeholder="Chocolate, oats, walnuts…" />
             </div>
+            <div className="f filters-mobile-only">
+              <label htmlFor="category">Category</label>
+              <select
+                id="category"
+                name="category"
+                className="field filters-sort"
+                defaultValue={f.category ?? ""}
+              >
+                <option value="">All categories</option>
+                {categories.map((c) => (
+                  <option key={c.id} value={c.id}>
+                    {c.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+            {recipeTags.length > 0 ? (
+              <div className="f filters-mobile-only">
+                <label htmlFor="tag">Tag</label>
+                <select id="tag" name="tag" className="field filters-sort" defaultValue={f.tag ?? ""}>
+                  <option value="">All tags</option>
+                  {recipeTags.map((t) => (
+                    <option key={t.name} value={t.name}>
+                      {t.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            ) : null}
             <div className="f">
               <label htmlFor="sort">Sort by</label>
               <select id="sort" name="sort" className="field filters-sort" defaultValue={f.sort}>
@@ -87,7 +114,7 @@ export default async function RecipesPage({ searchParams }: PageProps<"/recipes"
             <button className="btn" type="submit">Apply</button>
           </form>
 
-          <div className="filter-pills">
+          <div className="filter-pills filters-desktop-only">
             <div className="filter-pills-row">
               <span className="filter-pills-label">Categories:</span>
               <FilterPillsScroller label="categories">

@@ -22,7 +22,13 @@ const LINKS = [
 ] as const;
 
 /** Site hamburger menu — left on desktop, in the mobile tools stack on small screens. */
-export function MobileNav() {
+export function MobileNav({
+  signedIn = false,
+  authLabel = "Sign Up",
+}: {
+  signedIn?: boolean;
+  authLabel?: string;
+}) {
   const path = usePathname();
   const panelId = useId();
   const [open, setOpen] = useState(false);
@@ -104,9 +110,11 @@ export function MobileNav() {
         <SocialIcons className="mobile-nav-social" onNavigate={close} />
 
         <div className="mobile-nav-actions">
-          <Link className="btn" href="/login" onClick={close}>
-            Sign in / Sign up
-          </Link>
+          {!signedIn ? (
+            <Link className="btn" href="/login" onClick={close}>
+              {authLabel}
+            </Link>
+          ) : null}
           <Link className="btn ghost" href="/recipes/new" onClick={close}>
             Add a recipe
           </Link>

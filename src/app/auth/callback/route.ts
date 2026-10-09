@@ -1,7 +1,12 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { createServerClient } from "@supabase/ssr";
 import type { EmailOtpType } from "@supabase/supabase-js";
-import { AUTH_NEXT_COOKIE, sanitizeAuthNext } from "@/lib/auth-next";
+import {
+  AUTH_NEXT_COOKIE,
+  HAS_ACCOUNT_COOKIE,
+  hasAccountCookieOptions,
+  sanitizeAuthNext,
+} from "@/lib/auth-next";
 import { getSupabaseEnv } from "@/lib/env";
 
 /** Finishes sign-in for magic links (token_hash) and OAuth (PKCE code). */
@@ -54,5 +59,6 @@ export async function GET(request: NextRequest) {
     return failed;
   }
 
+  response.cookies.set(HAS_ACCOUNT_COOKIE, "1", hasAccountCookieOptions());
   return response;
 }

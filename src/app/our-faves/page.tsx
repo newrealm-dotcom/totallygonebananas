@@ -35,7 +35,7 @@ export default async function OurFavesPage() {
             Banana-inspired things we actually like — snacks, scents, gadgets, and little luxuries, all in one place.
           </p>
           {posts.length > 0 ? (
-            <a className="btn" href="#faves-feed">Browse the picks</a>
+            <a className="btn faves-hero-browse" href="#faves-feed">Browse the picks</a>
           ) : null}
         </div>
         <div className="faves-hero-mascot">

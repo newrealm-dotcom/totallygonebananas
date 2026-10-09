@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { AUTH_NEXT_COOKIE } from "@/lib/auth-next";
+import { AUTH_NEXT_COOKIE, HAS_ACCOUNT_COOKIE, HAS_ACCOUNT_MAX_AGE } from "@/lib/auth-next";
 import { createClient } from "@/lib/supabase/client";
 
 export function LoginForm({ next, googleEnabled }: { next: string; googleEnabled: boolean }) {
@@ -19,6 +19,11 @@ export function LoginForm({ next, googleEnabled }: { next: string; googleEnabled
   function rememberNext() {
     const secure = location.protocol === "https:" ? "; Secure" : "";
     document.cookie = `${AUTH_NEXT_COOKIE}=${encodeURIComponent(next)}; Path=/; Max-Age=3600; SameSite=Lax${secure}`;
+  }
+
+  function rememberHasAccount() {
+    const secure = location.protocol === "https:" ? "; Secure" : "";
+    document.cookie = `${HAS_ACCOUNT_COOKIE}=1; Path=/; Max-Age=${HAS_ACCOUNT_MAX_AGE}; SameSite=Lax${secure}`;
   }
 
   async function sendLink(e: React.FormEvent) {
@@ -64,6 +69,7 @@ export function LoginForm({ next, googleEnabled }: { next: string; googleEnabled
       setError(error.message);
       return;
     }
+    rememberHasAccount();
     router.replace(next);
     router.refresh();
   }

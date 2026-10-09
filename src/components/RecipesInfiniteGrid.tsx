@@ -118,7 +118,7 @@ export function RecipesInfiniteGrid({
       </div>
       {hasMore && !scrollEnabled ? (
         <div className="recipes-feed-more">
-          <button type="button" className="btn" disabled={loading} onClick={() => void onLoadMoreClick()}>
+          <button type="button" className="btn btn-load-more" disabled={loading} onClick={() => void onLoadMoreClick()}>
             {loading ? "Loading…" : "Load more"}
           </button>
         </div>
