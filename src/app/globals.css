@@ -532,7 +532,7 @@ footer nav a:hover {
 }
 .footer-social {
   display: grid;
-  grid-template-columns: repeat(4, 40px);
+  grid-template-columns: repeat(5, 40px);
   gap: .3rem .3rem;
   justify-content: end;
 }

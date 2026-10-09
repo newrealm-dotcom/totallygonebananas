@@ -60,7 +60,12 @@ export function AdminNav({
         match: (p) => p.startsWith("/admin/referrals"),
         badge: referralsRecent > 0 ? referralsRecent : undefined,
       },
-      ...(isAdmin ? [{ href: "/admin/users", label: "Users", match: (p: string) => p.startsWith("/admin/users") }] : []),
+      ...(isAdmin
+        ? [
+            { href: "/admin/pinterest", label: "Pinterest", match: (p: string) => p.startsWith("/admin/pinterest") },
+            { href: "/admin/users", label: "Users", match: (p: string) => p.startsWith("/admin/users") },
+          ]
+        : []),
     ],
     [isAdmin, pendingReview, pendingComments, referralsRecent],
   );

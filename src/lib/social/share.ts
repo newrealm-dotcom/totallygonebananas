@@ -3,10 +3,11 @@ import { createClient } from "@/lib/supabase/server";
 import { siteUrl } from "@/lib/env";
 import { stripInlineMarkdown } from "@/lib/render-post-markdown";
 import { metaConfig, postToFacebook, postToInstagram, type MetaConfig } from "@/lib/social/meta";
+import { pinterestConfig, postToPinterest, type PinterestConfig } from "@/lib/social/pinterest";
 import { postToTwitter, twitterConfig, type TwitterConfig } from "@/lib/social/twitter";
 
 export type SocialKind = "recipe" | "post";
-type SocialNetwork = "facebook" | "instagram" | "twitter";
+type SocialNetwork = "facebook" | "instagram" | "twitter" | "pinterest";
 
 export interface SocialShareInput {
   kind: SocialKind;
@@ -68,6 +69,11 @@ function twitterText(input: SocialShareInput): string {
   return [truncate(title, Math.max(1, titleRoom)), url, tags].join(sep);
 }
 
+function pinterestDescription(input: SocialShareInput): string {
+  const summary = truncate(cleanText(input.summary), 500);
+  return [summary, HASHTAGS].filter(Boolean).join("\n\n");
+}
+
 type Supabase = Awaited<ReturnType<typeof createClient>>;
 
 /** Inserts the log row first; a unique-key conflict means this network already has it. */
@@ -105,7 +111,12 @@ async function shareTo(
   }
 }
 
-async function shareNow(meta: MetaConfig | null, twitter: TwitterConfig | null, input: SocialShareInput) {
+async function shareNow(
+  meta: MetaConfig | null,
+  twitter: TwitterConfig | null,
+  pinterest: PinterestConfig | null,
+  input: SocialShareInput,
+) {
   const supabase = await createClient();
   const jobs: Promise<void>[] = [];
   if (meta) {
@@ -122,6 +133,20 @@ async function shareNow(meta: MetaConfig | null, twitter: TwitterConfig | null, 
   if (twitter && input.kind === "post") {
     jobs.push(shareTo(supabase, input, "twitter", () => postToTwitter({ config: twitter, text: twitterText(input) })));
   }
+  if (pinterest) {
+    jobs.push(
+      shareTo(supabase, input, "pinterest", () => {
+        if (!input.hasCover) throw new Error("Pinterest needs a cover image");
+        return postToPinterest({
+          config: pinterest,
+          title: cleanText(input.title),
+          description: pinterestDescription(input),
+          link: pageUrl(input),
+          imageUrl: socialImageUrl(input),
+        });
+      }),
+    );
+  }
   await Promise.all(jobs);
 }
 
@@ -129,8 +154,13 @@ async function shareNow(meta: MetaConfig | null, twitter: TwitterConfig | null, 
 export function scheduleSocialShare(input: SocialShareInput): void {
   // Networks fetch links and images from the public site, so local URLs can't work.
   if (/localhost|127\.0\.0\.1/.test(siteUrl())) return;
-  const meta = metaConfig();
-  const twitter = twitterConfig();
-  if (!meta && !twitter) return;
-  after(() => shareNow(meta, twitter, input));
+  after(async () => {
+    const [meta, twitter, pinterest] = await Promise.all([
+      Promise.resolve(metaConfig()),
+      Promise.resolve(twitterConfig()),
+      pinterestConfig(),
+    ]);
+    if (!meta && !twitter && !pinterest) return;
+    await shareNow(meta, twitter, pinterest, input);
+  });
 }
