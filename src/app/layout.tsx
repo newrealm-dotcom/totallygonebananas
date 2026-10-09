@@ -9,11 +9,19 @@ import { DeferredBackToTop } from "@/components/DeferredChrome";
 import { SignupFloat } from "@/components/SignupFloat";
 import { siteUrl } from "@/lib/env";
 
+const site = siteUrl();
+
 export const metadata: Metadata = {
-  metadataBase: new URL(siteUrl()),
+  metadataBase: new URL(site),
   title: { default: "Totally Gone Bananas", template: "%s | Totally Gone Bananas" },
   description: "Banana recipes for every craving, from green to gone. Save favorites, rate what you cook, and share your own.",
-  openGraph: { siteName: "Totally Gone Bananas", images: ["/logo.png"] },
+  alternates: { canonical: "/" },
+  openGraph: {
+    type: "website",
+    url: site,
+    siteName: "Totally Gone Bananas",
+    images: [{ url: "/logo.png" }],
+  },
 };
 
 export const viewport: Viewport = {
