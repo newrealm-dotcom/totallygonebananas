@@ -8,22 +8,31 @@ export const revalidate = 3600;
 type SlugRow = { slug: string; updated_at: string | null; published_at: string | null };
 
 async function fetchAllSlugs(table: "recipes" | "posts"): Promise<SlugRow[]> {
-  const supabase = createPublicClient();
-  const pageSize = 1000;
-  const rows: SlugRow[] = [];
-  for (let from = 0; ; from += pageSize) {
-    const { data, error } = await supabase
-      .from(table)
-      .select("slug, updated_at, published_at")
-      .eq("status", "published")
-      .order("published_at", { ascending: false, nullsFirst: false })
-      .range(from, from + pageSize - 1);
-    if (error) throw new Error(`sitemap ${table}: ${error.message}`);
-    const batch = (data as SlugRow[] | null) ?? [];
-    rows.push(...batch);
-    if (batch.length < pageSize) break;
+  try {
+    const supabase = createPublicClient();
+    const pageSize = 1000;
+    const rows: SlugRow[] = [];
+    for (let from = 0; ; from += pageSize) {
+      const { data, error } = await supabase
+        .from(table)
+        .select("slug, updated_at, published_at")
+        .eq("status", "published")
+        .order("published_at", { ascending: false, nullsFirst: false })
+        .range(from, from + pageSize - 1);
+      // Soft-fail so CI / offline builds still emit static routes.
+      if (error) {
+        console.error(`sitemap ${table}: ${error.message}`);
+        return rows;
+      }
+      const batch = (data as SlugRow[] | null) ?? [];
+      rows.push(...batch);
+      if (batch.length < pageSize) break;
+    }
+    return rows;
+  } catch (err) {
+    console.error(`sitemap ${table}:`, err);
+    return [];
   }
-  return rows;
 }
 
 function lastMod(row: Pick<SlugRow, "updated_at" | "published_at">): Date {
