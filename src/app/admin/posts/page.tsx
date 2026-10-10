@@ -25,7 +25,12 @@ export default async function AdminPostsPage({
   const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
   const current = Math.min(page, totalPages);
   const offset = (current - 1) * PAGE_SIZE;
-  const posts = await listPosts({ limit: PAGE_SIZE, offset, excludeCategory: "favorites" });
+  const posts = await listPosts({
+    limit: PAGE_SIZE,
+    offset,
+    excludeCategory: "favorites",
+    draftsFirst: true,
+  });
   const admin = isAdminRole(profile);
 
   return (

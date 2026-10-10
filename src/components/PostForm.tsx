@@ -98,6 +98,8 @@ export function PostForm({
   );
   const [headJsonName, setHeadJsonName] = useState<string | null>(post?.head_json ? "Attached JSON" : null);
   const [uploading, setUploading] = useState(false);
+  const isPublished = post?.status === "published";
+  const publishLabel = isPublished ? "Update" : "Publish";
 
   function onTitleChange(next: string) {
     setTitle(next);
@@ -607,7 +609,7 @@ export function PostForm({
       </div>
       {errors.form && <p className="f-err" role="alert">{errors.form}</p>}
       <div className="row-actions">
-        <button type="submit" className="btn" disabled={pending || uploading}>{pending ? "Saving…" : "Publish"}</button>
+        <button type="submit" className="btn" disabled={pending || uploading}>{pending ? "Saving…" : publishLabel}</button>
         <button type="button" className="btn ghost" disabled={pending || uploading} onClick={() => submit("draft")}>Save draft</button>
         {post && <button type="button" className="btn danger" disabled={pending} onClick={onDelete}>Delete</button>}
       </div>

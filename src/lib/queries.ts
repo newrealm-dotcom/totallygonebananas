@@ -351,6 +351,8 @@ export async function listAdminRecipes(limit = 100): Promise<AdminRecipeRow[]> {
 
 export type PostListFilters = {
   publishedOnly?: boolean;
+  /** Admin lists: drafts first, then most recently updated. */
+  draftsFirst?: boolean;
   limit?: number;
   offset?: number;
   /** Profile username or author uuid. */
@@ -386,11 +388,14 @@ export async function listPosts(opts: PostListFilters = {}): Promise<Post[]> {
   const dateRange = opts.date ? easternDayRange(opts.date) : null;
   if (opts.date && !dateRange) return [];
 
-  let query = supabase
-    .from("posts")
-    .select("*")
-    .order("published_at", { ascending: false, nullsFirst: false })
-    .order("updated_at", { ascending: false });
+  let query = supabase.from("posts").select("*");
+  if (opts.draftsFirst) {
+    query = query.order("status", { ascending: true }).order("updated_at", { ascending: false });
+  } else {
+    query = query
+      .order("published_at", { ascending: false, nullsFirst: false })
+      .order("updated_at", { ascending: false });
+  }
   if (opts.publishedOnly) query = query.eq("status", "published");
   if (authorId) query = query.eq("author_id", authorId);
   if (opts.category) query = query.contains("categories", [opts.category]);
