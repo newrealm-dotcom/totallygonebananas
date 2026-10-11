@@ -235,7 +235,7 @@ html.header-scrolled .theme-toggle {
   top: 0;
   left: 0;
   bottom: 0;
-  width: 40%;
+  width: 42%;
   min-width: 12.5rem;
   max-width: 100%;
   height: 100vh;
@@ -287,7 +287,7 @@ html[data-theme="dark"] .mobile-nav-panel {
 }
 .mobile-nav-social {
   display: grid;
-  grid-template-columns: repeat(5, 42px);
+  grid-template-columns: repeat(3, 42px);
   justify-content: start;
   gap: .45rem;
   margin-top: .25rem;
@@ -454,6 +454,9 @@ nav.main { display: none; }
     transform: none;
     top: 0;
     left: 0;
+  }
+  .mobile-nav-panel {
+    width: 30%;
   }
 }
 

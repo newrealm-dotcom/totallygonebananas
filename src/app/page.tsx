@@ -127,7 +127,11 @@ export default async function HomePage({ searchParams }: PageProps<"/">) {
           <div className="sec-head">
             <div>
               <h2 id="latest-h">{cat ? cat.name : "Fresh from the kitchen"}</h2>
-              <p className="home-latest-lede">{cat ? cat.tagline : "The newest recipes on the site, tested in my own kitchen and ready for yours. Start here to see what I've been baking lately, from quick weeknight treats to weekend projects that are worth the extra time."}</p>
+              {!cat ? (
+                <p className="home-latest-lede">
+                  The newest recipes on the site, tested in my own kitchen and ready for yours. Start here to see what I&apos;ve been baking lately, from quick weeknight treats to weekend projects that are worth the extra time.
+                </p>
+              ) : null}
             </div>
           </div>
           <div className="home-latest">

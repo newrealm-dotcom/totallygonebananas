@@ -109,13 +109,16 @@ export function MobileNav({
 
         <SocialIcons className="mobile-nav-social" onNavigate={close} />
 
-        {!signedIn ? (
-          <div className="mobile-nav-actions">
-            <Link className="btn" href="/login" onClick={close}>
+        <div className="mobile-nav-actions">
+          {!signedIn ? (
+            <Link className="btn ghost" href="/login" onClick={close}>
               {authLabel}
             </Link>
-          </div>
-        ) : null}
+          ) : null}
+          <Link className="btn" href="/recipes/new" onClick={close}>
+            Add a recipe
+          </Link>
+        </div>
       </div>
     </div>
   );
