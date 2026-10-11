@@ -15,10 +15,9 @@ export const metadata: Metadata = {
   metadataBase: new URL(site),
   title: { default: "Totally Gone Bananas", template: "%s | Totally Gone Bananas" },
   description: "Banana recipes for every craving, from green to gone. Save favorites, rate what you cook, and share your own.",
-  alternates: { canonical: "/" },
+  // Canonical + og:url are set per page so Facebook scrapes the shared URL, not the homepage.
   openGraph: {
     type: "website",
-    url: site,
     siteName: "Totally Gone Bananas",
     images: [{ url: "/logo.png" }],
   },

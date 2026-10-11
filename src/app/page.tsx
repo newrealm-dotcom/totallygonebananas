@@ -1,6 +1,7 @@
+import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
-import { countRecipes, getBlogCategories, getCategories, getHomepagePromo, getViewer, listPosts, listRecipes } from "@/lib/queries";
+import { getBlogCategories, getCategories, getHomepagePromo, getViewer, listPosts, listRecipes } from "@/lib/queries";
 import { createClient } from "@/lib/supabase/server";
 import { CategoryStickers } from "@/components/CategoryStickers";
 import { FilterPillsScroller } from "@/components/FilterPillsScroller";
@@ -11,6 +12,11 @@ import { titleCase } from "@/lib/format";
 import { promoImageSrc } from "@/lib/media";
 import { BlogCoverCard } from "@/components/BlogCoverCard";
 import { getDarkMainSliderImages, getMainSliderImages, FIRST_DARK_SLIDE, FIRST_LIGHT_SLIDE, pickPreferredSlide } from "@/lib/main-slider";
+
+export const metadata: Metadata = {
+  alternates: { canonical: "/" },
+  openGraph: { url: "/" },
+};
 
 /** Recipe of the day: the same pick for everyone for 24 hours (UTC). */
 function recipeOfTheDay<T>(list: T[]): T | null {
@@ -35,11 +41,10 @@ async function categoryCounts() {
 export default async function HomePage({ searchParams }: PageProps<"/">) {
   const sp = await searchParams;
   const active = typeof sp.category === "string" ? sp.category : undefined;
-  const [categories, counts, latest, recipeTotal, rotdPool, lightSlides, darkSlides, promo, homePosts, blogCategories, viewer] = await Promise.all([
+  const [categories, counts, latest, rotdPool, lightSlides, darkSlides, promo, homePosts, blogCategories, viewer] = await Promise.all([
     getCategories(),
     categoryCounts(),
     listRecipes({ category: active, limit: 8 }),
-    countRecipes(),
     listRecipes({ limit: 40, sort: "new" }),
     getMainSliderImages(),
     getDarkMainSliderImages(),
@@ -77,10 +82,6 @@ export default async function HomePage({ searchParams }: PageProps<"/">) {
             </div>
           </div>
           <div className="mascot-wrap hero-art">
-            <div className="bubble">
-              <strong>{cat ? cat.name : "All recipes"}</strong>
-              <span>{cat?.tagline ?? `${recipeTotal} ways to go bananas.`}</span>
-            </div>
             <HeroSlide
               lightSrc={heroLight}
               darkSrc={heroDark}

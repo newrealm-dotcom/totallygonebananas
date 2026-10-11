@@ -43,10 +43,26 @@ export async function generateMetadata({ params }: PageProps<"/recipes/[slug]">)
   if (!r) return { title: "Recipe not found" };
   const img = publicUrl(r.cover_path);
   const title = titleCase(r.title);
+  const description = r.description ?? undefined;
+  const url = `/recipes/${slug}`;
   return {
     title,
-    description: r.description ?? undefined,
-    openGraph: { title, description: r.description ?? undefined, images: img ? [img] : undefined },
+    description,
+    alternates: { canonical: url },
+    openGraph: {
+      type: "article",
+      url,
+      title,
+      description,
+      siteName: "Totally Gone Bananas",
+      images: img ? [{ url: img }] : [{ url: "/logo.png" }],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title,
+      description,
+      images: img ? [img] : ["/logo.png"],
+    },
   };
 }
 

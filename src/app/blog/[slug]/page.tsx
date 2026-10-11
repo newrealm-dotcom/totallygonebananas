@@ -14,9 +14,28 @@ export async function generateMetadata({ params }: PageProps<"/blog/[slug]">): P
   const { slug } = await params;
   const post = await getPostBySlug(slug);
   if (!post || (post.status !== "published" && !(await getViewer()).profile)) return { title: "Post" };
+  const title = post.seo_title || post.title;
+  const description = post.meta_description || post.excerpt || undefined;
+  const url = `/blog/${slug}`;
+  const image = mediaSrc(post.cover_path);
   return {
-    title: post.seo_title || post.title,
-    description: post.meta_description || post.excerpt || undefined,
+    title,
+    description,
+    alternates: { canonical: url },
+    openGraph: {
+      type: "article",
+      url,
+      title,
+      description,
+      siteName: "Totally Gone Bananas",
+      images: image ? [{ url: image }] : [{ url: "/logo.png" }],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title,
+      description,
+      images: image ? [image] : ["/logo.png"],
+    },
   };
 }
 

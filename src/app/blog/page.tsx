@@ -21,6 +21,8 @@ export const metadata: Metadata = {
   title: "Bananas in the Wild",
   description:
     "Welcome to the archive, where every post we've ever written about bananas lives in one place.",
+  alternates: { canonical: "/blog" },
+  openGraph: { url: "/blog" },
 };
 
 const INITIAL_LIMIT = 12;
