@@ -15,7 +15,7 @@ import {
 import { createClient } from "@/lib/supabase/server";
 import { publicUrl } from "@/lib/media";
 import { shortDate, tintFor, titleCase } from "@/lib/format";
-import { buildRecipeJsonLd, jsonLdScript } from "@/lib/recipe-jsonld";
+import { buildRecipeJsonLd, jsonLdScript, numberRecipeStepBlocks } from "@/lib/recipe-jsonld";
 import { HtmlWithScripts } from "@/components/HtmlWithScripts";
 import { renderPostMarkdown } from "@/lib/render-post-markdown";
 import { MediaView } from "@/components/MediaView";
@@ -113,8 +113,16 @@ export default async function RecipePage({ params, searchParams }: PageProps<"/r
   const savedMsg = typeof sp.saved === "string" ? SAVED_MSG[sp.saved] : undefined;
   const gallery = r.recipe_media;
   const hero = gallery[0];
+  const stepBlocks = numberRecipeStepBlocks(r.steps);
   const recipeLd =
-    r.status === "published" ? jsonLdScript(buildRecipeJsonLd(r)) : null;
+    r.status === "published"
+      ? jsonLdScript(
+          buildRecipeJsonLd(r, {
+            categoryNames: recipeCats.map((c) => c.name),
+            rating: rating ?? null,
+          }),
+        )
+      : null;
 
   return (
     <div className="wrap">
@@ -309,12 +317,12 @@ export default async function RecipePage({ params, searchParams }: PageProps<"/r
 
             <div className="d-steps" aria-labelledby="steps-h">
               <h2 id="steps-h">Steps</h2>
-              {r.steps.map((group, gi) => (
+              {stepBlocks.map((group, gi) => (
                 <div key={gi} className="step-group">
                   {group.title ? <h3 className="step-group-title">{group.title}</h3> : null}
-                  <ol className="steps">
+                  <ol className="steps" start={group.steps[0]?.position ?? 1}>
                     {group.steps.map((s, i) => (
-                      <li key={i}>
+                      <li key={i} id={s.anchor}>
                         <div>
                           <p>{s.text}</p>
                           {s.media && (

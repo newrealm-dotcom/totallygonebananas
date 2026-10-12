@@ -587,14 +587,28 @@ export const getHomepagePromo = cache(async (): Promise<HomepagePromo> => {
 export async function adminCounts() {
   const supabase = await createClient();
   const weekAgo = new Date(Date.now() - 7 * 86_400_000).toISOString();
-  const [recipes, pending, pendingComments, posts, categories, blogCategories, tags, profiles, referralsRecent] = await Promise.all([
+  const [
+    recipes,
+    pending,
+    pendingComments,
+    posts,
+    categories,
+    blogCategories,
+    tagCatalog,
+    recipeTagRows,
+    postTagRows,
+    profiles,
+    referralsRecent,
+  ] = await Promise.all([
     supabase.from("recipes").select("id", { count: "exact", head: true }),
     supabase.from("recipes").select("id", { count: "exact", head: true }).eq("status", "pending"),
     supabase.from("post_comments").select("id", { count: "exact", head: true }).eq("status", "pending"),
     supabase.from("posts").select("id", { count: "exact", head: true }),
     supabase.from("categories").select("id", { count: "exact", head: true }),
     supabase.from("blog_categories").select("id", { count: "exact", head: true }),
-    supabase.from("recipe_tags").select("name", { count: "exact", head: true }),
+    supabase.from("recipe_tags").select("name"),
+    supabase.from("recipes").select("tags"),
+    supabase.from("posts").select("tags"),
     supabase.from("profiles").select("id", { count: "exact", head: true }),
     supabase
       .from("recipes")
@@ -602,6 +616,18 @@ export async function adminCounts() {
       .not("referred_by", "is", null)
       .gte("created_at", weekAgo),
   ]);
+
+  // Match /admin/tags: catalog tags plus every tag used on recipes or posts.
+  const tagNames = new Set<string>();
+  for (const row of tagCatalog.data ?? []) {
+    if (row.name) tagNames.add(String(row.name));
+  }
+  for (const row of [...(recipeTagRows.data ?? []), ...(postTagRows.data ?? [])]) {
+    for (const tag of row.tags ?? []) {
+      if (tag) tagNames.add(String(tag));
+    }
+  }
+
   return {
     recipes: recipes.count ?? 0,
     pending: pending.count ?? 0,
@@ -609,7 +635,7 @@ export async function adminCounts() {
     posts: posts.count ?? 0,
     categories: categories.count ?? 0,
     blogCategories: blogCategories.count ?? 0,
-    tags: tags.count ?? 0,
+    tags: tagNames.size,
     profiles: profiles.count ?? 0,
     referralsRecent: referralsRecent.count ?? 0,
   };
