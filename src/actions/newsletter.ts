@@ -18,11 +18,12 @@ export async function subscribeNewsletter(raw: unknown): Promise<NewsletterSignu
   const parsed = newsletterInput.safeParse(raw);
   if (!parsed.success) return { ok: false, errors: fieldErrors(parsed.error) };
   const email = parsed.data.email;
+  const source = parsed.data.source || "footer";
 
   const supabase = await createClient();
   const { data, error } = await supabase
     .from("newsletter_signups")
-    .insert({ email, source: "footer" })
+    .insert({ email, source })
     .select("id")
     .maybeSingle();
 
@@ -46,7 +47,7 @@ export async function subscribeNewsletter(raw: unknown): Promise<NewsletterSignu
     to: [NEWSLETTER_TO],
     replyTo: email,
     subject: `Newsletter signup: ${email}`,
-    text: [`New newsletter signup`, ``, `Email: ${email}`, `Source: footer`].join("\n"),
+    text: [`New newsletter signup`, ``, `Email: ${email}`, `Source: ${source}`].join("\n"),
   });
 
   return { ok: true };

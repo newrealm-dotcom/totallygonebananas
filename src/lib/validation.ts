@@ -310,6 +310,7 @@ export const newsletterInput = z.object({
     .trim()
     .email("Enter a valid email address")
     .max(120, "Keep your email under 120 characters"),
+  source: z.string().trim().min(1).max(40).default("footer"),
 });
 
 export type NewsletterInput = z.input<typeof newsletterInput>;

@@ -10,6 +10,10 @@ const SignupFloatButton = dynamic(
   () => import("@/components/SignupFloatButton").then((m) => m.SignupFloatButton),
   { ssr: false },
 );
+const NewsletterPopup = dynamic(
+  () => import("@/components/NewsletterPopup").then((m) => m.NewsletterPopup),
+  { ssr: false },
+);
 
 export function DeferredBackToTop() {
   return <BackToTop />;
@@ -17,4 +21,8 @@ export function DeferredBackToTop() {
 
 export function DeferredSignupFloatButton() {
   return <SignupFloatButton />;
+}
+
+export function DeferredNewsletterPopup() {
+  return <NewsletterPopup />;
 }
