@@ -9,10 +9,21 @@ import { RecipesInfiniteGrid } from "@/components/RecipesInfiniteGrid";
 import { isValidTag, normalizeTag } from "@/lib/tags";
 import { plural, titleCase } from "@/lib/format";
 
-export const metadata: Metadata = { title: "Recipes" };
-
 const PAGE_SIZE = 12;
 const str = (v: string | string[] | undefined) => (typeof v === "string" ? v : undefined);
+
+/**
+ * Faceted filter URLs (?category=, ?tag=, ?q=, ?sort=) are useful for users but near-duplicates
+ * for Google. Always declare /recipes as the canonical so Search Console stops treating them
+ * as "Duplicate without user-selected canonical."
+ */
+export const metadata: Metadata = {
+  title: "Recipes",
+  description:
+    "Browse every banana recipe — filter by category or tag, or search for ingredients already in your kitchen.",
+  alternates: { canonical: "/recipes" },
+  openGraph: { url: "/recipes" },
+};
 
 export default async function RecipesPage({ searchParams }: PageProps<"/recipes">) {
   const sp = await searchParams;

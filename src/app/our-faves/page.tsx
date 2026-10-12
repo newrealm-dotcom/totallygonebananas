@@ -6,6 +6,8 @@ import { FavesGrid } from "@/components/FavesGrid";
 export const metadata: Metadata = {
   title: "Our Faves",
   description: "Hand-picked favorite banana-inspired pieces from Totally Gone Bananas.",
+  alternates: { canonical: "/our-faves" },
+  openGraph: { url: "/our-faves" },
 };
 
 /** Fresh random featured fave on each visit. */

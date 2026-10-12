@@ -4,7 +4,11 @@ import { redirect } from "next/navigation";
 import { LoginForm } from "@/components/LoginForm";
 import { getViewer } from "@/lib/queries";
 
-export const metadata: Metadata = { title: "Sign in" };
+export const metadata: Metadata = {
+  title: "Sign in",
+  alternates: { canonical: "/login" },
+  robots: { index: false, follow: true },
+};
 
 export default async function LoginPage({ searchParams }: PageProps<"/login">) {
   const sp = await searchParams;
