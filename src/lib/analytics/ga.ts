@@ -42,7 +42,12 @@ export interface GaDashboard {
   events: GaRow[];
   sources: GaRow[];
   buttons: GaRow[];
+  /** form_fill broken down by form_name (+ source/intent when set). */
   forms: GaRow[];
+  formsByPage: GaRow[];
+  newsletterSources: GaRow[];
+  signupIntents: GaRow[];
+  conversionFunnel: GaRow[];
   realtime: GaRealtime;
 }
 
@@ -141,14 +146,70 @@ function toRows(report: ReportResponse | undefined): GaRow[] {
   }));
 }
 
+/** Join first dim with optional second dim (source / intent) when present. */
+function toComboRows(report: ReportResponse | undefined): GaRow[] {
+  return (report?.rows ?? []).map((r) => {
+    const primary = r.dimensionValues?.[0]?.value || "(not set)";
+    const secondaryDim = r.dimensionValues?.[1]?.value;
+    const detail =
+      secondaryDim && secondaryDim !== "(not set)" && secondaryDim !== "(other)"
+        ? ` · ${secondaryDim}`
+        : "";
+    return {
+      label: `${primary}${detail}`,
+      value: num(r.metricValues?.[0]?.value),
+      secondary: num(r.metricValues?.[1]?.value),
+    };
+  });
+}
+
 const byMetricDesc = (name: string) => [{ metric: { metricName: name }, desc: true }];
-const eventIs = (name: string) => ({ filter: { fieldName: "eventName", stringFilter: { matchType: "EXACT", value: name } } });
+const eventIs = (name: string) => ({
+  filter: { fieldName: "eventName", stringFilter: { matchType: "EXACT", value: name } },
+});
+const eventIn = (names: string[]) => ({
+  filter: { fieldName: "eventName", inListFilter: { values: names } },
+});
+
+/** customEvent:* dims only work after registration in GA4 Admin → Custom definitions. */
+async function customEventReport(
+  config: GaConfig,
+  range: DateRange,
+  request: ReportRequest,
+): Promise<ReportResponse | undefined> {
+  try {
+    const [report] = await batchRunReports(config, range, [request]);
+    return report;
+  } catch {
+    return undefined;
+  }
+}
+
+const FUNNEL_EVENTS = [
+  "signup_gate",
+  "sign_up_start",
+  "login_complete",
+  "form_fill",
+  "newsletter_signup",
+  "save_recipe",
+  "cook_log",
+] as const;
 
 export async function fetchDashboard(range: DateRange): Promise<GaDashboard> {
   const config = gaConfig();
   if (!config) throw new Error("Google Analytics is not configured");
 
-  const [core, formsReports, buttonReports, realtimeUsers, realtimeEvents] = await Promise.all([
+  const [
+    core,
+    formsByPageReports,
+    formNameReport,
+    newsletterSourceReport,
+    signupIntentReport,
+    buttonReports,
+    funnelReports,
+    realtimeUsers,
+    realtimeEvents,
+  ] = await Promise.all([
     batchRunReports(config, range, [
       {
         metrics: [
@@ -195,16 +256,54 @@ export async function fetchDashboard(range: DateRange): Promise<GaDashboard> {
         limit: 15,
       },
     ]),
-    // customEvent:button_text only exists once it's registered as a custom dimension in GA.
+    // Prefer form_name + source; fall back to form_name alone if source isn't registered yet.
+    customEventReport(config, range, {
+      dimensions: [{ name: "customEvent:form_name" }, { name: "customEvent:source" }],
+      metrics: [{ name: "eventCount" }, { name: "totalUsers" }],
+      dimensionFilter: eventIs("form_fill"),
+      orderBys: byMetricDesc("eventCount"),
+      limit: 25,
+    }).then(
+      (combo) =>
+        combo ??
+        customEventReport(config, range, {
+          dimensions: [{ name: "customEvent:form_name" }],
+          metrics: [{ name: "eventCount" }, { name: "totalUsers" }],
+          dimensionFilter: eventIs("form_fill"),
+          orderBys: byMetricDesc("eventCount"),
+          limit: 25,
+        }),
+    ),
+    customEventReport(config, range, {
+      dimensions: [{ name: "customEvent:source" }],
+      metrics: [{ name: "eventCount" }, { name: "totalUsers" }],
+      dimensionFilter: eventIs("newsletter_signup"),
+      orderBys: byMetricDesc("eventCount"),
+      limit: 10,
+    }),
+    customEventReport(config, range, {
+      dimensions: [{ name: "customEvent:intent" }],
+      metrics: [{ name: "eventCount" }, { name: "totalUsers" }],
+      dimensionFilter: eventIs("signup_gate"),
+      orderBys: byMetricDesc("eventCount"),
+      limit: 15,
+    }),
+    customEventReport(config, range, {
+      dimensions: [{ name: "customEvent:button_text" }],
+      metrics: [{ name: "eventCount" }, { name: "totalUsers" }],
+      dimensionFilter: eventIs("button_click"),
+      orderBys: byMetricDesc("eventCount"),
+      limit: 15,
+    }),
     batchRunReports(config, range, [
       {
-        dimensions: [{ name: "customEvent:button_text" }],
+        dimensions: [{ name: "eventName" }],
         metrics: [{ name: "eventCount" }, { name: "totalUsers" }],
-        dimensionFilter: eventIs("button_click"),
+        dimensionFilter: eventIn([...FUNNEL_EVENTS]),
         orderBys: byMetricDesc("eventCount"),
-        limit: 15,
+        limit: 20,
       },
-    ]).catch(() => [] as ReportResponse[]),
+    ]),
     runRealtimeReport(config, { metrics: [{ name: "activeUsers" }] }).catch((): ReportResponse => ({})),
     runRealtimeReport(config, {
       dimensions: [{ name: "eventName" }],
@@ -218,6 +317,9 @@ export async function fetchDashboard(range: DateRange): Promise<GaDashboard> {
   const t = totalsReport?.rows?.[0]?.metricValues ?? [];
   const activeUsers = num(t[0]?.value);
   const engagement = num(t[5]?.value);
+
+  const formsByName = toComboRows(formNameReport);
+  const formsByPage = toRows(formsByPageReports[0]);
 
   return {
     totals: {
@@ -236,8 +338,12 @@ export async function fetchDashboard(range: DateRange): Promise<GaDashboard> {
     topPages: toRows(pagesReport),
     events: toRows(eventsReport),
     sources: toRows(sourcesReport),
-    buttons: toRows(buttonReports[0]),
-    forms: toRows(formsReports[0]),
+    buttons: toRows(buttonReports),
+    forms: formsByName,
+    formsByPage,
+    newsletterSources: toRows(newsletterSourceReport),
+    signupIntents: toRows(signupIntentReport),
+    conversionFunnel: toRows(funnelReports[0]),
     realtime: {
       activeUsers: num(realtimeUsers.rows?.[0]?.metricValues?.[0]?.value),
       events: toRows(realtimeEvents),

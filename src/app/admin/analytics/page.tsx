@@ -221,8 +221,47 @@ export default async function AdminAnalyticsPage({ searchParams }: { searchParam
           <div className="ga-grid">
             <RankTable title="Top pages" rows={dashboard.topPages} labelHead="Page" valueHead="Views" secondaryHead="Users" empty="No page views in this range." />
             <RankTable title="Events" rows={dashboard.events} labelHead="Event" valueHead="Count" secondaryHead="Users" empty="No events in this range." />
+            <RankTable
+              title="Conversion funnel"
+              rows={dashboard.conversionFunnel}
+              labelHead="Event"
+              valueHead="Count"
+              secondaryHead="Users"
+              empty="No conversion events in this range yet."
+            />
             <RankTable title="Button clicks" rows={dashboard.buttons} labelHead="Button" valueHead="Clicks" secondaryHead="Users" empty="No button clicks recorded in this range." />
-            <RankTable title="Form fills by page" rows={dashboard.forms} labelHead="Page" valueHead="Fills" secondaryHead="Users" empty="No form fills in this range." />
+            <RankTable
+              title="Form fills by name"
+              rows={dashboard.forms}
+              labelHead="Form"
+              valueHead="Fills"
+              secondaryHead="Users"
+              empty="No form fills with form_name yet. New fills show here after GA4 processes them (often within a day)."
+            />
+            <RankTable
+              title="Form fills by page"
+              rows={dashboard.formsByPage}
+              labelHead="Page"
+              valueHead="Fills"
+              secondaryHead="Users"
+              empty="No form fills in this range."
+            />
+            <RankTable
+              title="Newsletter by source"
+              rows={dashboard.newsletterSources}
+              labelHead="Source"
+              valueHead="Signups"
+              secondaryHead="Users"
+              empty="No newsletter signups with a source param yet."
+            />
+            <RankTable
+              title="Signup gates by intent"
+              rows={dashboard.signupIntents}
+              labelHead="Intent"
+              valueHead="Hits"
+              secondaryHead="Users"
+              empty="No signup_gate events with intent yet."
+            />
             <RankTable title="Traffic sources" rows={dashboard.sources} labelHead="Source" valueHead="Sessions" secondaryHead="Users" empty="No sessions in this range." />
           </div>
         </>
