@@ -1447,7 +1447,7 @@ html[data-theme="dark"] .hero-slide-stack .hero-slide-dark { display: block; }
     column-gap: clamp(1.25rem, 3vw, 2.75rem);
     align-items: center;
     min-height: clamp(22rem, 38vh, 25.5rem);
-    padding-bottom: clamp(.15rem, .8vw, .5rem);
+    padding-bottom: 0;
   }
   .hero-copy {
     align-self: center;
@@ -1695,7 +1695,10 @@ html[data-theme="dark"] .home-join-img {
 }
 html:not([data-theme="dark"]) .home-more:hover { color: var(--orange); }
 html[data-theme="dark"] .home-more:hover { color: var(--muted); }
-#latest.block { padding-bottom: max(0px, calc(clamp(2rem, 5vw, 3.5rem) - 40px)); }
+#latest.block {
+  padding-top: .75rem;
+  padding-bottom: max(0px, calc(clamp(2rem, 5vw, 3.5rem) - 40px));
+}
 .home-band-section { margin-top: 0; }
 .home-band-section > .wrap:first-child { padding-top: 25px; }
 @media (min-width: 901px) {
