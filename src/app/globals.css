@@ -423,7 +423,8 @@ nav.main { display: none; }
 }
 .top-actions { display: flex; align-items: center; gap: .6rem; flex-shrink: 0; }
 @media (max-width: 1100px) {
-  .top-add-recipe { display: none; }
+  /* Beat later `.btn { display: inline-flex }` so this stays header-only on desktop. */
+  .top-actions .btn.top-add-recipe { display: none; }
 }
 .profile-menu { display: inline-flex; align-items: center; gap: .55rem; min-width: 0; }
 .profile-chip-meta { display: none; flex-direction: column; align-items: flex-start; gap: .15rem; line-height: 1.15; min-width: 0; }
