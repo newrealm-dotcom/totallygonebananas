@@ -1083,7 +1083,12 @@ section.block { padding: clamp(2rem, 5vw, 3.5rem) 0; }
   max-width: none;
 }
 @media (min-width: 901px) {
-  .home-latest-lede { width: 50%; }
+  .home-latest-lede {
+    width: 100%;
+  }
+}
+@media (min-width: 1024px) {
+  .home-latest-lede { white-space: nowrap; }
 }
 
 /* ---------- buttons, pills, chips ---------- */
@@ -1438,11 +1443,11 @@ html[data-theme="dark"] .hero-slide-stack .hero-slide-dark { display: block; }
 .bubble span { font-weight: 700; font-size: .98rem; color: var(--muted); }
 @media (min-width: 901px) {
   .hero-grid {
-    grid-template-columns: minmax(0, 4fr) minmax(0, 6fr);
+    grid-template-columns: minmax(0, 5.6fr) minmax(0, 4.4fr);
     column-gap: clamp(1.25rem, 3vw, 2.75rem);
     align-items: center;
-    min-height: clamp(23rem, 41vh, 27rem);
-    padding-bottom: clamp(.35rem, 1.5vw, 1rem);
+    min-height: clamp(22rem, 38vh, 25.5rem);
+    padding-bottom: clamp(.15rem, .8vw, .5rem);
   }
   .hero-copy {
     align-self: center;
@@ -1452,7 +1457,10 @@ html[data-theme="dark"] .hero-slide-stack .hero-slide-dark { display: block; }
     font-size: clamp(2.2rem, 11.5cqi, 3.75rem);
   }
   .hero-copy .lede {
-    font-size: clamp(1.08rem, 3.4cqi, 1.28rem);
+    font-size: clamp(1.05rem, 2.4cqi, 1.18rem);
+  }
+  .hero-subhead {
+    font-size: clamp(1.08rem, 2.6cqi, 1.2rem);
   }
   .hero-art {
     justify-self: stretch;
@@ -1465,11 +1473,17 @@ html[data-theme="dark"] .hero-slide-stack .hero-slide-dark { display: block; }
   }
   .hero .mascot,
   .hero .hero-slide-stack {
-    max-width: min(100%, 33rem);
+    max-width: min(100%, 30rem);
   }
   .hero .bubble {
     margin-left: 12%;
     margin-bottom: .15rem;
+  }
+}
+@media (min-width: 1024px) {
+  .hero-subhead,
+  .hero-copy .lede {
+    white-space: nowrap;
   }
 }
 @media (max-width: 900px) {
@@ -5247,7 +5261,7 @@ html[data-theme="dark"] .login-hero-stack .login-hero-dark { display: block; }
   }
   /* Keep the gold band continuous from the header into the hero gradient. */
   #main:has(> .hero:first-child) { padding-top: 0; }
-  #main:has(> .hero:first-child) > .hero { padding-top: 25px; }
+  #main:has(> .hero:first-child) > .hero { padding-top: 12px; }
   #main > .wrap > .page-head:first-child,
   #main > .wrap.page-head { padding-top: 0; }
 }

@@ -70,7 +70,7 @@ export default async function HomePage({ searchParams }: PageProps<"/">) {
           <div className="hero-copy">
             <h1>What are we going bananas for today?</h1>
             <p className="hero-subhead">Tested banana recipes for every stage of ripeness, from green to gone.</p>
-            <p className="lede">From 5-minute smoothies to weekend bakes. Pick a craving below, or search for what you&apos;ve got.</p>
+            <p className="lede">From 5-minute smoothies to weekend bakes. Pick a craving below.</p>
             <form className="hero-search" action="/recipes" role="search">
               <label className="sr-only" htmlFor="hero-q">
                 Search banana recipes
@@ -114,7 +114,7 @@ export default async function HomePage({ searchParams }: PageProps<"/">) {
               <h2 id="latest-h">{cat ? cat.name : "Fresh from the kitchen"}</h2>
               {!cat ? (
                 <p className="home-latest-lede">
-                  The newest recipes on the site, tested in my own kitchen and ready for yours. Start here to see what I&apos;ve been baking lately, from quick weeknight treats to weekend projects that are worth the extra time.
+                  The newest recipes on the site, tested in my kitchen and ready for yours.
                 </p>
               ) : null}
             </div>
