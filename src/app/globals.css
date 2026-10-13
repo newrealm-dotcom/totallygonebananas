@@ -1334,12 +1334,12 @@ html[data-theme="dark"] .hero {
 .hero-copy h1 {
   font-size: clamp(2rem, 12cqi, 3.4rem);
   line-height: .98;
-  margin: 0 0 .7rem;
+  margin: 0 0 .55rem;
   text-wrap: wrap;
   white-space: normal;
 }
 .hero-subhead {
-  margin: 0 0 .55rem;
+  margin: 0 0 .45rem;
   color: var(--ink);
   font-size: clamp(1.18rem, 4cqi, 1.45rem);
   font-weight: 900;
@@ -1355,7 +1355,7 @@ html[data-theme="dark"] .hero {
   display: flex;
   gap: .65rem;
   align-items: stretch;
-  margin: 1.1rem 0 .95rem;
+  margin: .85rem 0 .75rem;
   max-width: 38rem;
 }
 .hero-search input {
@@ -1441,12 +1441,12 @@ html[data-theme="dark"] .hero-slide-stack .hero-slide-dark { display: block; }
     grid-template-columns: minmax(0, 4fr) minmax(0, 6fr);
     column-gap: clamp(1.25rem, 3vw, 2.75rem);
     align-items: center;
-    min-height: clamp(27rem, 48vh, 31rem);
-    padding-bottom: clamp(1rem, 2.5vw, 2rem);
+    min-height: clamp(23rem, 41vh, 27rem);
+    padding-bottom: clamp(.35rem, 1.5vw, 1rem);
   }
   .hero-copy {
     align-self: center;
-    padding-bottom: 25px;
+    padding-bottom: 0;
   }
   .hero-copy h1 {
     font-size: clamp(2.2rem, 11.5cqi, 3.75rem);
@@ -1457,7 +1457,7 @@ html[data-theme="dark"] .hero-slide-stack .hero-slide-dark { display: block; }
   .hero-art {
     justify-self: stretch;
     align-self: center;
-    padding-bottom: .75rem;
+    padding-bottom: .25rem;
   }
   .hero .mascot-wrap {
     width: 100%;
@@ -1465,7 +1465,7 @@ html[data-theme="dark"] .hero-slide-stack .hero-slide-dark { display: block; }
   }
   .hero .mascot,
   .hero .hero-slide-stack {
-    max-width: min(100%, 38rem);
+    max-width: min(100%, 33rem);
   }
   .hero .bubble {
     margin-left: 12%;
@@ -1473,12 +1473,12 @@ html[data-theme="dark"] .hero-slide-stack .hero-slide-dark { display: block; }
   }
 }
 @media (max-width: 900px) {
-  .hero { padding-bottom: .5rem; }
+  .hero { padding-bottom: .25rem; }
   .hero-copy { text-align: center; }
   .hero-search {
     flex-direction: column;
     width: 100%;
-    margin-inline: auto;
+    margin: .75rem auto .65rem;
   }
   .hero-search input,
   .hero-search button {
