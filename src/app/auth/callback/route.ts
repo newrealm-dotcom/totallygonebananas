@@ -6,6 +6,7 @@ import {
   HAS_ACCOUNT_COOKIE,
   hasAccountCookieOptions,
   sanitizeAuthNext,
+  withAuthJoinedFlag,
 } from "@/lib/auth-next";
 import { getSupabaseEnv } from "@/lib/env";
 
@@ -22,9 +23,11 @@ export async function GET(request: NextRequest) {
   const tokenHash = url.searchParams.get("token_hash");
   const type = (url.searchParams.get("type") as EmailOtpType | null) ?? "email";
 
+  const destination = withAuthJoinedFlag(next);
+
   // Build the redirect response first so session cookies are written onto it
   // (cookies().set alone can be dropped on a bare redirect in App Router).
-  let response = NextResponse.redirect(new URL(next, url.origin));
+  let response = NextResponse.redirect(new URL(destination, url.origin));
   const { url: supabaseUrl, key } = getSupabaseEnv();
 
   const supabase = createServerClient(supabaseUrl, key, {
@@ -34,7 +37,7 @@ export async function GET(request: NextRequest) {
       },
       setAll(cookiesToSet) {
         cookiesToSet.forEach(({ name, value }) => request.cookies.set(name, value));
-        response = NextResponse.redirect(new URL(next, url.origin));
+        response = NextResponse.redirect(new URL(destination, url.origin));
         cookiesToSet.forEach(({ name, value, options }) => response.cookies.set(name, value, options));
       },
     },

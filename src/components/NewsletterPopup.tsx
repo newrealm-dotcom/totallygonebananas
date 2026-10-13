@@ -1,8 +1,10 @@
 "use client";
 
 import Image from "next/image";
+import Link from "next/link";
 import { useEffect, useId, useRef, useState, useTransition } from "react";
 import { subscribeNewsletter } from "@/actions/newsletter";
+import { trackEvent, trackFormFill } from "@/lib/analytics/datalayer";
 
 const STORAGE_KEY = "tgb-newsletter-popup";
 const SHOW_AT_SCROLL = 0.5;
@@ -37,6 +39,7 @@ export function NewsletterPopup() {
   const [pending, startTransition] = useTransition();
   const [done, setDone] = useState(false);
   const [email, setEmail] = useState("");
+  const [subscribedEmail, setSubscribedEmail] = useState("");
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   useEffect(() => {
@@ -96,8 +99,11 @@ export function NewsletterPopup() {
         return;
       }
       writeGate("subscribed");
+      setSubscribedEmail(email.trim());
       setDone(true);
       setEmail("");
+      trackEvent("newsletter_signup", { source: "popup" });
+      trackFormFill("newsletter", { source: "popup" });
     });
   }
 
@@ -128,9 +134,23 @@ export function NewsletterPopup() {
         </button>
 
         {done ? (
-          <p className="newsletter-popup-thanks" role="status">
-            You&apos;re on the list — thanks for joining the bunch.
-          </p>
+          <div className="newsletter-popup-thanks-wrap" role="status">
+            <p className="newsletter-popup-thanks">
+              You&apos;re on the list — thanks for joining the bunch.
+            </p>
+            <p className="newsletter-popup-bridge">
+              <Link
+                className="btn newsletter-popup-bridge-btn"
+                href={`/login?next=${encodeURIComponent("/profile")}&intent=newsletter&email=${encodeURIComponent(subscribedEmail)}`}
+                onClick={dismiss}
+              >
+                Create your free Banana Stand
+              </Link>
+            </p>
+            <p className="newsletter-popup-bridge-hint">
+              Same email — save recipes, rate cooks, and earn points.
+            </p>
+          </div>
         ) : (
           <form className="newsletter-popup-form" onSubmit={onSubmit} noValidate>
             <h2 className="newsletter-popup-pitch" id={titleId}>

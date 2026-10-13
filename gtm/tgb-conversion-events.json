@@ -1,0 +1,594 @@
+{
+  "exportFormatVersion": 2,
+  "exportTime": "2026-10-13 18:36:00",
+  "containerVersion": {
+    "path": "accounts/6380447537/containers/266029495/versions/0",
+    "accountId": "6380447537",
+    "containerId": "266029495",
+    "containerVersionId": "0",
+    "container": {
+      "path": "accounts/6380447537/containers/266029495",
+      "accountId": "6380447537",
+      "containerId": "266029495",
+      "name": "totallygonebananas.com",
+      "publicId": "GTM-5CK4CZ2M",
+      "usageContext": ["WEB"]
+    },
+    "variable": [
+      {
+        "accountId": "6380447537",
+        "containerId": "266029495",
+        "variableId": "100",
+        "name": "dlv - button_text",
+        "type": "v",
+        "parameter": [
+          { "type": "INTEGER", "key": "dataLayerVersion", "value": "2" },
+          { "type": "BOOLEAN", "key": "setDefaultValue", "value": "false" },
+          { "type": "TEMPLATE", "key": "name", "value": "button_text" }
+        ]
+      },
+      {
+        "accountId": "6380447537",
+        "containerId": "266029495",
+        "variableId": "101",
+        "name": "dlv - form_name",
+        "type": "v",
+        "parameter": [
+          { "type": "INTEGER", "key": "dataLayerVersion", "value": "2" },
+          { "type": "BOOLEAN", "key": "setDefaultValue", "value": "false" },
+          { "type": "TEMPLATE", "key": "name", "value": "form_name" }
+        ]
+      },
+      {
+        "accountId": "6380447537",
+        "containerId": "266029495",
+        "variableId": "102",
+        "name": "dlv - intent",
+        "type": "v",
+        "parameter": [
+          { "type": "INTEGER", "key": "dataLayerVersion", "value": "2" },
+          { "type": "BOOLEAN", "key": "setDefaultValue", "value": "false" },
+          { "type": "TEMPLATE", "key": "name", "value": "intent" }
+        ]
+      },
+      {
+        "accountId": "6380447537",
+        "containerId": "266029495",
+        "variableId": "103",
+        "name": "dlv - source",
+        "type": "v",
+        "parameter": [
+          { "type": "INTEGER", "key": "dataLayerVersion", "value": "2" },
+          { "type": "BOOLEAN", "key": "setDefaultValue", "value": "false" },
+          { "type": "TEMPLATE", "key": "name", "value": "source" }
+        ]
+      },
+      {
+        "accountId": "6380447537",
+        "containerId": "266029495",
+        "variableId": "104",
+        "name": "dlv - method",
+        "type": "v",
+        "parameter": [
+          { "type": "INTEGER", "key": "dataLayerVersion", "value": "2" },
+          { "type": "BOOLEAN", "key": "setDefaultValue", "value": "false" },
+          { "type": "TEMPLATE", "key": "name", "value": "method" }
+        ]
+      },
+      {
+        "accountId": "6380447537",
+        "containerId": "266029495",
+        "variableId": "105",
+        "name": "dlv - recipe_id",
+        "type": "v",
+        "parameter": [
+          { "type": "INTEGER", "key": "dataLayerVersion", "value": "2" },
+          { "type": "BOOLEAN", "key": "setDefaultValue", "value": "false" },
+          { "type": "TEMPLATE", "key": "name", "value": "recipe_id" }
+        ]
+      },
+      {
+        "accountId": "6380447537",
+        "containerId": "266029495",
+        "variableId": "106",
+        "name": "dlv - rating",
+        "type": "v",
+        "parameter": [
+          { "type": "INTEGER", "key": "dataLayerVersion", "value": "2" },
+          { "type": "BOOLEAN", "key": "setDefaultValue", "value": "false" },
+          { "type": "TEMPLATE", "key": "name", "value": "rating" }
+        ]
+      },
+      {
+        "accountId": "6380447537",
+        "containerId": "266029495",
+        "variableId": "107",
+        "name": "dlv - path",
+        "type": "v",
+        "parameter": [
+          { "type": "INTEGER", "key": "dataLayerVersion", "value": "2" },
+          { "type": "BOOLEAN", "key": "setDefaultValue", "value": "false" },
+          { "type": "TEMPLATE", "key": "name", "value": "path" }
+        ]
+      },
+      {
+        "accountId": "6380447537",
+        "containerId": "266029495",
+        "variableId": "108",
+        "name": "const - GA4 Measurement ID",
+        "type": "c",
+        "parameter": [
+          { "type": "TEMPLATE", "key": "value", "value": "G-454JH56MB6" }
+        ]
+      }
+    ],
+    "trigger": [
+      {
+        "accountId": "6380447537",
+        "containerId": "266029495",
+        "triggerId": "200",
+        "name": "CE - button_click",
+        "type": "CUSTOM_EVENT",
+        "customEventFilter": [
+          {
+            "type": "EQUALS",
+            "parameter": [
+              { "type": "TEMPLATE", "key": "arg0", "value": "{{_event}}" },
+              { "type": "TEMPLATE", "key": "arg1", "value": "button_click" }
+            ]
+          }
+        ]
+      },
+      {
+        "accountId": "6380447537",
+        "containerId": "266029495",
+        "triggerId": "201",
+        "name": "CE - form_fill",
+        "type": "CUSTOM_EVENT",
+        "customEventFilter": [
+          {
+            "type": "EQUALS",
+            "parameter": [
+              { "type": "TEMPLATE", "key": "arg0", "value": "{{_event}}" },
+              { "type": "TEMPLATE", "key": "arg1", "value": "form_fill" }
+            ]
+          }
+        ]
+      },
+      {
+        "accountId": "6380447537",
+        "containerId": "266029495",
+        "triggerId": "202",
+        "name": "CE - login_complete",
+        "type": "CUSTOM_EVENT",
+        "customEventFilter": [
+          {
+            "type": "EQUALS",
+            "parameter": [
+              { "type": "TEMPLATE", "key": "arg0", "value": "{{_event}}" },
+              { "type": "TEMPLATE", "key": "arg1", "value": "login_complete" }
+            ]
+          }
+        ]
+      },
+      {
+        "accountId": "6380447537",
+        "containerId": "266029495",
+        "triggerId": "203",
+        "name": "CE - sign_up_start",
+        "type": "CUSTOM_EVENT",
+        "customEventFilter": [
+          {
+            "type": "EQUALS",
+            "parameter": [
+              { "type": "TEMPLATE", "key": "arg0", "value": "{{_event}}" },
+              { "type": "TEMPLATE", "key": "arg1", "value": "sign_up_start" }
+            ]
+          }
+        ]
+      },
+      {
+        "accountId": "6380447537",
+        "containerId": "266029495",
+        "triggerId": "204",
+        "name": "CE - signup_gate",
+        "type": "CUSTOM_EVENT",
+        "customEventFilter": [
+          {
+            "type": "EQUALS",
+            "parameter": [
+              { "type": "TEMPLATE", "key": "arg0", "value": "{{_event}}" },
+              { "type": "TEMPLATE", "key": "arg1", "value": "signup_gate" }
+            ]
+          }
+        ]
+      },
+      {
+        "accountId": "6380447537",
+        "containerId": "266029495",
+        "triggerId": "205",
+        "name": "CE - save_recipe",
+        "type": "CUSTOM_EVENT",
+        "customEventFilter": [
+          {
+            "type": "EQUALS",
+            "parameter": [
+              { "type": "TEMPLATE", "key": "arg0", "value": "{{_event}}" },
+              { "type": "TEMPLATE", "key": "arg1", "value": "save_recipe" }
+            ]
+          }
+        ]
+      },
+      {
+        "accountId": "6380447537",
+        "containerId": "266029495",
+        "triggerId": "206",
+        "name": "CE - unsave_recipe",
+        "type": "CUSTOM_EVENT",
+        "customEventFilter": [
+          {
+            "type": "EQUALS",
+            "parameter": [
+              { "type": "TEMPLATE", "key": "arg0", "value": "{{_event}}" },
+              { "type": "TEMPLATE", "key": "arg1", "value": "unsave_recipe" }
+            ]
+          }
+        ]
+      },
+      {
+        "accountId": "6380447537",
+        "containerId": "266029495",
+        "triggerId": "207",
+        "name": "CE - cook_log",
+        "type": "CUSTOM_EVENT",
+        "customEventFilter": [
+          {
+            "type": "EQUALS",
+            "parameter": [
+              { "type": "TEMPLATE", "key": "arg0", "value": "{{_event}}" },
+              { "type": "TEMPLATE", "key": "arg1", "value": "cook_log" }
+            ]
+          }
+        ]
+      },
+      {
+        "accountId": "6380447537",
+        "containerId": "266029495",
+        "triggerId": "208",
+        "name": "CE - newsletter_signup",
+        "type": "CUSTOM_EVENT",
+        "customEventFilter": [
+          {
+            "type": "EQUALS",
+            "parameter": [
+              { "type": "TEMPLATE", "key": "arg0", "value": "{{_event}}" },
+              { "type": "TEMPLATE", "key": "arg1", "value": "newsletter_signup" }
+            ]
+          }
+        ]
+      }
+    ],
+    "tag": [
+      {
+        "accountId": "6380447537",
+        "containerId": "266029495",
+        "tagId": "300",
+        "name": "GA4 Event - button_click",
+        "type": "gaawe",
+        "parameter": [
+          { "type": "BOOLEAN", "key": "sendEcommerceData", "value": "false" },
+          { "type": "TEMPLATE", "key": "eventName", "value": "button_click" },
+          { "type": "TEMPLATE", "key": "measurementIdOverride", "value": "{{const - GA4 Measurement ID}}" },
+          {
+            "type": "LIST",
+            "key": "eventSettingsTable",
+            "list": [
+              {
+                "type": "MAP",
+                "map": [
+                  { "type": "TEMPLATE", "key": "parameter", "value": "button_text" },
+                  { "type": "TEMPLATE", "key": "parameterValue", "value": "{{dlv - button_text}}" }
+                ]
+              },
+              {
+                "type": "MAP",
+                "map": [
+                  { "type": "TEMPLATE", "key": "parameter", "value": "intent" },
+                  { "type": "TEMPLATE", "key": "parameterValue", "value": "{{dlv - intent}}" }
+                ]
+              },
+              {
+                "type": "MAP",
+                "map": [
+                  { "type": "TEMPLATE", "key": "parameter", "value": "recipe_id" },
+                  { "type": "TEMPLATE", "key": "parameterValue", "value": "{{dlv - recipe_id}}" }
+                ]
+              },
+              {
+                "type": "MAP",
+                "map": [
+                  { "type": "TEMPLATE", "key": "parameter", "value": "source" },
+                  { "type": "TEMPLATE", "key": "parameterValue", "value": "{{dlv - source}}" }
+                ]
+              }
+            ]
+          }
+        ],
+        "firingTriggerId": ["200"],
+        "tagFiringOption": "ONCE_PER_EVENT"
+      },
+      {
+        "accountId": "6380447537",
+        "containerId": "266029495",
+        "tagId": "301",
+        "name": "GA4 Event - form_fill",
+        "type": "gaawe",
+        "parameter": [
+          { "type": "BOOLEAN", "key": "sendEcommerceData", "value": "false" },
+          { "type": "TEMPLATE", "key": "eventName", "value": "form_fill" },
+          { "type": "TEMPLATE", "key": "measurementIdOverride", "value": "{{const - GA4 Measurement ID}}" },
+          {
+            "type": "LIST",
+            "key": "eventSettingsTable",
+            "list": [
+              {
+                "type": "MAP",
+                "map": [
+                  { "type": "TEMPLATE", "key": "parameter", "value": "form_name" },
+                  { "type": "TEMPLATE", "key": "parameterValue", "value": "{{dlv - form_name}}" }
+                ]
+              },
+              {
+                "type": "MAP",
+                "map": [
+                  { "type": "TEMPLATE", "key": "parameter", "value": "method" },
+                  { "type": "TEMPLATE", "key": "parameterValue", "value": "{{dlv - method}}" }
+                ]
+              },
+              {
+                "type": "MAP",
+                "map": [
+                  { "type": "TEMPLATE", "key": "parameter", "value": "intent" },
+                  { "type": "TEMPLATE", "key": "parameterValue", "value": "{{dlv - intent}}" }
+                ]
+              },
+              {
+                "type": "MAP",
+                "map": [
+                  { "type": "TEMPLATE", "key": "parameter", "value": "source" },
+                  { "type": "TEMPLATE", "key": "parameterValue", "value": "{{dlv - source}}" }
+                ]
+              },
+              {
+                "type": "MAP",
+                "map": [
+                  { "type": "TEMPLATE", "key": "parameter", "value": "recipe_id" },
+                  { "type": "TEMPLATE", "key": "parameterValue", "value": "{{dlv - recipe_id}}" }
+                ]
+              }
+            ]
+          }
+        ],
+        "firingTriggerId": ["201"],
+        "tagFiringOption": "ONCE_PER_EVENT"
+      },
+      {
+        "accountId": "6380447537",
+        "containerId": "266029495",
+        "tagId": "302",
+        "name": "GA4 Event - login_complete",
+        "type": "gaawe",
+        "parameter": [
+          { "type": "BOOLEAN", "key": "sendEcommerceData", "value": "false" },
+          { "type": "TEMPLATE", "key": "eventName", "value": "login_complete" },
+          { "type": "TEMPLATE", "key": "measurementIdOverride", "value": "{{const - GA4 Measurement ID}}" },
+          {
+            "type": "LIST",
+            "key": "eventSettingsTable",
+            "list": [
+              {
+                "type": "MAP",
+                "map": [
+                  { "type": "TEMPLATE", "key": "parameter", "value": "method" },
+                  { "type": "TEMPLATE", "key": "parameterValue", "value": "{{dlv - method}}" }
+                ]
+              }
+            ]
+          }
+        ],
+        "firingTriggerId": ["202"],
+        "tagFiringOption": "ONCE_PER_EVENT"
+      },
+      {
+        "accountId": "6380447537",
+        "containerId": "266029495",
+        "tagId": "303",
+        "name": "GA4 Event - sign_up_start",
+        "type": "gaawe",
+        "parameter": [
+          { "type": "BOOLEAN", "key": "sendEcommerceData", "value": "false" },
+          { "type": "TEMPLATE", "key": "eventName", "value": "sign_up_start" },
+          { "type": "TEMPLATE", "key": "measurementIdOverride", "value": "{{const - GA4 Measurement ID}}" },
+          {
+            "type": "LIST",
+            "key": "eventSettingsTable",
+            "list": [
+              {
+                "type": "MAP",
+                "map": [
+                  { "type": "TEMPLATE", "key": "parameter", "value": "method" },
+                  { "type": "TEMPLATE", "key": "parameterValue", "value": "{{dlv - method}}" }
+                ]
+              },
+              {
+                "type": "MAP",
+                "map": [
+                  { "type": "TEMPLATE", "key": "parameter", "value": "intent" },
+                  { "type": "TEMPLATE", "key": "parameterValue", "value": "{{dlv - intent}}" }
+                ]
+              }
+            ]
+          }
+        ],
+        "firingTriggerId": ["203"],
+        "tagFiringOption": "ONCE_PER_EVENT"
+      },
+      {
+        "accountId": "6380447537",
+        "containerId": "266029495",
+        "tagId": "304",
+        "name": "GA4 Event - signup_gate",
+        "type": "gaawe",
+        "parameter": [
+          { "type": "BOOLEAN", "key": "sendEcommerceData", "value": "false" },
+          { "type": "TEMPLATE", "key": "eventName", "value": "signup_gate" },
+          { "type": "TEMPLATE", "key": "measurementIdOverride", "value": "{{const - GA4 Measurement ID}}" },
+          {
+            "type": "LIST",
+            "key": "eventSettingsTable",
+            "list": [
+              {
+                "type": "MAP",
+                "map": [
+                  { "type": "TEMPLATE", "key": "parameter", "value": "intent" },
+                  { "type": "TEMPLATE", "key": "parameterValue", "value": "{{dlv - intent}}" }
+                ]
+              },
+              {
+                "type": "MAP",
+                "map": [
+                  { "type": "TEMPLATE", "key": "parameter", "value": "recipe_id" },
+                  { "type": "TEMPLATE", "key": "parameterValue", "value": "{{dlv - recipe_id}}" }
+                ]
+              },
+              {
+                "type": "MAP",
+                "map": [
+                  { "type": "TEMPLATE", "key": "parameter", "value": "path" },
+                  { "type": "TEMPLATE", "key": "parameterValue", "value": "{{dlv - path}}" }
+                ]
+              }
+            ]
+          }
+        ],
+        "firingTriggerId": ["204"],
+        "tagFiringOption": "ONCE_PER_EVENT"
+      },
+      {
+        "accountId": "6380447537",
+        "containerId": "266029495",
+        "tagId": "305",
+        "name": "GA4 Event - save_recipe",
+        "type": "gaawe",
+        "parameter": [
+          { "type": "BOOLEAN", "key": "sendEcommerceData", "value": "false" },
+          { "type": "TEMPLATE", "key": "eventName", "value": "save_recipe" },
+          { "type": "TEMPLATE", "key": "measurementIdOverride", "value": "{{const - GA4 Measurement ID}}" },
+          {
+            "type": "LIST",
+            "key": "eventSettingsTable",
+            "list": [
+              {
+                "type": "MAP",
+                "map": [
+                  { "type": "TEMPLATE", "key": "parameter", "value": "recipe_id" },
+                  { "type": "TEMPLATE", "key": "parameterValue", "value": "{{dlv - recipe_id}}" }
+                ]
+              }
+            ]
+          }
+        ],
+        "firingTriggerId": ["205"],
+        "tagFiringOption": "ONCE_PER_EVENT"
+      },
+      {
+        "accountId": "6380447537",
+        "containerId": "266029495",
+        "tagId": "306",
+        "name": "GA4 Event - unsave_recipe",
+        "type": "gaawe",
+        "parameter": [
+          { "type": "BOOLEAN", "key": "sendEcommerceData", "value": "false" },
+          { "type": "TEMPLATE", "key": "eventName", "value": "unsave_recipe" },
+          { "type": "TEMPLATE", "key": "measurementIdOverride", "value": "{{const - GA4 Measurement ID}}" },
+          {
+            "type": "LIST",
+            "key": "eventSettingsTable",
+            "list": [
+              {
+                "type": "MAP",
+                "map": [
+                  { "type": "TEMPLATE", "key": "parameter", "value": "recipe_id" },
+                  { "type": "TEMPLATE", "key": "parameterValue", "value": "{{dlv - recipe_id}}" }
+                ]
+              }
+            ]
+          }
+        ],
+        "firingTriggerId": ["206"],
+        "tagFiringOption": "ONCE_PER_EVENT"
+      },
+      {
+        "accountId": "6380447537",
+        "containerId": "266029495",
+        "tagId": "307",
+        "name": "GA4 Event - cook_log",
+        "type": "gaawe",
+        "parameter": [
+          { "type": "BOOLEAN", "key": "sendEcommerceData", "value": "false" },
+          { "type": "TEMPLATE", "key": "eventName", "value": "cook_log" },
+          { "type": "TEMPLATE", "key": "measurementIdOverride", "value": "{{const - GA4 Measurement ID}}" },
+          {
+            "type": "LIST",
+            "key": "eventSettingsTable",
+            "list": [
+              {
+                "type": "MAP",
+                "map": [
+                  { "type": "TEMPLATE", "key": "parameter", "value": "recipe_id" },
+                  { "type": "TEMPLATE", "key": "parameterValue", "value": "{{dlv - recipe_id}}" }
+                ]
+              },
+              {
+                "type": "MAP",
+                "map": [
+                  { "type": "TEMPLATE", "key": "parameter", "value": "rating" },
+                  { "type": "TEMPLATE", "key": "parameterValue", "value": "{{dlv - rating}}" }
+                ]
+              }
+            ]
+          }
+        ],
+        "firingTriggerId": ["207"],
+        "tagFiringOption": "ONCE_PER_EVENT"
+      },
+      {
+        "accountId": "6380447537",
+        "containerId": "266029495",
+        "tagId": "308",
+        "name": "GA4 Event - newsletter_signup",
+        "type": "gaawe",
+        "parameter": [
+          { "type": "BOOLEAN", "key": "sendEcommerceData", "value": "false" },
+          { "type": "TEMPLATE", "key": "eventName", "value": "newsletter_signup" },
+          { "type": "TEMPLATE", "key": "measurementIdOverride", "value": "{{const - GA4 Measurement ID}}" },
+          {
+            "type": "LIST",
+            "key": "eventSettingsTable",
+            "list": [
+              {
+                "type": "MAP",
+                "map": [
+                  { "type": "TEMPLATE", "key": "parameter", "value": "source" },
+                  { "type": "TEMPLATE", "key": "parameterValue", "value": "{{dlv - source}}" }
+                ]
+              }
+            ]
+          }
+        ],
+        "firingTriggerId": ["208"],
+        "tagFiringOption": "ONCE_PER_EVENT"
+      }
+    ]
+  }
+}

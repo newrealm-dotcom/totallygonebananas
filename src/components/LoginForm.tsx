@@ -2,12 +2,23 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { AUTH_NEXT_COOKIE, HAS_ACCOUNT_COOKIE, HAS_ACCOUNT_MAX_AGE } from "@/lib/auth-next";
+import { AUTH_NEXT_COOKIE, HAS_ACCOUNT_COOKIE, HAS_ACCOUNT_MAX_AGE, withAuthJoinedFlag } from "@/lib/auth-next";
+import { trackButtonClick, trackEvent, trackFormFill } from "@/lib/analytics/datalayer";
 import { createClient } from "@/lib/supabase/client";
 
-export function LoginForm({ next, googleEnabled }: { next: string; googleEnabled: boolean }) {
+export function LoginForm({
+  next,
+  googleEnabled,
+  initialEmail = "",
+  intent = null,
+}: {
+  next: string;
+  googleEnabled: boolean;
+  initialEmail?: string;
+  intent?: string | null;
+}) {
   const router = useRouter();
-  const [email, setEmail] = useState("");
+  const [email, setEmail] = useState(initialEmail);
   const [code, setCode] = useState("");
   const [state, setState] = useState<"idle" | "sending" | "sent" | "verifying" | "error">("idle");
   const [error, setError] = useState("");
@@ -36,6 +47,8 @@ export function LoginForm({ next, googleEnabled }: { next: string; googleEnabled
     setState("sending");
     setError("");
     rememberNext();
+    trackFormFill("login_email", { intent: intent ?? undefined });
+    trackEvent("sign_up_start", { method: "email", intent: intent ?? undefined });
     const { error } = await createClient().auth.signInWithOtp({
       email,
       options: { emailRedirectTo: callback() },
@@ -70,12 +83,15 @@ export function LoginForm({ next, googleEnabled }: { next: string; googleEnabled
       return;
     }
     rememberHasAccount();
-    router.replace(next);
+    // `joined=1` triggers AuthJoinedBeacon once (same path as magic-link / OAuth).
+    router.replace(withAuthJoinedFlag(next));
     router.refresh();
   }
 
   async function google() {
     rememberNext();
+    trackButtonClick("Continue with Google", { intent: intent ?? undefined });
+    trackEvent("sign_up_start", { method: "google", intent: intent ?? undefined });
     await createClient().auth.signInWithOAuth({ provider: "google", options: { redirectTo: callback() } });
   }
 

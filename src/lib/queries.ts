@@ -640,3 +640,156 @@ export async function adminCounts() {
     referralsRecent: referralsRecent.count ?? 0,
   };
 }
+
+export interface MemberEngagementStats {
+  membersTotal: number;
+  membersJoined7d: number;
+  membersJoined28d: number;
+  activeSavers7d: number;
+  activeCooks7d: number;
+  activeMembers7d: number;
+  activeSavers28d: number;
+  activeCooks28d: number;
+  activeMembers28d: number;
+  saves7d: number;
+  cooks7d: number;
+  newsletterTotal: number;
+  newsletter7d: number;
+  recentMembers: {
+    id: string;
+    display_name: string | null;
+    username: string | null;
+    created_at: string;
+  }[];
+  recentActivity: {
+    kind: "save" | "cook";
+    at: string;
+    user_id: string;
+    display_name: string | null;
+    username: string | null;
+    recipe_title: string | null;
+    recipe_slug: string | null;
+  }[];
+}
+
+function uniqueUserIds(rows: { user_id: string }[] | null | undefined): Set<string> {
+  return new Set((rows ?? []).map((r) => r.user_id).filter(Boolean));
+}
+
+/** First-party member conversion / engagement for /admin/members. */
+export async function getMemberEngagement(): Promise<MemberEngagementStats> {
+  const supabase = await createClient();
+  const d7 = new Date(Date.now() - 7 * 86_400_000).toISOString();
+  const d28 = new Date(Date.now() - 28 * 86_400_000).toISOString();
+
+  const [
+    membersTotal,
+    membersJoined7d,
+    membersJoined28d,
+    saves7dRows,
+    cooks7dRows,
+    saves28dRows,
+    cooks28dRows,
+    saves7dCount,
+    cooks7dCount,
+    newsletterTotal,
+    newsletter7d,
+    recentMembers,
+    recentSaves,
+    recentCooks,
+  ] = await Promise.all([
+    supabase.from("profiles").select("id", { count: "exact", head: true }),
+    supabase.from("profiles").select("id", { count: "exact", head: true }).gte("created_at", d7),
+    supabase.from("profiles").select("id", { count: "exact", head: true }).gte("created_at", d28),
+    supabase.from("saves").select("user_id").gte("created_at", d7).limit(2000),
+    supabase.from("cook_logs").select("user_id").gte("created_at", d7).limit(2000),
+    supabase.from("saves").select("user_id").gte("created_at", d28).limit(5000),
+    supabase.from("cook_logs").select("user_id").gte("created_at", d28).limit(5000),
+    supabase.from("saves").select("user_id", { count: "exact", head: true }).gte("created_at", d7),
+    supabase.from("cook_logs").select("id", { count: "exact", head: true }).gte("created_at", d7),
+    supabase.from("newsletter_signups").select("id", { count: "exact", head: true }),
+    supabase.from("newsletter_signups").select("id", { count: "exact", head: true }).gte("created_at", d7),
+    supabase
+      .from("profiles")
+      .select("id, display_name, username, created_at")
+      .order("created_at", { ascending: false })
+      .limit(12),
+    supabase
+      .from("saves")
+      .select("user_id, created_at, recipe_id")
+      .order("created_at", { ascending: false })
+      .limit(20),
+    supabase
+      .from("cook_logs")
+      .select("user_id, created_at, recipe_id")
+      .order("created_at", { ascending: false })
+      .limit(20),
+  ]);
+
+  const savers7 = uniqueUserIds(saves7dRows.data);
+  const cooks7 = uniqueUserIds(cooks7dRows.data);
+  const savers28 = uniqueUserIds(saves28dRows.data);
+  const cooks28 = uniqueUserIds(cooks28dRows.data);
+  const active7 = new Set([...savers7, ...cooks7]);
+  const active28 = new Set([...savers28, ...cooks28]);
+
+  const activitySeed = [
+    ...((recentSaves.data ?? []) as { user_id: string; created_at: string; recipe_id: string }[]).map((r) => ({
+      kind: "save" as const,
+      at: r.created_at,
+      user_id: r.user_id,
+      recipe_id: r.recipe_id,
+    })),
+    ...((recentCooks.data ?? []) as { user_id: string; created_at: string; recipe_id: string }[]).map((r) => ({
+      kind: "cook" as const,
+      at: r.created_at,
+      user_id: r.user_id,
+      recipe_id: r.recipe_id,
+    })),
+  ].sort((a, b) => (a.at < b.at ? 1 : -1)).slice(0, 24);
+
+  const userIds = [...new Set(activitySeed.map((a) => a.user_id))];
+  const recipeIds = [...new Set(activitySeed.map((a) => a.recipe_id))];
+  const [{ data: activityProfiles }, { data: activityRecipes }] = await Promise.all([
+    userIds.length
+      ? supabase.from("profiles").select("id, display_name, username").in("id", userIds)
+      : Promise.resolve({ data: [] as { id: string; display_name: string | null; username: string | null }[] }),
+    recipeIds.length
+      ? supabase.from("recipes").select("id, title, slug").in("id", recipeIds)
+      : Promise.resolve({ data: [] as { id: string; title: string; slug: string }[] }),
+  ]);
+  const profileById = new Map((activityProfiles ?? []).map((p) => [p.id, p]));
+  const recipeById = new Map((activityRecipes ?? []).map((r) => [r.id, r]));
+
+  const recentActivity = activitySeed.map((a) => {
+    const profile = profileById.get(a.user_id);
+    const recipe = recipeById.get(a.recipe_id);
+    return {
+      kind: a.kind,
+      at: a.at,
+      user_id: a.user_id,
+      display_name: profile?.display_name ?? null,
+      username: profile?.username ?? null,
+      recipe_title: recipe?.title ?? null,
+      recipe_slug: recipe?.slug ?? null,
+    };
+  });
+
+  return {
+    membersTotal: membersTotal.count ?? 0,
+    membersJoined7d: membersJoined7d.count ?? 0,
+    membersJoined28d: membersJoined28d.count ?? 0,
+    activeSavers7d: savers7.size,
+    activeCooks7d: cooks7.size,
+    activeMembers7d: active7.size,
+    activeSavers28d: savers28.size,
+    activeCooks28d: cooks28.size,
+    activeMembers28d: active28.size,
+    saves7d: saves7dCount.count ?? 0,
+    cooks7d: cooks7dCount.count ?? 0,
+    newsletterTotal: newsletterTotal.count ?? 0,
+    newsletter7d: newsletter7d.count ?? 0,
+    recentMembers: (recentMembers.data ?? []) as MemberEngagementStats["recentMembers"],
+    recentActivity,
+  };
+}

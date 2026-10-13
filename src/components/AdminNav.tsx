@@ -35,6 +35,7 @@ export function AdminNav({
     () => [
       { href: "/admin", label: "Overview", match: (p) => p === "/admin" },
       { href: "/admin/analytics", label: "Analytics", match: (p) => p.startsWith("/admin/analytics") },
+      { href: "/admin/members", label: "Members", match: (p) => p.startsWith("/admin/members") },
       { href: "/admin/homepage", label: "Homepage", match: (p) => p.startsWith("/admin/homepage") },
       { href: "/admin/recipes", label: "Recipes", match: (p) => p.startsWith("/admin/recipes") },
       { href: "/admin/categories", label: "Recipe Categories", match: (p) => p.startsWith("/admin/categories") },

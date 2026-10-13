@@ -662,6 +662,49 @@ html[data-theme="dark"] .footer-surface {
   text-transform: uppercase;
   letter-spacing: .04em;
 }
+.footer-newsletter-bridge {
+  margin: .55rem 0 0;
+  font-size: .95rem;
+  font-weight: 700;
+  color: var(--muted);
+  max-width: 36ch;
+}
+.footer-newsletter-bridge-link {
+  color: inherit;
+  font-weight: 900;
+  text-underline-offset: 2px;
+}
+.footer-newsletter-bridge-link:hover {
+  color: var(--ink);
+}
+.newsletter-popup-thanks-wrap {
+  display: grid;
+  gap: .75rem;
+  justify-items: start;
+}
+.newsletter-popup-bridge {
+  margin: 0;
+}
+.newsletter-popup-bridge-btn {
+  min-height: 44px;
+}
+.newsletter-popup-bridge-hint {
+  margin: 0;
+  font-size: .88rem;
+  font-weight: 700;
+  color: var(--muted);
+}
+.admin-members-grid {
+  display: grid;
+  gap: 1.2rem;
+  grid-template-columns: 1fr;
+}
+@media (min-width: 901px) {
+  .admin-members-grid {
+    grid-template-columns: 1fr 1fr;
+    align-items: start;
+  }
+}
 .footer-newsletter-thanks {
   margin: 0;
   font-family: var(--display);

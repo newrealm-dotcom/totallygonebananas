@@ -11,6 +11,7 @@ import { MediaView } from "@/components/MediaView";
 import { titleCase } from "@/lib/format";
 import { promoImageSrc } from "@/lib/media";
 import { BlogCoverCard } from "@/components/BlogCoverCard";
+import { TrackedSignupLink } from "@/components/TrackedSignupLink";
 import { getDarkMainSliderImages, getMainSliderImages, FIRST_DARK_SLIDE, FIRST_LIGHT_SLIDE, pickPreferredSlide } from "@/lib/main-slider";
 
 export const metadata: Metadata = {
@@ -101,7 +102,14 @@ export default async function HomePage({ searchParams }: PageProps<"/">) {
             </p>
             <div className="home-join-actions">
               {!viewer.userId ? (
-                <Link className="btn" href="/login?next=/recipes/new">Sign Up Now</Link>
+                <TrackedSignupLink
+                  className="btn"
+                  href="/login?next=/recipes/new&intent=share"
+                  buttonText="Sign Up Now"
+                  intent="share"
+                >
+                  Sign Up Now
+                </TrackedSignupLink>
               ) : null}
               <Link className={viewer.userId ? "btn" : "btn ghost"} href="/recipes/new">
                 Share a recipe

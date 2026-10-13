@@ -1,12 +1,15 @@
 "use client";
 
 import { useState, useTransition } from "react";
+import Link from "next/link";
 import { subscribeNewsletter } from "@/actions/newsletter";
+import { trackEvent, trackFormFill } from "@/lib/analytics/datalayer";
 
 export function NewsletterSignup() {
   const [pending, startTransition] = useTransition();
   const [done, setDone] = useState(false);
   const [email, setEmail] = useState("");
+  const [subscribedEmail, setSubscribedEmail] = useState("");
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   function onSubmit(e: React.FormEvent) {
@@ -18,16 +21,27 @@ export function NewsletterSignup() {
         setErrors(result.errors);
         return;
       }
+      const clean = email.trim();
+      setSubscribedEmail(clean);
       setDone(true);
       setEmail("");
+      trackEvent("newsletter_signup", { source: "footer" });
+      trackFormFill("newsletter", { source: "footer" });
     });
   }
 
   if (done) {
+    const loginHref = `/login?next=${encodeURIComponent("/profile")}&intent=newsletter&email=${encodeURIComponent(subscribedEmail)}`;
     return (
       <div className="footer-newsletter is-done">
         <p className="footer-newsletter-thanks" role="status">
           You&apos;re on the list — thanks for joining the bunch.
+        </p>
+        <p className="footer-newsletter-bridge">
+          <Link href={loginHref} className="footer-newsletter-bridge-link">
+            Create your free Banana Stand
+          </Link>{" "}
+          with the same email to save recipes and earn points.
         </p>
       </div>
     );

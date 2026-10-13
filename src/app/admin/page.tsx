@@ -25,6 +25,7 @@ export default async function AdminHomePage() {
         <Link className="btn ghost" href="/admin/posts/new">New blog post</Link>
         <Link className="btn ghost" href="/admin/our-faves/new">New fave</Link>
         <Link className="btn ghost" href="/admin/homepage">Edit homepage promo</Link>
+        <Link className="btn ghost" href="/admin/members">Member engagement</Link>
         <Link className="btn ghost" href="/admin/categories">Recipe categories</Link>
         <Link className="btn ghost" href="/admin/tags">Tags</Link>
         <Link className="btn ghost" href="/admin/blog-categories">Blog categories</Link>

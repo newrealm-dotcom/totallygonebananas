@@ -27,10 +27,23 @@ export function sanitizeAuthNext(raw: string | null | undefined, requestOrigin?:
   try {
     const asUrl = new URL(decoded);
     if (asUrl.origin === requestOrigin) {
-      return `${asUrl.pathname}${asUrl.search}` || "/profile";
+      return `${asUrl.pathname}${asUrl.search}${asUrl.hash}` || "/profile";
     }
   } catch {
     /* ignore */
   }
   return null;
+}
+
+/** Append `joined=1` so the client can fire a one-time conversion beacon. */
+export function withAuthJoinedFlag(path: string): string {
+  const hashIdx = path.indexOf("#");
+  const hash = hashIdx >= 0 ? path.slice(hashIdx) : "";
+  const withoutHash = hashIdx >= 0 ? path.slice(0, hashIdx) : path;
+  const qIdx = withoutHash.indexOf("?");
+  const pathname = qIdx >= 0 ? withoutHash.slice(0, qIdx) : withoutHash;
+  const search = qIdx >= 0 ? withoutHash.slice(qIdx + 1) : "";
+  const params = new URLSearchParams(search);
+  params.set("joined", "1");
+  return `${pathname}?${params.toString()}${hash}`;
 }

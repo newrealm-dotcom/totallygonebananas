@@ -5,7 +5,11 @@ import "@fontsource-variable/nunito/wght.css";
 import "./globals.css";
 import { SiteHeader } from "@/components/SiteHeader";
 import { SiteFooter } from "@/components/SiteFooter";
-import { DeferredBackToTop, DeferredNewsletterPopup } from "@/components/DeferredChrome";
+import {
+  DeferredAuthJoinedBeacon,
+  DeferredBackToTop,
+  DeferredNewsletterPopup,
+} from "@/components/DeferredChrome";
 import { SignupFloat } from "@/components/SignupFloat";
 import { siteUrl } from "@/lib/env";
 
@@ -57,6 +61,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <SiteFooter />
         <SignupFloat />
         <DeferredNewsletterPopup />
+        <DeferredAuthJoinedBeacon />
         <DeferredBackToTop />
       </body>
     </html>
