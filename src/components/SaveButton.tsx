@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useEffect, useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { toggleSave } from "@/actions/engagement";
 import { trackButtonClick, trackEvent } from "@/lib/analytics/datalayer";
@@ -19,14 +19,36 @@ export function SaveButton({
   className?: string;
 }) {
   const [saved, setSaved] = useState(initialSaved);
+  const handledPendingSave = useRef(false);
   const [pending, start] = useTransition();
   const router = useRouter();
+
+  useEffect(() => {
+    if (!signedIn || handledPendingSave.current || pending) return;
+    const url = new URL(location.href);
+    if (url.searchParams.get("pending_save") !== recipeId) return;
+
+    handledPendingSave.current = true;
+    url.searchParams.delete("pending_save");
+    router.replace(`${url.pathname}${url.search}${url.hash}`, { scroll: false });
+
+    if (saved) return;
+    start(async () => {
+      const res = await toggleSave(recipeId);
+      if (!res.ok) return;
+      setSaved(true);
+      trackEvent("save_recipe", { recipe_id: recipeId });
+      trackButtonClick("Save recipe", { recipe_id: recipeId });
+    });
+  }, [pending, recipeId, router, saved, signedIn, start]);
 
   function onClick() {
     if (!signedIn) {
       trackButtonClick("Save recipe (signed out)", { recipe_id: recipeId });
       trackEvent("signup_gate", { intent: "save", recipe_id: recipeId });
-      const next = encodeURIComponent(location.pathname + location.search);
+      const nextUrl = new URL(location.href);
+      nextUrl.searchParams.set("pending_save", recipeId);
+      const next = encodeURIComponent(`${nextUrl.pathname}${nextUrl.search}${nextUrl.hash}`);
       router.push(`/login?next=${next}&intent=save`);
       return;
     }

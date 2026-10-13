@@ -1,5 +1,21 @@
+"use client";
+
 import Image from "next/image";
+import { useSyncExternalStore } from "react";
 import { Mascot } from "@/components/Mascot";
+
+type Theme = "light" | "dark";
+
+function getTheme(): Theme {
+  if (typeof document === "undefined") return "light";
+  return document.documentElement.getAttribute("data-theme") === "dark" ? "dark" : "light";
+}
+
+function subscribe(onStoreChange: () => void) {
+  const observer = new MutationObserver(onStoreChange);
+  observer.observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
+  return () => observer.disconnect();
+}
 
 /** Light-mode slide from /main-slider; dark-mode slide from /main-slider/dark. SVG fallback if empty. */
 export function HeroSlide({
@@ -15,6 +31,8 @@ export function HeroSlide({
 }) {
   const light = lightSrc ?? darkSrc;
   const dark = darkSrc ?? lightSrc;
+  const theme = useSyncExternalStore(subscribe, getTheme, () => "light" as Theme);
+  const isDark = theme === "dark";
   if (!light && !dark) return <Mascot />;
 
   // Same asset for both themes — one image is enough.
@@ -37,7 +55,8 @@ export function HeroSlide({
       <Image
         className="mascot hero-slide hero-slide-light"
         src={light}
-        alt={alt}
+        alt={isDark ? "" : alt}
+        aria-hidden={isDark}
         width={920}
         height={520}
         priority
@@ -47,7 +66,8 @@ export function HeroSlide({
       <Image
         className="mascot hero-slide hero-slide-dark"
         src={dark}
-        alt={alt}
+        alt={isDark ? alt : ""}
+        aria-hidden={!isDark}
         width={920}
         height={520}
         loading="lazy"

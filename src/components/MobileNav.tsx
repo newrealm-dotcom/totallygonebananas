@@ -24,7 +24,7 @@ const LINKS = [
 /** Site hamburger menu — left on desktop, in the mobile tools stack on small screens. */
 export function MobileNav({
   signedIn = false,
-  authLabel = "Sign Up",
+  authLabel = "Sign in",
 }: {
   signedIn?: boolean;
   authLabel?: string;

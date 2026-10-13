@@ -11,7 +11,8 @@ export const metadata: Metadata = {
 };
 
 const INTENT_LEDE: Record<string, string> = {
-  save: "Create a free account to save recipes to your Banana Stand.",
+  save: "Sign in to save this recipe to your Banana Stand.",
+  join: "Create a free account to save favorites, rate what you bake, and share your own banana wins.",
   rate: "Create a free account to rate recipes, share tips, and track what you've cooked.",
   newsletter: "You're on the list — create a free Banana Stand to save recipes and earn points.",
   float: "Create a free account to save recipes, rate what you cook, and share your own.",

@@ -69,7 +69,21 @@ export default async function HomePage({ searchParams }: PageProps<"/">) {
         <div className="wrap hero-grid">
           <div className="hero-copy">
             <h1>What are we going bananas for today?</h1>
-            <p className="lede">Pick a craving and dig in. Whether you&apos;re after something chocolatey, something fruity, or an easy bake for a slow Sunday morning, there&apos;s a recipe here for it. New ones go up all the time, so check back often to see what just came out of the oven.</p>
+            <p className="hero-subhead">Tested banana recipes for every stage of ripeness, from green to gone.</p>
+            <p className="lede">From 5-minute smoothies to weekend bakes. Pick a craving below, or search for what you&apos;ve got.</p>
+            <form className="hero-search" action="/recipes" role="search">
+              <label className="sr-only" htmlFor="hero-q">
+                Search banana recipes
+              </label>
+              <input
+                id="hero-q"
+                name="q"
+                type="search"
+                placeholder="Try 'banana bread' or 'ripe bananas'"
+                autoComplete="off"
+              />
+              <button type="submit">Search</button>
+            </form>
             <div className="hero-cats">
               <span className="hero-cats-label">Categories:</span>
               <FilterPillsScroller label="categories" moreText="more">
@@ -86,45 +100,8 @@ export default async function HomePage({ searchParams }: PageProps<"/">) {
             <HeroSlide
               lightSrc={heroLight}
               darkSrc={heroDark}
-              sizes="(max-width: 900px) 320px, min(38rem, 54vw)"
-            />
-          </div>
-        </div>
-      </section>
-
-      <section className="home-join" aria-labelledby="home-join-h">
-        <div className="wrap home-join-inner">
-          <div className="home-join-copy">
-            <p className="home-join-kicker">Join the bunch</p>
-            <h2 id="home-join-h">Share your favorite banana recipes</h2>
-            <p>
-              Sign up, submit the recipes you love, and be first in line for future contests, giveaways, and more from Totally Gone Bananas.
-            </p>
-            <div className="home-join-actions">
-              {!viewer.userId ? (
-                <TrackedSignupLink
-                  className="btn"
-                  href="/login?next=/recipes/new&intent=share"
-                  buttonText="Sign Up Now"
-                  intent="share"
-                >
-                  Sign Up Now
-                </TrackedSignupLink>
-              ) : null}
-              <Link className={viewer.userId ? "btn" : "btn ghost"} href="/recipes/new">
-                Share a recipe
-              </Link>
-            </div>
-          </div>
-          <div className="home-join-art" aria-hidden="true">
-            <Image
-              className="home-join-img"
-              src="/images/finish.webp"
-              alt=""
-              width={1200}
-              height={638}
-              sizes="(max-width: 900px) 92vw, 65vw"
-              quality={75}
+              alt="Totally Gone Bananas mascot, a banana in sunglasses lounging on a golden throne"
+              sizes="(max-width: 768px) 90vw, 45vw"
             />
           </div>
         </div>
@@ -149,6 +126,45 @@ export default async function HomePage({ searchParams }: PageProps<"/">) {
                 <Link className="home-more" href={moreHref}>View More Recipes</Link>
               </p>
             )}
+          </div>
+        </div>
+      </section>
+
+      <section className="home-join" aria-labelledby="home-join-h">
+        <div className="wrap home-join-inner">
+          <div className="home-join-copy">
+            <p className="home-join-kicker">Join the bunch</p>
+            <h2 id="home-join-h">Save your favorites and share your own</h2>
+            <p>
+              Save recipes, rate what you bake, and share your own banana wins. Members get first dibs on contests and giveaways.
+            </p>
+            <div className="home-join-actions">
+              {!viewer.userId ? (
+                <TrackedSignupLink
+                  className="btn"
+                  href="/login?intent=join"
+                  buttonText="Join the bunch, it's free"
+                  intent="join"
+                >
+                  Join the bunch, it&apos;s free
+                </TrackedSignupLink>
+              ) : (
+                <Link className="btn" href="/recipes/new">
+                  Share a recipe
+                </Link>
+              )}
+            </div>
+          </div>
+          <div className="home-join-art">
+            <Image
+              className="home-join-img"
+              src="/images/finish.webp"
+              alt="Cartoon bananas racing toward a finish line"
+              width={1200}
+              height={638}
+              sizes="(max-width: 900px) 92vw, 65vw"
+              quality={75}
+            />
           </div>
         </div>
       </section>

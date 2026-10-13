@@ -175,7 +175,7 @@ export default async function RecipesPage({ searchParams }: PageProps<"/recipes"
               tag: f.tag,
               sort: f.sort,
             }}
-            empty={<div className="empty"><span className="big">🍌🔍</span><p>Nothing matches all of those filters.</p><Link className="btn ghost" href="/recipes">Clear filters</Link></div>}
+            empty={<div className="empty"><span className="big">🍌🔍</span><p>No bananas found for that one. Try another craving?</p><Link className="btn ghost" href="/recipes">View all recipes</Link></div>}
           />
         </div>
       </div>

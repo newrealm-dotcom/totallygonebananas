@@ -101,9 +101,9 @@ button, input, select, textarea { font: inherit; color: inherit; }
   flex-shrink: 0;
 }
 .theme-toggle {
-  position: fixed;
-  top: max(.75rem, env(safe-area-inset-top, 0px));
-  left: max(.75rem, env(safe-area-inset-left, 0px));
+  position: static;
+  top: auto;
+  left: auto;
   right: auto;
   z-index: 50;
   display: inline-flex;
@@ -120,9 +120,9 @@ button, input, select, textarea { font: inherit; color: inherit; }
   box-shadow: 3px 3px 0 var(--line);
 }
 html.header-scrolled .theme-toggle {
-  position: fixed;
-  top: max(.75rem, env(safe-area-inset-top, 0px));
-  left: max(.75rem, env(safe-area-inset-left, 0px));
+  position: static;
+  top: auto;
+  left: auto;
   right: auto;
   bottom: auto;
   height: auto;
@@ -327,7 +327,7 @@ html[data-theme="dark"] .mobile-nav-panel {
   justify-content: center;
   text-align: center;
 }
-@media (max-width: 1100px) {
+@media (max-width: 1023px) {
   .mobile-nav-actions {
     flex-direction: column;
     align-items: flex-start;
@@ -406,6 +406,10 @@ html[data-theme="dark"] .brand.brand-scrolled .brand-logo-scroll-light {
   margin: auto;
 }
 nav.main { display: none; }
+nav.main.top-nav {
+  grid-column: 1;
+  justify-self: start;
+}
 .top-end {
   display: flex;
   align-items: center;
@@ -422,9 +426,23 @@ nav.main { display: none; }
   flex-shrink: 0;
 }
 .top-actions { display: flex; align-items: center; gap: .6rem; flex-shrink: 0; }
-@media (max-width: 1100px) {
+@media (max-width: 1023px) {
   /* Beat later `.btn { display: inline-flex }` so this stays header-only on desktop. */
   .top-actions .btn.top-add-recipe { display: none; }
+}
+.top-sign-in {
+  color: var(--ink);
+  font-size: .82rem;
+  font-weight: 900;
+  text-decoration: none;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+.top-sign-in:hover,
+.top-sign-in:focus-visible {
+  color: var(--orange);
+  text-decoration: underline;
+  text-underline-offset: 4px;
 }
 .profile-menu { display: inline-flex; align-items: center; gap: .55rem; min-width: 0; }
 .profile-chip-meta { display: none; flex-direction: column; align-items: flex-start; gap: .15rem; line-height: 1.15; min-width: 0; }
@@ -433,7 +451,28 @@ nav.main { display: none; }
 .profile-chip-stats span { font-size: .72rem; font-weight: 800; color: var(--muted); white-space: nowrap; }
 .profile-logout { background: none; border: 0; padding: 0; margin: 0; font-size: .68rem; font-weight: 800; color: var(--muted); cursor: pointer; text-decoration: underline; text-underline-offset: 2px; text-transform: uppercase; min-height: 0; line-height: 1.1; }
 .profile-logout:hover { color: var(--ink); }
-@media (min-width: 1101px) {
+@media (min-width: 1024px) {
+  nav.main.top-nav {
+    display: flex;
+    align-items: center;
+    gap: clamp(1rem, 2.2vw, 1.75rem);
+  }
+  nav.main.top-nav a {
+    color: var(--ink);
+    font-weight: 900;
+    letter-spacing: .04em;
+    text-decoration: none;
+    text-transform: uppercase;
+    white-space: nowrap;
+  }
+  nav.main.top-nav a:hover,
+  nav.main.top-nav a:focus-visible,
+  nav.main.top-nav a[aria-current="page"] {
+    color: var(--orange);
+    text-decoration: underline;
+    text-underline-offset: 4px;
+  }
+  .mobile-nav:not(.is-open) { display: none; }
   .profile-chip-meta { display: flex; }
   .top-actions .profile-menu {
     border: 2.5px solid var(--line);
@@ -442,13 +481,6 @@ nav.main { display: none; }
     padding: .3rem .7rem .3rem .3rem;
     margin-right: .55rem;
     box-shadow: 4px 4px 0 var(--line);
-  }
-  /* Pin hamburger to the left of the bar; theme toggle stays fixed top-left. */
-  .top .wrap > .top-end .mobile-nav {
-    position: absolute;
-    left: calc(5.5rem + 50px);
-    top: 50%;
-    transform: translateY(-50%);
   }
   /* Drop transform while open so position:fixed panel/close control use the viewport. */
   .top .wrap > .top-end .mobile-nav.is-open {
@@ -462,7 +494,7 @@ nav.main { display: none; }
 }
 
 /* Floating profile dock when the header is in compact/hamburger mode */
-@media (max-width: 1100px) {
+@media (max-width: 1023px) {
   .profile-menu {
     position: fixed;
     left: 50%;
@@ -1293,6 +1325,7 @@ html[data-theme="dark"] .hero {
   align-self: center;
 }
 .hero-copy h1,
+.hero-copy .hero-subhead,
 .hero-copy .lede {
   display: block;
   width: 100%;
@@ -1305,11 +1338,56 @@ html[data-theme="dark"] .hero {
   text-wrap: wrap;
   white-space: normal;
 }
+.hero-subhead {
+  margin: 0 0 .55rem;
+  color: var(--ink);
+  font-size: clamp(1.18rem, 4cqi, 1.45rem);
+  font-weight: 900;
+  line-height: 1.2;
+  text-wrap: balance;
+}
 .hero-copy .lede {
   font-size: clamp(1.05rem, 3.5cqi, 1.25rem);
   line-height: 1.45;
   text-wrap: wrap;
 }
+.hero-search {
+  display: flex;
+  gap: .65rem;
+  align-items: stretch;
+  margin: 1.1rem 0 .95rem;
+  max-width: 38rem;
+}
+.hero-search input {
+  min-width: 0;
+  flex: 1 1 auto;
+  border: 3px solid var(--line);
+  border-radius: 999px;
+  background: var(--paper);
+  color: var(--ink);
+  padding: .8rem 1rem;
+  font: inherit;
+  font-weight: 800;
+  box-shadow: 4px 4px 0 var(--line);
+}
+.hero-search input::placeholder { color: color-mix(in srgb, var(--muted) 80%, transparent); }
+.hero-search button {
+  border: 3px solid var(--line);
+  border-radius: 999px;
+  background: var(--yellow);
+  color: var(--brown);
+  padding: .8rem 1.1rem;
+  font: inherit;
+  font-weight: 900;
+  text-transform: uppercase;
+  cursor: pointer;
+  box-shadow: 4px 4px 0 var(--line);
+}
+.hero-search :is(input, button):focus-visible {
+  outline: 3px solid var(--orange);
+  outline-offset: 3px;
+}
+.hero-search button:hover { transform: translate(-1px, -1px); box-shadow: 5px 5px 0 var(--line); }
 .hero-art {
   width: 100%;
   justify-self: center;
@@ -1363,7 +1441,8 @@ html[data-theme="dark"] .hero-slide-stack .hero-slide-dark { display: block; }
     grid-template-columns: minmax(0, 4fr) minmax(0, 6fr);
     column-gap: clamp(1.25rem, 3vw, 2.75rem);
     align-items: center;
-    min-height: min(52vh, 30rem);
+    min-height: clamp(27rem, 48vh, 31rem);
+    padding-bottom: clamp(1rem, 2.5vw, 2rem);
   }
   .hero-copy {
     align-self: center;
@@ -1377,7 +1456,8 @@ html[data-theme="dark"] .hero-slide-stack .hero-slide-dark { display: block; }
   }
   .hero-art {
     justify-self: stretch;
-    align-self: end;
+    align-self: center;
+    padding-bottom: .75rem;
   }
   .hero .mascot-wrap {
     width: 100%;
@@ -1393,7 +1473,17 @@ html[data-theme="dark"] .hero-slide-stack .hero-slide-dark { display: block; }
   }
 }
 @media (max-width: 900px) {
+  .hero { padding-bottom: .5rem; }
   .hero-copy { text-align: center; }
+  .hero-search {
+    flex-direction: column;
+    width: 100%;
+    margin-inline: auto;
+  }
+  .hero-search input,
+  .hero-search button {
+    width: 100%;
+  }
   .hero .bubble {
     align-self: center;
     margin-left: 0;
@@ -1551,6 +1641,13 @@ html:not([data-theme="dark"]) .home-join-actions .btn.ghost:hover,
   display: block;
   width: 100%;
   height: auto;
+}
+html[data-theme="dark"] .home-join-img {
+  /* TODO: Replace with a transparent-background or dark-mode race illustration. */
+  border: 3px solid var(--line);
+  border-radius: 18px;
+  background: var(--paper);
+  box-shadow: 7px 7px 0 var(--line);
 }
 @keyframes home-join-rise {
   from { opacity: 0; transform: translateY(12px); }
@@ -5202,7 +5299,7 @@ html[data-theme="dark"] .login-hero-stack .login-hero-dark { display: block; }
   .stand-hero .mascot, .stand-hero .hero-slide-stack { max-width: min(360px, 100%); margin-inline: auto; }
 }
 /* Mobile / tablet: keep the previous stacked tools layout. */
-@media (max-width: 1100px) {
+@media (max-width: 1023px) {
   header.top { position: static; }
   .top .wrap {
     display: grid;
