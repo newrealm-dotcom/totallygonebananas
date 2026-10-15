@@ -256,6 +256,51 @@ export default async function HomePage({ searchParams }: PageProps<"/">) {
           )}
         </div>
       </section>
+
+      <section className="block home-seo" aria-labelledby="home-seo-h">
+        <div className="wrap">
+          <div className="home-seo-card">
+            <p className="kicker">Why go totally bananas?</p>
+            <h2 id="home-seo-h">Banana recipes, ripeness help, and a little banana culture in one happy place</h2>
+            <div className="home-seo-copy">
+              <p>
+                Totally Gone Bananas is built for the moment you look at a bunch on the counter and wonder what it can
+                become. Some days that means a five-minute smoothie with frozen banana and almond butter. Other days it
+                means a weekend bake, a soft banana bread, a gooey pudding dessert, or a freezer treat that keeps the
+                chocolate cravings handled. The recipes here are organized around real kitchen questions: how ripe are
+                your bananas, how much time do you have, and what kind of craving are you chasing?
+              </p>
+              <p>
+                You can start in the <Link href="/recipes">recipe archive</Link>, search by ingredient, or jump into a
+                category like breakfast, breads and bakes, snacks, frozen treats, drinks, or savory ideas. Each recipe is
+                written to be practical first, with clear ingredients, approachable steps, serving tools, and notes that
+                help you decide whether today&apos;s bananas are better for blending, baking, frying, freezing, or saving
+                for tomorrow. When a recipe uses extra-ripe bananas, barely-speckled bananas, or frozen bananas, the goal
+                is to make that choice feel obvious before you even preheat the oven.
+              </p>
+              <p>
+                The site goes beyond recipes too. Banana fans can explore the <Link href="/blog">blog</Link> for stories
+                about banana varieties, banana history, kitchen experiments, product finds, and the weird little corners
+                of banana culture that make this fruit so much more interesting than a lunchbox staple. If you&apos;re
+                curious about plants, the <Link href="/banana-growing-zones">Banana Growing Zones</Link> guide helps you
+                compare USDA hardiness zones with banana varieties so you can see whether your favorite plant belongs in
+                the ground, in a big pot, or in your sunniest window.
+              </p>
+              <p>
+                Members can save favorites, rate what they bake, and share their own banana wins with the bunch. If you
+                have a family banana bread, a smoothie combo, a dessert mashup, or a brilliant way to rescue overripe
+                bananas, <Link href="/recipes/new">share a recipe</Link> and help grow the collection. Whether your
+                bananas are green, yellow, freckled, frozen, or fully gone, this site is here to help you use them well
+                and have fun doing it.
+              </p>
+            </div>
+            <div className="home-seo-actions">
+              <Link className="btn" href="/recipes">Browse banana recipes</Link>
+              <Link className="btn ghost" href="/recipes/new">Share your banana win</Link>
+            </div>
+          </div>
+        </div>
+      </section>
     </>
   );
 }
