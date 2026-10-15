@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useRef, useState } from "react";
 
 const LEFT = [
   { href: "/", label: "Home", match: (p: string) => p === "/" },
@@ -43,6 +44,18 @@ export function NavLinks({
 }) {
   const path = usePathname();
   const links = (side === "left" ? LEFT : RIGHT).filter((l) => includeHome || l.href !== "/");
+  const [moreOpen, setMoreOpen] = useState(false);
+  const closeTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  function openMoreMenu() {
+    if (closeTimer.current) clearTimeout(closeTimer.current);
+    setMoreOpen(true);
+  }
+
+  function closeMoreMenu() {
+    if (closeTimer.current) clearTimeout(closeTimer.current);
+    closeTimer.current = setTimeout(() => setMoreOpen(false), 120);
+  }
 
   return (
     <nav className={`main ${side}${className ? ` ${className}` : ""}`} aria-label={side === "left" ? "Main" : "Account"}>
@@ -58,13 +71,24 @@ export function NavLinks({
         ),
       )}
       {side === "left" ? (
-        <details className="top-more" data-active={MORE_INFO.some((l) => l.match(path)) ? "true" : undefined}>
+        <details
+          className="top-more"
+          data-active={MORE_INFO.some((l) => l.match(path)) ? "true" : undefined}
+          open={moreOpen}
+          onMouseEnter={openMoreMenu}
+          onMouseLeave={closeMoreMenu}
+          onFocus={openMoreMenu}
+          onToggle={(e) => setMoreOpen(e.currentTarget.open)}
+          onBlur={(e) => {
+            if (!(e.relatedTarget instanceof Node) || !e.currentTarget.contains(e.relatedTarget)) setMoreOpen(false);
+          }}
+        >
           <summary className="top-more-summary">
             More Info <span className="top-more-arrow" aria-hidden="true" />
           </summary>
           <div className="top-more-menu">
             {MORE_INFO.map((l) => (
-              <Link key={l.href} href={l.href} aria-current={l.match(path) ? "page" : undefined}>
+              <Link key={l.href} href={l.href} aria-current={l.match(path) ? "page" : undefined} onClick={() => setMoreOpen(false)}>
                 {l.label}
               </Link>
             ))}
