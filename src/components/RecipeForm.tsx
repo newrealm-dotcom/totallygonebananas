@@ -426,7 +426,7 @@ export function RecipeForm({ userId, isEditor, categories, activeTags = [...TAGS
       } else if (pasteFor === "equipment") {
         setV((s) => {
           const existing = s.equipment.filter((r) => r.text.trim());
-          const added = lines.map((text) => ({ id: uid(), text, url: "" }));
+          const added = lines.map((text) => ({ id: uid(), text: titleCase(text), url: "" }));
           return { ...s, equipment: [...existing, ...added] };
         });
       }

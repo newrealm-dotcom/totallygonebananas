@@ -133,9 +133,12 @@ export function easternDatetimeLocalToIso(local: string): string | null {
   return new Date(utc).toISOString();
 }
 
-/** Capitalize the first letter of each word (preserves the rest of each word). */
+/** Capitalize the first letter of each word, including after apostrophes (preserves the rest of each word). */
 export function titleCase(s: string) {
-  return s.replace(/\b\p{L}/gu, (c) => c.toUpperCase());
+  return s.replace(/(?:^|[^\p{L}\p{N}])\p{L}/gu, (match) => {
+    const letter = match.slice(-1).toUpperCase();
+    return `${match.slice(0, -1)}${letter}`;
+  });
 }
 
 const TINTS = ["#F9E798", "#F4BC9C", "#C7E7D7", "#F9D3DA", "#CEE1F3", "#DBD0F0", "#CEDFA2", "#F1D8BC"];
