@@ -465,9 +465,59 @@ nav.main.top-nav {
     text-transform: uppercase;
     white-space: nowrap;
   }
+  nav.main.top-nav .top-more {
+    position: relative;
+  }
+  nav.main.top-nav .top-more-summary {
+    display: inline-flex;
+    align-items: center;
+    gap: .4rem;
+    color: var(--ink);
+    cursor: pointer;
+    font-weight: 900;
+    letter-spacing: .04em;
+    list-style: none;
+    text-transform: uppercase;
+    white-space: nowrap;
+  }
+  nav.main.top-nav .top-more-summary::-webkit-details-marker {
+    display: none;
+  }
+  nav.main.top-nav .top-more-arrow {
+    width: .48rem;
+    height: .48rem;
+    border-right: 2.5px solid currentColor;
+    border-bottom: 2.5px solid currentColor;
+    transform: translateY(-.18rem) rotate(45deg);
+  }
+  nav.main.top-nav .top-more-menu {
+    position: absolute;
+    top: calc(100% + .65rem);
+    left: 0;
+    z-index: 80;
+    display: grid;
+    gap: .15rem;
+    min-width: 13rem;
+    border: 2.5px solid var(--line);
+    border-radius: 18px;
+    background: var(--panel);
+    box-shadow: 5px 5px 0 var(--line);
+    padding: .7rem;
+  }
+  nav.main.top-nav .top-more:not([open]) .top-more-menu {
+    display: none;
+  }
+  nav.main.top-nav .top-more-menu a {
+    display: block;
+    border-radius: 12px;
+    padding: .45rem .6rem;
+  }
   nav.main.top-nav a:hover,
   nav.main.top-nav a:focus-visible,
-  nav.main.top-nav a[aria-current="page"] {
+  nav.main.top-nav a[aria-current="page"],
+  nav.main.top-nav .top-more-summary:hover,
+  nav.main.top-nav .top-more-summary:focus-visible,
+  nav.main.top-nav .top-more[data-active="true"] .top-more-summary {
     color: var(--orange);
     text-decoration: underline;
     text-underline-offset: 4px;
@@ -1685,7 +1735,10 @@ html[data-theme="dark"] .home-join-img {
 @media (min-width: 901px) {
   .home-latest .grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
 }
-.home-more-wrap { margin: 1.5rem 0 0; text-align: center; }
+.home-more-wrap { margin: 1.5rem 0 25px; text-align: center; }
+@media (min-width: 901px) {
+  .home-more-wrap { margin-bottom: 50px; }
+}
 .home-more {
   font-weight: 900;
   font-size: 1.4rem;

@@ -27,6 +27,12 @@ const RIGHT = [
   { href: "/about", label: "About", match: (p: string) => p === "/about" },
 ];
 
+const MORE_INFO = [
+  { href: "/about", label: "About", match: (p: string) => p === "/about" },
+  { href: "/contact", label: "Contact", match: (p: string) => p === "/contact" },
+  { href: "/banana-growing-zones", label: "Grow Zones", match: (p: string) => p === "/banana-growing-zones" },
+] as const;
+
 export function NavLinks({
   side,
   includeHome = true,
@@ -52,6 +58,20 @@ export function NavLinks({
           </Link>
         ),
       )}
+      {side === "left" ? (
+        <details className="top-more" data-active={MORE_INFO.some((l) => l.match(path)) ? "true" : undefined}>
+          <summary className="top-more-summary">
+            More Info <span className="top-more-arrow" aria-hidden="true" />
+          </summary>
+          <div className="top-more-menu">
+            {MORE_INFO.map((l) => (
+              <Link key={l.href} href={l.href} aria-current={l.match(path) ? "page" : undefined}>
+                {l.label}
+              </Link>
+            ))}
+          </div>
+        </details>
+      ) : null}
     </nav>
   );
 }
