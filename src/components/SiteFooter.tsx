@@ -155,6 +155,16 @@ export function SiteFooter() {
           </div>
 
           <div className="footer-base">
+            <div className="footer-mascot" aria-hidden="true">
+              <Image
+                src="/main-slider/main-banana-first.webp"
+                alt=""
+                width={640}
+                height={640}
+                sizes="(max-width: 900px) 0px, 220px"
+              />
+            </div>
+
             <div className="footer-brand">
               <Link href="/" className="footer-brand-link" aria-label="Totally Gone Bananas home">
                 <Image

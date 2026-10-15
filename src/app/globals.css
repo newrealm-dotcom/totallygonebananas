@@ -1020,10 +1020,21 @@ html[data-theme="dark"] .newsletter-popup-dialog {
 .footer-base {
   display: grid;
   grid-template-columns: 1fr auto 1fr;
-  align-items: end;
+  align-items: center;
   gap: 1.25rem;
   width: 100%;
   margin-top: clamp(1.25rem, 2.5vw, 2rem);
+}
+.footer-mascot {
+  grid-column: 1;
+  justify-self: start;
+  align-self: center;
+  width: clamp(8rem, 18vw, 14rem);
+}
+.footer-mascot img {
+  display: block;
+  width: 100%;
+  height: auto;
 }
 .footer-brand {
   grid-column: 2;
@@ -5995,6 +6006,7 @@ html[data-theme="dark"] .bgz h2 { color: var(--ink); }
     grid-template-columns: 1fr;
     justify-items: center;
   }
+  .footer-mascot { display: none; }
   .footer-brand { grid-column: 1; }
   .footer-social {
     grid-column: 1;
