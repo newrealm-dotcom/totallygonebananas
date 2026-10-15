@@ -5065,6 +5065,18 @@ article.blog-post {
   background: #111;
   box-shadow: 4px 4px 0 var(--line);
 }
+.blog-body iframe.blog-embed--center {
+  display: block;
+  width: min(320px, 100%);
+  aspect-ratio: 9 / 16;
+  height: auto;
+  margin: 1.75rem auto;
+  padding: 0;
+  border: 3px solid var(--line);
+  border-radius: 18px;
+  background: #111;
+  box-shadow: 4px 4px 0 var(--line);
+}
 .blog-body h2,
 .blog-body h3 {
   clear: both;
