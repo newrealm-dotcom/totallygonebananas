@@ -15,8 +15,24 @@ import { TrackedSignupLink } from "@/components/TrackedSignupLink";
 import { getDarkMainSliderImages, getMainSliderImages, FIRST_DARK_SLIDE, FIRST_LIGHT_SLIDE, pickPreferredSlide } from "@/lib/main-slider";
 
 export const metadata: Metadata = {
+  title: "Totally Gone Bananas | Banana Recipes & Culture",
+  description:
+    "Find tested banana recipes for every stage of ripeness, from smoothies and banana bread to bakes, snacks, guides, and banana-culture finds.",
   alternates: { canonical: "/" },
-  openGraph: { url: "/" },
+  openGraph: {
+    title: "Totally Gone Bananas | Banana Recipes & Culture",
+    description:
+      "Find tested banana recipes for every stage of ripeness, from smoothies and banana bread to bakes, snacks, guides, and banana-culture finds.",
+    url: "/",
+    images: [{ url: "/og-image.jpg", width: 1200, height: 630, alt: "Totally Gone Bananas banana recipes" }],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Totally Gone Bananas | Banana Recipes & Culture",
+    description:
+      "Find tested banana recipes for every stage of ripeness, from smoothies and banana bread to bakes, snacks, guides, and banana-culture finds.",
+    images: ["/og-image.jpg"],
+  },
 };
 
 /** Recipe of the day: the same pick for everyone for 24 hours (UTC). */

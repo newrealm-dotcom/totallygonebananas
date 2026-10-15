@@ -29,7 +29,6 @@ const RIGHT = [
 
 const MORE_INFO = [
   { href: "/about", label: "About", match: (p: string) => p === "/about" },
-  { href: "/contact", label: "Contact", match: (p: string) => p === "/contact" },
   { href: "/banana-growing-zones", label: "Grow Zones", match: (p: string) => p === "/banana-growing-zones" },
 ] as const;
 

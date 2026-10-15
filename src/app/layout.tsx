@@ -14,16 +14,35 @@ import { SignupFloat } from "@/components/SignupFloat";
 import { siteUrl } from "@/lib/env";
 
 const site = siteUrl();
+const siteDescription =
+  "Totally Gone Bananas is a playful banana recipe and banana-culture site with tested recipes, ripeness guides, growing tips, favorite finds, and a community Banana Stand for saving and sharing recipes.";
+const defaultOgImage = "/og-image.jpg";
 
 export const metadata: Metadata = {
   metadataBase: new URL(site),
-  title: { default: "Totally Gone Bananas", template: "%s | Totally Gone Bananas" },
-  description: "Banana recipes for every craving, from green to gone. Save favorites, rate what you cook, and share your own.",
+  title: { default: "Totally Gone Bananas | Banana Recipes & Culture", template: "%s | Totally Gone Bananas" },
+  description: siteDescription,
   // Canonical + og:url are set per page so Facebook scrapes the shared URL, not the homepage.
   openGraph: {
+    title: "Totally Gone Bananas | Banana Recipes & Culture",
+    description: siteDescription,
     type: "website",
     siteName: "Totally Gone Bananas",
-    images: [{ url: "/logo.png" }],
+    url: site,
+    images: [
+      {
+        url: defaultOgImage,
+        width: 1200,
+        height: 630,
+        alt: "Totally Gone Bananas banana recipe and culture site",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Totally Gone Bananas | Banana Recipes & Culture",
+    description: siteDescription,
+    images: [defaultOgImage],
   },
 };
 
@@ -35,6 +54,34 @@ export const viewport: Viewport = {
 };
 
 const GTM_ID = "GTM-5CK4CZ2M";
+
+const jsonLd = [
+  {
+    "@context": "https://schema.org",
+    "@type": "Organization",
+    name: "Totally Gone Bananas",
+    url: site,
+    logo: `${site}/logo.png`,
+    sameAs: [
+      "https://www.instagram.com/totallygonebananas.official/",
+      "https://www.facebook.com/totallygonebananas/",
+      "https://www.youtube.com/@TotallyGoneBananas",
+      "https://www.pinterest.com/totallygonebananas/",
+    ],
+  },
+  {
+    "@context": "https://schema.org",
+    "@type": "WebSite",
+    name: "Totally Gone Bananas",
+    url: site,
+    description: siteDescription,
+    potentialAction: {
+      "@type": "SearchAction",
+      target: `${site}/recipes?q={search_term_string}`,
+      "query-input": "required name=search_term_string",
+    },
+  },
+];
 
 const gtmInit = `(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src='https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);})(window,document,'script','dataLayer','${GTM_ID}');`;
 
@@ -55,6 +102,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <Script id="theme-init" strategy="beforeInteractive" dangerouslySetInnerHTML={{ __html: themeInit }} />
         {/* Defer GTM so tag scripts don't compete with LCP / inflate TBT on mobile. */}
         <Script id="gtm-init" strategy="lazyOnload" dangerouslySetInnerHTML={{ __html: gtmInit }} />
+        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
         <a className="skip" href="#main">Skip to content</a>
         <SiteHeader />
         <main id="main">{children}</main>

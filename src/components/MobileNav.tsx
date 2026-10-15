@@ -18,7 +18,6 @@ const LINKS = [
     external: true,
   },
   { href: "/about", label: "About", match: (p: string) => p === "/about" },
-  { href: "/contact", label: "Contact", match: (p: string) => p === "/contact" },
   { href: "/banana-growing-zones", label: "Grow Zones", match: (p: string) => p === "/banana-growing-zones" },
   { href: "/policy", label: "Privacy Policy", match: (p: string) => p === "/policy" },
 ] as const;

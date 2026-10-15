@@ -139,6 +139,7 @@ export function SiteFooter() {
               Merch
             </a>
             <Link href="/about">About</Link>
+            <Link href="/terms">Terms of Service</Link>
             <Link href="/policy">Privacy Policy</Link>
           </nav>
 
