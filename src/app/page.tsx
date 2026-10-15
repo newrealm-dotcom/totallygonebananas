@@ -260,7 +260,7 @@ export default async function HomePage({ searchParams }: PageProps<"/">) {
       <section className="block home-seo" aria-labelledby="home-seo-h">
         <div className="wrap">
           <div className="home-seo-card">
-            <p className="kicker">Why go totally bananas?</p>
+            <p className="kicker">WHY GO TOTALLY BANANAS?</p>
             <h2 id="home-seo-h">Banana recipes, ripeness help, and a little banana culture in one happy place</h2>
             <div className="home-seo-copy">
               <p>

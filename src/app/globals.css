@@ -1769,8 +1769,20 @@ html[data-theme="dark"] .home-more:hover { color: var(--muted); }
   box-shadow: 7px 7px 0 var(--line);
   padding: clamp(1.2rem, 3vw, 2rem);
 }
+.home-seo-card > .kicker {
+  margin: 0 0 .35rem;
+  color: var(--brown);
+  font-size: .95rem;
+  font-weight: 900;
+  letter-spacing: .04em;
+  text-transform: uppercase;
+}
+html[data-theme="dark"] .home-seo-card > .kicker {
+  color: var(--yellow);
+}
 .home-seo-card h2 {
-  max-width: 17ch;
+  max-width: none;
+  width: 100%;
   margin-bottom: 1rem;
 }
 .home-seo-copy {
