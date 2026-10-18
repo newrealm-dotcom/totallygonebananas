@@ -759,23 +759,6 @@ html[data-theme="dark"] .footer-surface {
 .footer-newsletter-bridge-link:hover {
   color: var(--ink);
 }
-.newsletter-popup-thanks-wrap {
-  display: grid;
-  gap: .75rem;
-  justify-items: start;
-}
-.newsletter-popup-bridge {
-  margin: 0;
-}
-.newsletter-popup-bridge-btn {
-  min-height: 44px;
-}
-.newsletter-popup-bridge-hint {
-  margin: 0;
-  font-size: .88rem;
-  font-weight: 700;
-  color: var(--muted);
-}
 .admin-members-grid {
   display: grid;
   gap: 1.2rem;
@@ -801,8 +784,8 @@ html[data-theme="dark"] .footer-surface {
   font-size: .85rem;
 }
 
-/* ---------- first-visit newsletter popup ---------- */
-.newsletter-popup {
+/* ---------- 33% scroll engagement popup ---------- */
+.scroll-popup {
   position: fixed;
   inset: 0;
   z-index: 120;
@@ -810,7 +793,7 @@ html[data-theme="dark"] .footer-surface {
   place-items: center;
   padding: max(1rem, env(safe-area-inset-top, 0px)) 1rem max(1rem, env(safe-area-inset-bottom, 0px));
 }
-.newsletter-popup-backdrop {
+.scroll-popup-backdrop {
   position: absolute;
   inset: 0;
   margin: 0;
@@ -819,26 +802,24 @@ html[data-theme="dark"] .footer-surface {
   background: color-mix(in srgb, var(--brown) 45%, transparent);
   cursor: pointer;
 }
-.newsletter-popup-dialog {
+.scroll-popup-dialog {
   position: relative;
   z-index: 1;
-  width: min(100%, 36rem);
-  max-height: min(92dvh, 40rem);
+  width: min(60vw, 68rem);
+  max-height: min(92dvh, 50rem);
   overflow: auto;
   display: grid;
-  justify-items: center;
-  gap: 1.1rem;
-  padding: 2.1rem 1.4rem 0;
+  padding: 0;
   background: var(--cream, #fbf9e6);
   border: 3px solid var(--brown);
   border-radius: 22px;
   box-shadow: 8px 8px 0 var(--line);
   color: var(--ink);
 }
-html[data-theme="dark"] .newsletter-popup-dialog {
+html[data-theme="dark"] .scroll-popup-dialog {
   background: var(--bg);
 }
-.newsletter-popup-close {
+.scroll-popup-close {
   position: absolute;
   top: .55rem;
   right: .55rem;
@@ -859,43 +840,93 @@ html[data-theme="dark"] .newsletter-popup-dialog {
   place-items: center;
   box-shadow: 3px 3px 0 var(--line);
 }
-.newsletter-popup-close:hover {
+.scroll-popup-close:hover {
   background: var(--yellow);
   color: var(--on-yellow);
 }
-.newsletter-popup-form {
+.scroll-popup-join {
   display: grid;
-  gap: 1rem;
-  width: min(100%, 28rem);
-  justify-items: center;
+  grid-template-columns: minmax(0, 38%) minmax(0, 62%);
+  gap: clamp(1rem, 2.5vw, 2rem);
+  align-items: center;
+  padding: clamp(1.4rem, 3vw, 2.2rem);
+  background: #f3d031;
+  color: var(--brown);
 }
-.newsletter-popup-pitch,
-.newsletter-popup-thanks {
+.scroll-popup-join-copy {
+  display: grid;
+  gap: .7rem;
+  justify-items: start;
+}
+.scroll-popup-kicker {
+  margin: 0;
+  font-weight: 900;
+  font-size: .82rem;
+  letter-spacing: .04em;
+  text-transform: uppercase;
+}
+.scroll-popup-join-copy h2,
+.scroll-popup-newsletter h3 {
   margin: 0;
   font-family: var(--display);
   font-weight: 400;
-  font-size: clamp(1.35rem, 3.2vw, 1.85rem);
-  line-height: 1.2;
+  line-height: 1.05;
   letter-spacing: .02em;
-  text-align: center;
   text-wrap: balance;
-  max-width: 26ch;
 }
-.newsletter-popup-row {
+.scroll-popup-join-copy h2 {
+  font-size: clamp(1.6rem, 3.1vw, 2.45rem);
+}
+.scroll-popup-join-copy p:not(.scroll-popup-kicker) {
+  margin: 0;
+  max-width: 38ch;
+  font-weight: 800;
+}
+.scroll-popup-join-btn {
+  margin-top: .2rem;
+  background: #fff;
+  color: var(--brown);
+  border-color: var(--brown);
+  box-shadow: 4px 4px 0 var(--brown);
+}
+.scroll-popup-join-art {
+  line-height: 0;
+}
+.scroll-popup-join-img,
+.scroll-popup-newsletter-img {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+.scroll-popup-newsletter {
+  display: grid;
+  gap: 1.1rem;
+  justify-items: center;
+  padding: clamp(1.4rem, 3vw, 2.2rem) clamp(1rem, 3vw, 2rem) .6rem;
+  background:
+    linear-gradient(180deg, color-mix(in srgb, var(--yellow) 16%, var(--cream)) 0%, var(--cream) 48%);
+}
+.scroll-popup-newsletter h3 {
+  max-width: 30ch;
+  color: var(--brown);
+  font-size: clamp(1.35rem, 2.5vw, 2rem);
+  text-align: center;
+}
+.scroll-popup-newsletter-row {
   display: flex;
   flex-wrap: wrap;
   gap: .55rem;
-  width: 100%;
+  width: min(100%, 32rem);
   justify-content: center;
   align-items: stretch;
 }
-.newsletter-popup-input {
+.scroll-popup-newsletter-input {
   flex: 1 1 12rem;
   min-width: 0;
   text-align: left;
   background: #fff;
 }
-.newsletter-popup-btn {
+.scroll-popup-newsletter-btn {
   flex: 0 0 auto;
   min-width: 8.5rem;
   text-transform: uppercase;
@@ -904,41 +935,61 @@ html[data-theme="dark"] .newsletter-popup-dialog {
   color: var(--brown);
   border-color: var(--brown);
 }
-.newsletter-popup-btn:hover {
+.scroll-popup-newsletter-btn:hover {
   background: color-mix(in srgb, var(--orange) 88%, #fff);
   color: var(--brown);
   border-color: var(--brown);
 }
-.newsletter-popup-err {
+.scroll-popup-newsletter-err {
   margin: 0;
   font-size: .85rem;
   text-align: center;
 }
-.newsletter-popup-art {
-  width: calc(100% + 2.8rem);
-  margin: .35rem -1.4rem 0;
-  line-height: 0;
-}
-.newsletter-popup-img {
+.scroll-popup-newsletter-art {
   width: 100%;
-  height: auto;
-  display: block;
+  line-height: 0;
+  background: var(--cream);
+}
+html[data-theme="dark"] .scroll-popup-newsletter,
+html[data-theme="dark"] .scroll-popup-newsletter-art {
+  background: var(--bg);
 }
 @media (max-width: 640px) {
-  .newsletter-popup-dialog {
-    padding: 2rem 1rem 0;
+  .scroll-popup {
+    padding-inline: 0;
+  }
+  .scroll-popup-dialog {
+    width: 75vw;
+    max-height: 90dvh;
     border-radius: 18px;
   }
-  .newsletter-popup-row {
+  .scroll-popup-join {
+    grid-template-columns: 1fr;
+    text-align: center;
+    padding: 1.5rem 1rem 1.1rem;
+  }
+  .scroll-popup-join-copy {
+    justify-items: center;
+  }
+  .scroll-popup-join-copy h2 {
+    font-size: clamp(1.45rem, 8vw, 2rem);
+  }
+  .scroll-popup-join-copy p:not(.scroll-popup-kicker) {
+    font-size: .88rem;
+  }
+  .scroll-popup-newsletter {
+    padding: 1.3rem .8rem .35rem;
+  }
+  .scroll-popup-newsletter h3 {
+    font-size: clamp(1.25rem, 7vw, 1.75rem);
+  }
+  .scroll-popup-newsletter-row {
     flex-direction: column;
     align-items: stretch;
-  }
-  .newsletter-popup-btn {
     width: 100%;
   }
-  .newsletter-popup-art {
-    width: calc(100% + 2rem);
-    margin-inline: -1rem;
+  .scroll-popup-newsletter-btn {
+    width: 100%;
   }
 }
 
@@ -5212,51 +5263,6 @@ article.blog-post {
   width: 100%;
 }
 .about-slide .mascot, .about-slide .hero-slide-stack { max-width: min(520px, 100%); margin-inline: auto; }
-.signup-float {
-  position: fixed;
-  left: 50%;
-  bottom: max(1rem, env(safe-area-inset-bottom, 0px));
-  z-index: 79;
-  transform: translateX(-50%);
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-height: 48px;
-  padding: .65rem 1.25rem;
-  border-radius: 999px;
-  border: 3px solid var(--brown);
-  background: var(--yellow);
-  color: var(--on-yellow);
-  font-weight: 900;
-  font-size: .92rem;
-  text-transform: uppercase;
-  text-decoration: none;
-  text-align: center;
-  box-shadow: 4px 4px 0 var(--brown);
-  transition: transform .2s ease, box-shadow .2s ease;
-  max-width: min(22rem, calc(100vw - 6.5rem));
-  white-space: normal;
-  line-height: 1.2;
-}
-.signup-float:hover {
-  transform: translateX(-50%) translateY(-2px);
-  box-shadow: 5px 6px 0 var(--brown);
-}
-html:not([data-theme="dark"]) .signup-float:hover {
-  background: var(--orange);
-  color: var(--brown);
-}
-.signup-float:active {
-  transform: translateX(-50%) translateY(1px);
-  box-shadow: 2px 2px 0 var(--brown);
-}
-html[data-theme="dark"] .signup-float {
-  border-color: var(--line);
-  box-shadow: 4px 4px 0 var(--line);
-}
-html[data-theme="dark"] .signup-float:hover {
-  box-shadow: 5px 6px 0 var(--line);
-}
 .back-to-top {
   position: fixed;
   right: max(1rem, env(safe-area-inset-right, 0px));
@@ -5316,9 +5322,6 @@ html[data-theme="dark"] .back-to-top {
   padding: .8rem 2rem;
   font-size: 1.8rem;
   box-shadow: 5px 5px 0 var(--line);
-}
-body:has(.signup-float) {
-  padding-bottom: calc(5.25rem + env(safe-area-inset-bottom, 0px));
 }
 .login { max-width: 600px; padding-bottom: 3rem; }
 .login-hero-stack { width: min(100%, 600px); margin: 0 auto; }
