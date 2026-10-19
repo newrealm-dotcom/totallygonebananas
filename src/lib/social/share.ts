@@ -130,7 +130,7 @@ async function shareNow(
       );
     }
   }
-  if (twitter && input.kind === "post") {
+  if (twitter) {
     jobs.push(shareTo(supabase, input, "twitter", () => postToTwitter({ config: twitter, text: twitterText(input) })));
   }
   if (pinterest) {

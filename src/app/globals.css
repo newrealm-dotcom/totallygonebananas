@@ -1133,7 +1133,7 @@ html[data-theme="dark"] .scroll-popup-newsletter-art {
   grid-column: 3;
   justify-self: end;
   display: grid;
-  grid-template-columns: repeat(4, 40px);
+  grid-template-columns: repeat(3, 40px);
   gap: .3rem;
 }
 .footer-social a {
@@ -6077,7 +6077,7 @@ html[data-theme="dark"] .bgz h2 { color: var(--ink); }
   .footer-social {
     grid-column: 1;
     justify-self: center;
-    grid-template-columns: repeat(4, 40px);
+    grid-template-columns: repeat(3, 40px);
   }
 }
 @media (max-width: 640px) {
@@ -6104,7 +6104,7 @@ html[data-theme="dark"] .bgz h2 { color: var(--ink); }
     width: 100%;
     min-height: 44px;
   }
-  .footer-social { grid-template-columns: repeat(4, 40px); }
+  .footer-social { grid-template-columns: repeat(3, 40px); }
   .grid, .home-latest .grid { grid-template-columns: 1fr; }
   .f-grid, .f-grid.three { grid-template-columns: 1fr; }
   .rotd { grid-template-columns: 1fr; }
