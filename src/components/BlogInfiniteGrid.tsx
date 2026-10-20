@@ -46,7 +46,7 @@ function PostCard({
   if (featured) {
     return (
       <article className="blog-featured">
-        <Link href={href} className="blog-featured-media" tabIndex={-1} aria-hidden>
+        <Link href={href} className="blog-featured-media" tabIndex={-1} aria-label={title}>
           {cover ? (
             <Image src={cover} alt="" width={1200} height={675} unoptimized priority />
           ) : (
@@ -70,11 +70,11 @@ function PostCard({
   return (
     <li className="blog-card">
       {cover ? (
-        <Link href={href} className="blog-card-media" tabIndex={-1} aria-hidden>
+        <Link href={href} className="blog-card-media" tabIndex={-1} aria-label={title}>
           <Image src={cover} alt="" width={640} height={360} unoptimized />
         </Link>
       ) : (
-        <Link href={href} className="blog-card-media blog-card-media-ph" tabIndex={-1} aria-hidden />
+        <Link href={href} className="blog-card-media blog-card-media-ph" tabIndex={-1} aria-label={title} />
       )}
       <div className="blog-card-body">
         {topic ? <p className="blog-card-topic">{topic}</p> : null}

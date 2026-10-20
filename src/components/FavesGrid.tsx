@@ -29,7 +29,7 @@ function FaveSpot({ post, categoryNames }: { post: Post; categoryNames?: Record<
 
   return (
     <article className="faves-spot">
-      <Link href={href} className="faves-spot-media" tabIndex={-1} aria-hidden>
+      <Link href={href} className="faves-spot-media" tabIndex={-1} aria-label={title}>
         {cover ? (
           <Image src={cover} alt="" width={1200} height={900} unoptimized priority />
         ) : (
@@ -64,7 +64,7 @@ function FaveTile({
 
   return (
     <li className="faves-tile">
-      <Link href={href} className="faves-tile-media" tabIndex={-1} aria-hidden>
+      <Link href={href} className="faves-tile-media" tabIndex={-1} aria-label={title}>
         {cover ? (
           <Image src={cover} alt="" width={800} height={600} unoptimized />
         ) : (

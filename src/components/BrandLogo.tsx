@@ -44,7 +44,7 @@ export function BrandLogo() {
         alt=""
         width={158}
         height={105}
-        priority
+        loading="lazy"
       />
       <Image
         className="brand-logo brand-logo-scroll brand-logo-scroll-dark"
@@ -52,7 +52,7 @@ export function BrandLogo() {
         alt=""
         width={158}
         height={105}
-        priority
+        loading="lazy"
       />
     </Link>
   );
