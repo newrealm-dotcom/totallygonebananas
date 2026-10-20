@@ -25,7 +25,7 @@ export const metadata: Metadata = {
   openGraph: { url: "/blog" },
 };
 
-const INITIAL_LIMIT = 12;
+const INITIAL_LIMIT = 9;
 const CAROUSEL_COUNT = 5;
 const FAVORITES_CATEGORY = "favorites";
 const ARCHIVE_LEDE =
@@ -170,7 +170,7 @@ export default async function BlogPage({ searchParams }: PageProps<"/blog">) {
               filters={filters}
               categoryNames={categoryNames}
               showDates={false}
-              loadMode="button"
+              loadMode="button-then-scroll"
               variant="cover"
               loadMoreLabel="Load More"
             />

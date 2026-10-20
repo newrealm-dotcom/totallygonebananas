@@ -9,7 +9,7 @@ import { mediaSrc } from "@/lib/media";
 import { stripInlineMarkdown } from "@/lib/render-post-markdown";
 import type { Post } from "@/lib/types";
 
-const PAGE_SIZE = 12;
+const PAGE_SIZE = 9;
 
 function categoryLabel(post: Post, names?: Record<string, string>): string | null {
   const id = post.categories?.find((c) => c && c !== "favorites");
@@ -115,16 +115,19 @@ export function BlogInfiniteGrid({
   moreHeading?: string;
   moreHint?: string;
   showDates?: boolean;
-  /** `scroll` uses an intersection sentinel; `button` shows a More control. */
-  loadMode?: "scroll" | "button";
+  /** `scroll` uses a sentinel; `button-then-scroll` starts with a More control, then switches to the sentinel. */
+  loadMode?: "scroll" | "button" | "button-then-scroll";
   variant?: "classic" | "cover";
   loadMoreLabel?: string;
 }) {
   const [posts, setPosts] = useState(initialPosts);
   const [hasMore, setHasMore] = useState(initialPosts.length < total);
   const [loading, setLoading] = useState(false);
+  const [scrollEnabled, setScrollEnabled] = useState(false);
   const sentinelRef = useRef<HTMLDivElement | null>(null);
   const loadingRef = useRef(false);
+  const usesScroll = loadMode === "scroll" || (loadMode === "button-then-scroll" && scrollEnabled);
+  const showLoadButton = hasMore && (loadMode === "button" || (loadMode === "button-then-scroll" && !scrollEnabled));
 
   const featured =
     featuredPost ??
@@ -161,8 +164,13 @@ export function BlogInfiniteGrid({
     }
   }, [filters.author, filters.category, filters.date, filters.tag, filters.excludeCategory, hasMore, posts.length]);
 
+  const handleLoadMoreClick = useCallback(() => {
+    void loadMore();
+    if (loadMode === "button-then-scroll") setScrollEnabled(true);
+  }, [loadMode, loadMore]);
+
   useEffect(() => {
-    if (loadMode !== "scroll") return;
+    if (!usesScroll) return;
     const el = sentinelRef.current;
     if (!el || !hasMore) return;
     const io = new IntersectionObserver(
@@ -173,7 +181,7 @@ export function BlogInfiniteGrid({
     );
     io.observe(el);
     return () => io.disconnect();
-  }, [hasMore, loadMore, loadMode]);
+  }, [hasMore, loadMore, usesScroll]);
 
   return (
     <div className="blog-feed">
@@ -207,17 +215,17 @@ export function BlogInfiniteGrid({
           </ul>
         </>
       ) : null}
-      {loadMode === "scroll" && hasMore ? (
+      {usesScroll && hasMore ? (
         <div ref={sentinelRef} className="blog-feed-sentinel" aria-hidden="true" />
       ) : null}
-      {loadMode === "button" && hasMore ? (
+      {showLoadButton ? (
         <div className="blog-feed-more">
-          <button type="button" className="btn btn-load-more" disabled={loading} onClick={() => void loadMore()}>
+          <button type="button" className="btn btn-load-more" disabled={loading} onClick={handleLoadMoreClick}>
             {loading ? "Loading…" : loadMoreLabel}
           </button>
         </div>
       ) : null}
-      {loadMode === "scroll" && loading ? (
+      {usesScroll && loading ? (
         <p className="hint blog-feed-status" role="status">Loading more posts…</p>
       ) : null}
     </div>
