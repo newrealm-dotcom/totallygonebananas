@@ -3,7 +3,6 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useId, useState } from "react";
-import { SocialIcons } from "@/components/SocialIcons";
 
 const LINKS = [
   { href: "/", label: "Home", match: (p: string) => p === "/" },
@@ -106,8 +105,6 @@ export function MobileNav({
             ),
           )}
         </nav>
-
-        <SocialIcons className="mobile-nav-social" onNavigate={close} />
 
         <div className="mobile-nav-actions">
           {!signedIn ? (

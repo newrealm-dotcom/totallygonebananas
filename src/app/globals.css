@@ -263,10 +263,10 @@ html[data-theme="dark"] .mobile-nav-panel {
 }
 .mobile-nav-links a {
   display: block;
-  padding: .5rem 0;
+  padding: .5rem 0 calc(.5rem + 5px);
   border-radius: 0;
   font-weight: 800;
-  font-size: clamp(0.86rem, 1.8vw, 1.09rem);
+  font-size: clamp(.95rem, 1.98vw, 1.2rem);
   text-decoration: none;
   text-transform: uppercase;
   letter-spacing: .04em;
@@ -285,31 +285,6 @@ html[data-theme="dark"] .mobile-nav-panel {
   background: transparent;
   color: var(--orange);
 }
-.mobile-nav-social {
-  display: grid;
-  grid-template-columns: repeat(3, 42px);
-  justify-content: start;
-  gap: .45rem;
-  margin-top: .25rem;
-}
-.mobile-nav-social a {
-  display: grid;
-  place-items: center;
-  width: 42px;
-  height: 42px;
-  border: 2.5px solid var(--line);
-  border-radius: 50%;
-  background: var(--paper);
-  color: var(--ink);
-  text-decoration: none;
-  transition: transform .15s ease, background .15s ease, box-shadow .15s ease;
-}
-.mobile-nav-social a:hover {
-  background: var(--yellow);
-  color: var(--on-yellow);
-  transform: translate(-1px, -1px);
-  box-shadow: 3px 3px 0 var(--line);
-}
 .mobile-nav-actions {
   display: flex;
   flex-wrap: wrap;
@@ -320,7 +295,7 @@ html[data-theme="dark"] .mobile-nav-panel {
   padding-top: 1rem;
 }
 .mobile-nav-actions .btn {
-  width: auto;
+  width: min(100%, 12.5rem);
   min-height: 38px;
   padding: .56rem 1.04rem;
   font-size: .85rem;
