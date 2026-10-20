@@ -19,7 +19,6 @@ const LINKS = [
   },
   { href: "/about", label: "About", match: (p: string) => p === "/about" },
   { href: "/banana-growing-zones", label: "Grow Zones", match: (p: string) => p === "/banana-growing-zones" },
-  { href: "/policy", label: "Privacy Policy", match: (p: string) => p === "/policy" },
 ] as const;
 
 /** Site hamburger menu — left on desktop, in the mobile tools stack on small screens. */
