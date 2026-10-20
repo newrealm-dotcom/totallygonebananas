@@ -45,6 +45,7 @@ export function HeroSlide({
         width={920}
         height={520}
         priority
+        fetchPriority="high"
         sizes={sizes}
       />
     );
@@ -60,6 +61,7 @@ export function HeroSlide({
         width={920}
         height={520}
         priority
+        fetchPriority="high"
         sizes={sizes}
       />
       {/* Dark slide is CSS-hidden in light mode — don't mark it priority or it races LCP. */}

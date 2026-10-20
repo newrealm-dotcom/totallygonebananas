@@ -1006,6 +1006,9 @@ html[data-theme="dark"] .scroll-popup-newsletter-art {
   line-height: 1.35;
 }
 .footer-nav a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 24px;
   color: var(--ink);
   text-decoration: underline;
   text-underline-offset: 4px;

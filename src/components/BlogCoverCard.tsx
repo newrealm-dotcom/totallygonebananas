@@ -27,14 +27,14 @@ export function BlogCoverCard({
 
   return (
     <li className="blog-cover-card">
-      <Link href={href} className="blog-cover-card-link" aria-label={title}>
+      <Link href={href} className="blog-cover-card-link">
         {cover ? (
           <Image src={cover} alt="" width={800} height={600} unoptimized />
         ) : (
           <span className="blog-cover-card-ph" />
         )}
         <span className="blog-cover-card-shade" aria-hidden="true" />
-        <span className="blog-cover-card-copy" aria-hidden="true">
+        <span className="blog-cover-card-copy">
           <span className="blog-cover-card-title">{title}</span>
           {topic ? <span className="blog-cover-card-topic">{topic}</span> : null}
           {excerpt ? <span className="blog-cover-card-excerpt">{excerpt}</span> : null}
