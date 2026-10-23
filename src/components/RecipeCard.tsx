@@ -31,13 +31,13 @@ export function RecipeCard({ recipe, categories, rating, saved, signedIn, showCa
       </div>
       <SaveButton recipeId={recipe.id} title={recipe.title} initialSaved={saved} signedIn={signedIn} className="heart-corner" />
       <div className="inner">
-        <h3><Link href={`/recipes/${recipe.slug}`}>{titleCase(recipe.title)}</Link></h3>
+        <h3><Link href={`/recipes/${recipe.slug}`} prefetch={signedIn ? null : false}>{titleCase(recipe.title)}</Link></h3>
         {recipe.description && <p>{recipe.description}</p>}
         <div className="meta">
           {rating && <span className="pill rate" aria-label={`Rated ${rating.avg_rating} out of 5 by ${rating.ratings_count} cooks`}>★ {rating.avg_rating} ({rating.ratings_count})</span>}
           {recipe.tags.slice(0, 2).map((t) => <span key={t} className="pill">{t}</span>)}
         </div>
-        <Link className="card-open" href={`/recipes/${recipe.slug}`}>
+        <Link className="card-open" href={`/recipes/${recipe.slug}`} prefetch={signedIn ? null : false}>
           <span className="card-open-short">Open</span>
           <span className="card-open-long">Open recipe</span>
         </Link>

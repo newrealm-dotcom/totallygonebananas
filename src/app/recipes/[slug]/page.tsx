@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { cookies } from "next/headers";
 import { notFound } from "next/navigation";
+import { RecipeSignupGate } from "@/components/RecipeSignupGate";
 import {
   canEdit,
   getCategories,
@@ -10,8 +12,12 @@ import {
   getSavedIds,
   getViewer,
   isEditorRole,
-  listPublishedRecipeSlugs,
 } from "@/lib/queries";
+import {
+  RECIPE_PREVIEW_COOKIE,
+  anonymousRecipeIsBlocked,
+  recipePreviewSlugFromCookie,
+} from "@/lib/recipe-preview";
 import { createClient } from "@/lib/supabase/server";
 import { publicUrl } from "@/lib/media";
 import { shortDate, tintFor, titleCase } from "@/lib/format";
@@ -29,18 +35,29 @@ import { DeleteRecipeButton, RemoveLogButton, ReviewButtons } from "@/components
 import { BananaRain } from "@/components/BananaRain";
 import type { CookLog } from "@/lib/types";
 
-/** Revalidate published recipe HTML periodically (ISR). */
-export const revalidate = 600;
+/**
+ * Per visitor: anonymous browsers may receive one full recipe, then a signup
+ * gate. A shared static cache would hand later recipes to everyone.
+ */
+export const dynamic = "force-dynamic";
 
-export async function generateStaticParams() {
-  const slugs = await listPublishedRecipeSlugs();
-  return slugs.map((slug) => ({ slug }));
+async function previewBlocksRecipe(slug: string): Promise<boolean> {
+  const [{ userId }, jar] = await Promise.all([getViewer(), cookies()]);
+  const saved = recipePreviewSlugFromCookie(jar.get(RECIPE_PREVIEW_COOKIE)?.value);
+  return anonymousRecipeIsBlocked(saved, slug, Boolean(userId));
 }
 
 export async function generateMetadata({ params }: PageProps<"/recipes/[slug]">): Promise<Metadata> {
   const { slug } = await params;
   const r = (await getPublishedRecipeBySlug(slug)) ?? (await getRecipeBySlug(slug));
   if (!r) return { title: "Recipe not found" };
+  if (r.status === "published" && (await previewBlocksRecipe(slug))) {
+    return {
+      title: "Sign up free to read more recipes",
+      robots: { index: false, follow: true },
+      alternates: { canonical: `/recipes/${slug}` },
+    };
+  }
   const img = publicUrl(r.cover_path);
   const title = titleCase(r.title);
   const description = r.description ?? undefined;
@@ -76,20 +93,27 @@ export default async function RecipePage({ params, searchParams }: PageProps<"/r
   const { slug } = await params;
   const sp = await searchParams;
 
-  // Prefer cookie-free published fetch so ingredients/steps land in cacheable HTML.
   let r = await getPublishedRecipeBySlug(slug);
   if (!r) r = await getRecipeBySlug(slug);
   if (!r) notFound();
 
-  const [{ userId, profile }, categories, ratings] = await Promise.all([
-    getViewer(),
-    getCategories(),
-    getRatings([r.id]),
-  ]);
+  const { userId, profile } = await getViewer();
   if (r.status !== "published" && !canEdit(r, userId, profile) && !isEditorRole(profile)) {
     notFound();
   }
 
+  const savedPreview = recipePreviewSlugFromCookie((await cookies()).get(RECIPE_PREVIEW_COOKIE)?.value);
+  if (r.status === "published" && anonymousRecipeIsBlocked(savedPreview, r.slug, Boolean(userId))) {
+    return (
+      <RecipeSignupGate
+        title={titleCase(r.title)}
+        slug={r.slug}
+        googleEnabled={process.env.NEXT_PUBLIC_AUTH_GOOGLE === "true"}
+      />
+    );
+  }
+
+  const [categories, ratings] = await Promise.all([getCategories(), getRatings([r.id])]);
   const saved = (await getSavedIds(userId)).has(r.id);
   const supabase = await createClient();
   const { data: logsData } = await supabase

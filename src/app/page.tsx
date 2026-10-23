@@ -226,7 +226,7 @@ export default async function HomePage({ searchParams }: PageProps<"/">) {
                 <h2 id="rotd-h">{titleCase(rotd.title)}</h2>
                 {rotd.description && <p>{rotd.description}</p>}
                 <div className="actions">
-                  <Link className="btn dark" href={`/recipes/${rotd.slug}`}>See The Recipe</Link>
+                  <Link className="btn dark" href={`/recipes/${rotd.slug}`} prefetch={viewer.userId ? null : false}>See The Recipe</Link>
                 </div>
               </div>
             </article>

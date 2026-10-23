@@ -303,27 +303,6 @@ export const getRecipeBySlug = cache(async (slug: string): Promise<RecipeWithExt
   return normalizeRecipeRow(data as RecipeWithExtras);
 });
 
-/** Slugs for static generation of published recipe pages. */
-export async function listPublishedRecipeSlugs(): Promise<string[]> {
-  const supabase = createPublicClient();
-  const pageSize = 1000;
-  const slugs: string[] = [];
-  for (let from = 0; ; from += pageSize) {
-    const { data } = await supabase
-      .from("recipes")
-      .select("slug")
-      .eq("status", "published")
-      .order("published_at", { ascending: false, nullsFirst: false })
-      .range(from, from + pageSize - 1);
-    const batch = (data as { slug: string }[] | null) ?? [];
-    for (const row of batch) {
-      if (row.slug) slugs.push(row.slug);
-    }
-    if (batch.length < pageSize) break;
-  }
-  return slugs;
-}
-
 /** Can this viewer edit this recipe? Mirrors the database policy. */
 export function canEdit(recipe: Pick<Recipe, "author_id" | "status">, userId: string | null, profile: Profile | null) {
   if (!userId) return false;

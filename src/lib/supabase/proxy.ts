@@ -2,6 +2,14 @@ import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 import { HAS_ACCOUNT_COOKIE, hasAccountCookieOptions } from "@/lib/auth-next";
 import { getSupabaseEnv } from "@/lib/env";
+import {
+  RECIPE_PREVIEW_COOKIE,
+  isPrefetchRequest,
+  isPublishedRecipeSlug,
+  recipePreviewCookieOptions,
+  recipePreviewSlugFromCookie,
+  recipeSlugFromPath,
+} from "@/lib/recipe-preview";
 import { REFERRAL_COOKIE, sanitizeReferral } from "@/lib/referral";
 
 const PROTECTED = [/^\/profile(\/|$)/, /^\/recipes\/new$/, /^\/recipes\/[^/]+\/edit$/, /^\/admin(\/|$)/];
@@ -67,5 +75,16 @@ export async function updateSession(request: NextRequest) {
     login.search = `?next=${encodeURIComponent(path + request.nextUrl.search)}`;
     return NextResponse.redirect(login);
   }
+
+  // Remember the first published recipe an anonymous visitor actually opens.
+  // Prefetches must not use up that free view.
+  if (!signedIn && !isPrefetchRequest((name) => request.headers.get(name))) {
+    const slug = recipeSlugFromPath(path);
+    const saved = recipePreviewSlugFromCookie(request.cookies.get(RECIPE_PREVIEW_COOKIE)?.value);
+    if (slug && !saved && (await isPublishedRecipeSlug(slug))) {
+      response.cookies.set(RECIPE_PREVIEW_COOKIE, slug, recipePreviewCookieOptions());
+    }
+  }
+
   return response;
 }

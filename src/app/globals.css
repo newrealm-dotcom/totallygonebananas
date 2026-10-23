@@ -5302,6 +5302,11 @@ html[data-theme="dark"] .back-to-top {
   box-shadow: 5px 5px 0 var(--line);
 }
 .login { max-width: 600px; padding-bottom: 3rem; }
+.recipe-gate { max-width: 640px; margin: 0 auto; padding-bottom: 3.5rem; }
+.recipe-gate .page-head { text-align: center; }
+.recipe-gate .lede { margin-inline: auto; }
+.recipe-gate-back { text-align: center; margin: 1.2rem 0 0; font-weight: 800; }
+.recipe-gate-back a { text-decoration: underline; }
 .login-hero-stack { width: min(100%, 600px); margin: 0 auto; }
 .login-hero { width: 100%; height: auto; display: block; margin: 0 auto; }
 .login-hero-stack .login-hero-dark { display: none; }

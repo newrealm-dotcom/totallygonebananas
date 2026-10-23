@@ -17,6 +17,7 @@ const INTENT_LEDE: Record<string, string> = {
   newsletter: "You're on the list — create a free Banana Stand to save recipes and earn points.",
   float: "Create a free account to save recipes, rate what you cook, and share your own.",
   share: "Create a free account to share your favorite banana recipes with the bunch.",
+  recipe: "Create a free account to keep reading recipes. Your first one is on the house.",
 };
 
 export default async function LoginPage({ searchParams }: PageProps<"/login">) {
