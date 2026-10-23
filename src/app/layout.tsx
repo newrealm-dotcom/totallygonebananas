@@ -1,5 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import Script from "next/script";
+import { Analytics } from "@vercel/analytics/next";
+import { SpeedInsights } from "@vercel/speed-insights/next";
 import "@fontsource/shrikhand/latin-400.css";
 import "@fontsource-variable/nunito/wght.css";
 import "./globals.css";
@@ -122,6 +124,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <DeferredScrollEngagementPopup />
         <DeferredAuthJoinedBeacon />
         <DeferredBackToTop />
+        <Analytics />
+        <SpeedInsights />
       </body>
     </html>
   );
