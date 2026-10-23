@@ -3,7 +3,8 @@ import { siteUrl } from "@/lib/env";
 
 const API = "https://api.pinterest.com/v5";
 const OAUTH = "https://www.pinterest.com/oauth/";
-const SCOPES = ["boards:read", "pins:read", "pins:write"].join(",");
+// boards:write is required to create a Pin, even when the board already exists.
+const SCOPES = ["boards:read", "boards:write", "pins:read", "pins:write"].join(",");
 
 export interface PinterestConfig {
   accessToken: string;
@@ -285,8 +286,9 @@ export async function postToPinterest({
     if (!created.id) throw new Error("Pinterest did not return a pin id");
     return { id: created.id };
   } catch (error) {
-    // One retry after forced refresh on auth failures.
-    if (!config.refreshToken) throw error;
+    const message = error instanceof Error ? error.message : String(error);
+    const authFailure = /authentication|unauthorized|invalid token|token.*expired|expired token/i.test(message);
+    if (!authFailure || !config.refreshToken) throw error;
     const next = await refreshPinterestToken(config.refreshToken);
     await savePinterestConnection({
       accessToken: next.accessToken,

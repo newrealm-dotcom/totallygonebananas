@@ -86,8 +86,8 @@ export function PinterestAdmin({
         <h2>{connected ? "Connected" : "2. Connect Pinterest"}</h2>
         <p>
           {connected
-            ? "Your Pinterest account is linked. Pick the board new Pins should land on."
-            : "Sign in with the Totally Gone Bananas Pinterest account and approve boards + pins access."}
+            ? "Your Pinterest account is linked. If new recipes are not pinning, reconnect so Pinterest grants permission to create Pins. The saved board stays in place."
+            : "Sign in with the Totally Gone Bananas Pinterest account and approve board and pin access, including permission to create Pins."}
         </p>
         {connected ? (
           <div className="row-actions">

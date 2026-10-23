@@ -76,14 +76,26 @@ function pinterestDescription(input: SocialShareInput): string {
 
 type Supabase = Awaited<ReturnType<typeof createClient>>;
 
-/** Inserts the log row first; a unique-key conflict means this network already has it. */
+/** Inserts the log row first. A posted row is left alone; a failed row is claimed again so a later publish can retry. */
 async function claim(supabase: Supabase, input: SocialShareInput, network: SocialNetwork): Promise<string | null> {
   const { data, error } = await supabase
     .from("social_posts")
     .insert({ kind: input.kind, target_id: input.targetId, network })
     .select("id")
     .single();
-  return error || !data ? null : data.id;
+  if (!error && data) return data.id;
+  if (error?.code !== "23505") return null;
+
+  const { data: retry } = await supabase
+    .from("social_posts")
+    .update({ status: "sending", error: null, updated_at: new Date().toISOString() })
+    .eq("kind", input.kind)
+    .eq("target_id", input.targetId)
+    .eq("network", network)
+    .eq("status", "failed")
+    .select("id")
+    .maybeSingle();
+  return retry?.id ?? null;
 }
 
 async function record(supabase: Supabase, logId: string, result: { externalId: string } | { error: unknown }) {
