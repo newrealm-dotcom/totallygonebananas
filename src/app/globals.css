@@ -1275,6 +1275,45 @@ textarea.field { resize: vertical; line-height: 1.45; }
 .tagbox input { accent-color: #462018; width: 18px; height: 18px; }
 .tag-add { display: flex; flex-wrap: wrap; gap: .5rem; align-items: center; margin-top: .75rem; }
 .tag-add .field { flex: 1 1 12rem; min-width: 0; margin: 0; }
+.tag-accordion {
+  border: 2.5px solid var(--line);
+  border-radius: 18px;
+  background: var(--paper);
+  margin: 0 0 1rem;
+  padding: 0;
+}
+.tag-accordion-summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: .75rem;
+  min-height: 48px;
+  padding: .7rem .95rem;
+  cursor: pointer;
+  list-style: none;
+  font-weight: 900;
+}
+.tag-accordion-summary::-webkit-details-marker { display: none; }
+.tag-accordion-summary::marker { content: ""; }
+.tag-accordion-meta {
+  display: inline-flex;
+  align-items: center;
+  gap: .55rem;
+  color: var(--muted);
+  font-size: .85rem;
+  font-weight: 800;
+}
+.tag-accordion-chevron {
+  width: .48rem;
+  height: .48rem;
+  border-right: 2.5px solid currentColor;
+  border-bottom: 2.5px solid currentColor;
+  transform: rotate(-45deg);
+  flex-shrink: 0;
+}
+.tag-accordion[open] .tag-accordion-chevron { transform: rotate(45deg); }
+.tag-accordion-body { padding: 0 .95rem .85rem; }
+.tag-accordion-body .hint { margin-bottom: .2rem; }
 .admin-tag-pills {
   list-style: none;
   margin: 0;

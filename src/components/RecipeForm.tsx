@@ -71,8 +71,10 @@ export function RecipeForm({ userId, isEditor, categories, activeTags = [...TAGS
   const [submitted, setSubmitted] = useState(false);
   const [customTag, setCustomTag] = useState("");
   const [tagError, setTagError] = useState("");
+  const [tagsOpen, setTagsOpen] = useState(false);
   const [categoryDraft, setCategoryDraft] = useState("");
   const inputs = useRef(new Map<string, HTMLInputElement | HTMLTextAreaElement>());
+  const tagsAccordionRef = useRef<HTMLDetailsElement>(null);
 
   const isPublished = initialStatus === "published";
   const publishLabel = isPublished ? "Update recipe" : "Publish recipe";
@@ -494,6 +496,10 @@ export function RecipeForm({ userId, isEditor, categories, activeTags = [...TAGS
       if (bad) local.tags = bad;
     }
     if (Object.keys(local).length) {
+      if (local.tags) {
+        setTagsOpen(true);
+        if (tagsAccordionRef.current) tagsAccordionRef.current.open = true;
+      }
       setErrors({ ...local, form: "A few things need attention before saving." });
       document.getElementById(`${formId}-${Object.keys(local)[0].split(".")[0]}`)?.scrollIntoView({ behavior: "smooth", block: "center" });
       return;
@@ -549,6 +555,10 @@ export function RecipeForm({ userId, isEditor, categories, activeTags = [...TAGS
     start(async () => {
       const res = await saveRecipe(payload, recipeId);
       if (!res.ok) {
+        if (res.errors.tags) {
+          setTagsOpen(true);
+          if (tagsAccordionRef.current) tagsAccordionRef.current.open = true;
+        }
         setErrors({ form: "Couldn't save yet. Check the highlighted fields.", ...res.errors });
         return;
       }
@@ -687,64 +697,78 @@ export function RecipeForm({ userId, isEditor, categories, activeTags = [...TAGS
           />
           {err("notes") && <p className="f-err">{err("notes")}</p>}
         </div>
-        <fieldset className="f" id={fid("tags")}>
-          <legend>Tags</legend>
-          <div className="tagbox">
-            {activeTags.map((t) => (
-              <label key={t}>
-                <input
-                  type="checkbox"
-                  checked={v.tags.includes(t)}
-                  onChange={(e) => {
-                    setTagError("");
-                    set("tags", e.target.checked ? [...v.tags, t] : v.tags.filter((x) => x !== t));
-                  }}
-                />{" "}
-                {t}
-              </label>
-            ))}
-            {v.tags.filter((t) => !activeTags.includes(t)).map((t) => (
-              <label key={t} className="tag-custom">
-                <input
-                  type="checkbox"
-                  checked
-                  onChange={() => {
-                    setTagError("");
-                    set("tags", v.tags.filter((x) => x !== t));
-                  }}
-                />{" "}
-                {t}
-              </label>
-            ))}
+        <details
+          className="tag-accordion"
+          id={fid("tags")}
+          ref={tagsAccordionRef}
+          open={tagsOpen}
+          onToggle={(e) => setTagsOpen(e.currentTarget.open)}
+        >
+          <summary className="tag-accordion-summary">
+            <span>Tags</span>
+            <span className="tag-accordion-meta">
+              {v.tags.length > 0 ? `${v.tags.length} selected` : "Optional"}
+              <span className="tag-accordion-chevron" aria-hidden="true" />
+            </span>
+          </summary>
+          <div className="tag-accordion-body">
+            <div className="tagbox">
+              {activeTags.map((t) => (
+                <label key={t}>
+                  <input
+                    type="checkbox"
+                    checked={v.tags.includes(t)}
+                    onChange={(e) => {
+                      setTagError("");
+                      set("tags", e.target.checked ? [...v.tags, t] : v.tags.filter((x) => x !== t));
+                    }}
+                  />{" "}
+                  {t}
+                </label>
+              ))}
+              {v.tags.filter((t) => !activeTags.includes(t)).map((t) => (
+                <label key={t} className="tag-custom">
+                  <input
+                    type="checkbox"
+                    checked
+                    onChange={() => {
+                      setTagError("");
+                      set("tags", v.tags.filter((x) => x !== t));
+                    }}
+                  />{" "}
+                  {t}
+                </label>
+              ))}
+            </div>
+            <div className="tag-add">
+              <label className="sr" htmlFor={fid("tag-in")}>Add a custom tag</label>
+              <input
+                id={fid("tag-in")}
+                className="field"
+                maxLength={24}
+                value={customTag}
+                placeholder="Add your own tag…"
+                aria-invalid={!!(tagError || err("tags"))}
+                aria-describedby={tagError || err("tags") ? fid("tag-err") : undefined}
+                onChange={(e) => {
+                  setCustomTag(e.target.value);
+                  if (tagError) setTagError("");
+                }}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    e.preventDefault();
+                    addCustomTag();
+                  }
+                }}
+              />
+              <button type="button" className="btn ghost small" onClick={addCustomTag} disabled={!customTag.trim()}>
+                Add tag
+              </button>
+            </div>
+            <p className="hint">Letters, numbers, spaces, or hyphens. No profanity or nonsense.</p>
+            {(tagError || err("tags")) && <p className="f-err" id={fid("tag-err")} role="alert">{tagError || err("tags")}</p>}
           </div>
-          <div className="tag-add">
-            <label className="sr" htmlFor={fid("tag-in")}>Add a custom tag</label>
-            <input
-              id={fid("tag-in")}
-              className="field"
-              maxLength={24}
-              value={customTag}
-              placeholder="Add your own tag…"
-              aria-invalid={!!(tagError || err("tags"))}
-              aria-describedby={tagError || err("tags") ? fid("tag-err") : undefined}
-              onChange={(e) => {
-                setCustomTag(e.target.value);
-                if (tagError) setTagError("");
-              }}
-              onKeyDown={(e) => {
-                if (e.key === "Enter") {
-                  e.preventDefault();
-                  addCustomTag();
-                }
-              }}
-            />
-            <button type="button" className="btn ghost small" onClick={addCustomTag} disabled={!customTag.trim()}>
-              Add tag
-            </button>
-          </div>
-          <p className="hint">Letters, numbers, spaces, or hyphens. No profanity or nonsense.</p>
-          {(tagError || err("tags")) && <p className="f-err" id={fid("tag-err")} role="alert">{tagError || err("tags")}</p>}
-        </fieldset>
+        </details>
       </section>
 
       {/* 3. Photos & video */}
