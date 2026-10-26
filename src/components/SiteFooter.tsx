@@ -152,6 +152,9 @@ export function SiteFooter() {
               Got a banana win?{" "}
               <Link href="/recipes/new">Share a recipe</Link>
             </p>
+            <p>
+              <a href="/feed.xml">RSS feed</a>
+            </p>
           </div>
 
           <div className="footer-base">

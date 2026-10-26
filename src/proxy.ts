@@ -23,6 +23,6 @@ export async function proxy(request: NextRequest) {
 export const config = {
   // Keep sitemap/robots out of session refresh so crawlers always get raw XML/txt.
   matcher: [
-    "/((?!_next/static|_next/image|favicon.ico|icon.png|logo.png|sitemap\\.xml|robots\\.txt|.*\\.(?:svg|png|jpg|jpeg|gif|webp|avif|mp4|webm)$).*)",
+    "/((?!_next/static|_next/image|favicon.ico|icon.png|logo.png|sitemap\\.xml|robots\\.txt|feed\\.xml|.*\\.(?:svg|png|jpg|jpeg|gif|webp|avif|mp4|webm)$).*)",
   ],
 };

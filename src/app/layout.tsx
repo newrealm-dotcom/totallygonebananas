@@ -101,6 +101,9 @@ const themeInit = `(function(){try{var t=localStorage.getItem("theme");if(t!=="l
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en" data-theme="light" suppressHydrationWarning>
+      <head>
+        <link rel="alternate" type="application/rss+xml" title="Totally Gone Bananas" href={`${site}/feed.xml`} />
+      </head>
       <body>
         <noscript>
           <iframe
