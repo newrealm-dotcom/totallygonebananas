@@ -8,6 +8,7 @@ import { normalizeEquipment } from "@/lib/equipment";
 import { normalizeIngredientGroups } from "@/lib/ingredients";
 import { normalizeNutrition } from "@/lib/nutrition";
 import { normalizeStepGroups } from "@/lib/steps";
+import { DEFAULT_CUISINE } from "@/lib/cuisines";
 import type { AdminRecipeTag, BlogCategory, Category, HomepagePromo, PendingPostComment, Post, PostComment, PostWithAuthor, Profile, Rating, Recipe, RecipeTag, RecipeWithExtras } from "@/lib/types";
 
 
@@ -105,6 +106,17 @@ export const getBlogCategories = cache(async (): Promise<BlogCategory[]> => {
   const supabase = await createClient();
   const { data } = await supabase.from("blog_categories").select("*").order("sort_order").order("name");
   return (data as BlogCategory[]) ?? [];
+});
+
+/** Cuisine names for the editor recipe form, in catalog order. */
+export const getRecipeCuisines = cache(async (): Promise<string[]> => {
+  const supabase = await createClient();
+  const { data } = await supabase.from("recipe_cuisines").select("name").order("sort_order").order("name");
+  const names = (data ?? []).map((row) => row.name).filter(Boolean);
+  if (!names.some((name) => name.toLowerCase() === DEFAULT_CUISINE.toLowerCase())) {
+    names.unshift(DEFAULT_CUISINE);
+  }
+  return names;
 });
 
 /** All available recipe/blog tags: active tags plus every tag used on recipes or posts. */
@@ -270,6 +282,7 @@ function normalizeRecipeRow(data: RecipeWithExtras): RecipeWithExtras {
   recipe.ingredients = normalizeIngredientGroups(recipe.ingredients);
   recipe.steps = normalizeStepGroups(recipe.steps);
   recipe.notes = recipe.notes ?? null;
+  recipe.cuisine = recipe.cuisine?.trim() || DEFAULT_CUISINE;
   recipe.nutrition = normalizeNutrition(recipe.nutrition);
   recipe.recipe_media = [...(recipe.recipe_media ?? [])].sort((a, b) => a.position - b.position);
   return recipe;

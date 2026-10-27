@@ -1,5 +1,6 @@
 "use server";
 
+import { ensureRecipeCuisine } from "@/actions/cuisines";
 import { revalidatePath } from "next/cache";
 import { cookies } from "next/headers";
 import { createClient } from "@/lib/supabase/server";
@@ -91,6 +92,13 @@ export async function saveRecipe(raw: unknown, recipeId?: string): Promise<SaveR
     status = "published";
   } else status = editor ? "published" : "pending";
 
+  let cuisine: string | null = null;
+  if (editor) {
+    const saved = await ensureRecipeCuisine(input.cuisine);
+    if (!saved.ok) return { ok: false, errors: { cuisine: saved.error } };
+    cuisine = saved.name;
+  }
+
   const cover = input.gallery.find((g) => g.kind === "image")?.path ?? null;
   const notesHtml = input.notes ? renderPostMarkdown(input.notes) : "";
   const nutrition = estimateRecipeNutrition(input.ingredients, input.servings || null);
@@ -115,6 +123,7 @@ export async function saveRecipe(raw: unknown, recipeId?: string): Promise<SaveR
     status,
     adapted_from_name: input.adaptedFromName || null,
     adapted_from_url: input.adaptedFromUrl || null,
+    ...(cuisine ? { cuisine } : {}),
   };
 
   let id: string;

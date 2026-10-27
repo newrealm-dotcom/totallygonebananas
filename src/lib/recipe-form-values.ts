@@ -1,3 +1,4 @@
+import { DEFAULT_CUISINE } from "@/lib/cuisines";
 import { normalizeEquipment } from "@/lib/equipment";
 import { publicUrl } from "@/lib/media";
 import { normalizeIngredientGroups, type IngredientGroup } from "@/lib/ingredients";
@@ -63,6 +64,8 @@ export interface RecipeFormValues {
   gallery: Upload[];
   adaptedFromName: string;
   adaptedFromUrl: string;
+  /** Editor-only. Emitted as recipeCuisine. Visitors do not see it. */
+  cuisine: string;
 }
 
 const uid = () => (typeof crypto !== "undefined" && "randomUUID" in crypto ? crypto.randomUUID() : Math.random().toString(36).slice(2));
@@ -114,6 +117,7 @@ export function blankValues(categoryIds: string[] = []): RecipeFormValues {
     gallery: [],
     adaptedFromName: "",
     adaptedFromUrl: "",
+    cuisine: DEFAULT_CUISINE,
   };
 }
 
@@ -160,6 +164,7 @@ export function valuesFromRecipe(r: {
   recipe_media: { kind: MediaKind; path: string; caption: string | null }[] | null;
   adapted_from_name?: string | null;
   adapted_from_url?: string | null;
+  cuisine?: string | null;
 }): RecipeFormValues {
   const existing = (kind: MediaKind, path: string, caption = ""): Upload => ({
     id: uid(),
@@ -201,6 +206,7 @@ export function valuesFromRecipe(r: {
     gallery: media.map((m) => existing(m.kind, m.path, m.caption ?? "")),
     adaptedFromName: r.adapted_from_name ?? "",
     adaptedFromUrl: r.adapted_from_url ?? "",
+    cuisine: r.cuisine?.trim() || DEFAULT_CUISINE,
   };
 }
 
@@ -265,6 +271,7 @@ export function mergeRecipeDraft(
     gallery: Array.isArray(draft.gallery) ? draft.gallery : base.gallery,
     adaptedFromName: typeof draft.adaptedFromName === "string" ? draft.adaptedFromName : base.adaptedFromName,
     adaptedFromUrl: typeof draft.adaptedFromUrl === "string" ? draft.adaptedFromUrl : base.adaptedFromUrl,
+    cuisine: typeof draft.cuisine === "string" && draft.cuisine.trim() ? draft.cuisine : base.cuisine,
   };
 }
 

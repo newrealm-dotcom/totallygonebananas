@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { ingredientUrlError } from "@/lib/ingredients";
 import { MEDIA_PATH_RE } from "@/lib/media";
+import { cuisineIssue, DEFAULT_CUISINE, normalizeCuisine } from "@/lib/cuisines";
 import { MAX_TAGS, normalizeTag, tagIssue } from "@/lib/tags";
 
 const mediaRef = z.object({
@@ -128,6 +129,16 @@ export const recipeInput = z.object({
       }
     }),
   gallery: z.array(mediaRef.extend({ caption: z.string().trim().max(140).default("") })).max(12, "Up to 12 photos and videos"),
+  cuisine: z
+    .string()
+    .trim()
+    .max(40, "Keep the cuisine under 40 characters")
+    .default(DEFAULT_CUISINE)
+    .transform(normalizeCuisine)
+    .superRefine((val, ctx) => {
+      const issue = cuisineIssue(val);
+      if (issue) ctx.addIssue({ code: "custom", message: issue });
+    }),
   adaptedFromName: z.string().trim().max(120, "Keep the adapted-from name under 120 characters").default(""),
   adaptedFromUrl: z
     .string()

@@ -4,7 +4,9 @@ import { useCallback, useEffect, useId, useMemo, useRef, useState, useTransition
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { checkFile, kindOf, publicUrl, RECIPE_BUCKET } from "@/lib/media";
+import { ensureRecipeCuisine } from "@/actions/cuisines";
 import { saveRecipe } from "@/actions/recipes";
+import { CUISINES, cuisineIssue, normalizeCuisine } from "@/lib/cuisines";
 import { TAGS, type Category, type MediaKind, type RecipeStatus } from "@/lib/types";
 import { MAX_TAGS, normalizeTag, tagIssue } from "@/lib/tags";
 import {
@@ -52,8 +54,8 @@ const DIFFICULTY = ["Easy", "Simple", "Medium", "Tricky", "Showstopper"];
 
 /* ------------------------------------------------------------------ component */
 
-export function RecipeForm({ userId, isEditor, categories, activeTags = [...TAGS], recipeId, initial, initialStatus }: {
-  userId: string; isEditor: boolean; categories: Category[]; activeTags?: string[]; recipeId?: string; initial?: RecipeFormValues; initialStatus?: RecipeStatus;
+export function RecipeForm({ userId, isEditor, categories, cuisines = [...CUISINES], activeTags = [...TAGS], recipeId, initial, initialStatus }: {
+  userId: string; isEditor: boolean; categories: Category[]; cuisines?: string[]; activeTags?: string[]; recipeId?: string; initial?: RecipeFormValues; initialStatus?: RecipeStatus;
 }) {
   const router = useRouter();
   const supabase = useMemo(() => createClient(), []);
@@ -73,6 +75,14 @@ export function RecipeForm({ userId, isEditor, categories, activeTags = [...TAGS
   const [tagError, setTagError] = useState("");
   const [tagsOpen, setTagsOpen] = useState(false);
   const [categoryDraft, setCategoryDraft] = useState("");
+  const [cuisineDraft, setCuisineDraft] = useState("");
+  const [cuisinePending, startCuisine] = useTransition();
+  const [cuisineChoices, setCuisineChoices] = useState<string[]>(() => {
+    const names = cuisines.length ? [...cuisines] : [...CUISINES];
+    const current = (initial ?? blankValues()).cuisine;
+    if (current && !names.some((name) => name.toLowerCase() === current.toLowerCase())) names.unshift(current);
+    return names;
+  });
   const inputs = useRef(new Map<string, HTMLInputElement | HTMLTextAreaElement>());
   const tagsAccordionRef = useRef<HTMLDetailsElement>(null);
 
@@ -163,6 +173,36 @@ export function RecipeForm({ userId, isEditor, categories, activeTags = [...TAGS
     }));
     setCategoryDraft("");
     setErrors((e) => ({ ...e, categories: "" }));
+  }
+
+  function addCuisineFromDraft() {
+    if (!isEditor) return;
+    const name = normalizeCuisine(cuisineDraft);
+    const issue = cuisineIssue(name);
+    if (issue) {
+      setErrors((e) => ({ ...e, cuisine: issue }));
+      return;
+    }
+    const existing = cuisineChoices.find((choice) => choice.toLowerCase() === name.toLowerCase());
+    if (existing) {
+      set("cuisine", existing);
+      setCuisineDraft("");
+      setErrors((e) => ({ ...e, cuisine: "" }));
+      return;
+    }
+    startCuisine(async () => {
+      const result = await ensureRecipeCuisine(name);
+      if (!result.ok) {
+        setErrors((e) => ({ ...e, cuisine: result.error }));
+        return;
+      }
+      setCuisineChoices((list) => (
+        list.some((choice) => choice.toLowerCase() === result.name.toLowerCase()) ? list : [...list, result.name]
+      ));
+      set("cuisine", result.name);
+      setCuisineDraft("");
+      setErrors((e) => ({ ...e, cuisine: "" }));
+    });
   }
 
   /* ---- uploads */
@@ -490,6 +530,10 @@ export function RecipeForm({ userId, isEditor, categories, activeTags = [...TAGS
     ) {
       local.gallery = "Remove the files that failed to upload first.";
     }
+    if (isEditor) {
+      const issue = cuisineIssue(normalizeCuisine(v.cuisine));
+      if (issue) local.cuisine = issue;
+    }
     if (v.tags.length > MAX_TAGS) local.tags = `Up to ${MAX_TAGS} tags`;
     else {
       const bad = v.tags.map((t) => tagIssue(t)).find(Boolean);
@@ -540,6 +584,7 @@ export function RecipeForm({ userId, isEditor, categories, activeTags = [...TAGS
       gallery: v.gallery.filter((u) => u.status === "done" && u.path).map((u) => ({ kind: u.kind, path: u.path!, caption: u.caption })),
       adaptedFromName: v.adaptedFromName.trim(),
       adaptedFromUrl: v.adaptedFromUrl.trim(),
+      cuisine: v.cuisine,
       intent,
     };
     // Drafts may be incomplete; give the server something valid to hold on to.
@@ -648,6 +693,47 @@ export function RecipeForm({ userId, isEditor, categories, activeTags = [...TAGS
           )}
           {err("categories") && <p className="f-err">{err("categories")}</p>}
         </fieldset>
+        {isEditor && (
+          <div className="f" id={fid("cuisine")}>
+            <label htmlFor={fid("cuisine-in")}>Cuisine</label>
+            <p className="hint">For Google recipe results. Visitors do not see this.</p>
+            <select
+              id={fid("cuisine-in")}
+              className="field"
+              value={v.cuisine}
+              onChange={(e) => set("cuisine", e.target.value)}
+            >
+              {(cuisineChoices.some((choice) => choice.toLowerCase() === v.cuisine.toLowerCase())
+                ? cuisineChoices
+                : [v.cuisine, ...cuisineChoices]
+              ).map((name) => (
+                <option key={name} value={name}>{name}</option>
+              ))}
+            </select>
+            <div className="tag-add">
+              <label className="sr" htmlFor={fid("cuisine-new")}>Add a cuisine</label>
+              <input
+                id={fid("cuisine-new")}
+                className="field"
+                maxLength={40}
+                value={cuisineDraft}
+                placeholder="Add a cuisine…"
+                aria-invalid={!!err("cuisine")}
+                onChange={(e) => setCuisineDraft(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    e.preventDefault();
+                    addCuisineFromDraft();
+                  }
+                }}
+              />
+              <button type="button" className="btn ghost small" onClick={addCuisineFromDraft} disabled={cuisinePending || !cuisineDraft.trim()}>
+                Add
+              </button>
+            </div>
+            {err("cuisine") && <p className="f-err">{err("cuisine")}</p>}
+          </div>
+        )}
         <div className="f">
           <label htmlFor={fid("desc")}>Short description <small>{v.description.length}/300</small></label>
           <textarea id={fid("desc")} className="field" rows={2} maxLength={300} value={v.description} placeholder="One or two sentences that make people hungry." onChange={(e) => set("description", e.target.value)} />

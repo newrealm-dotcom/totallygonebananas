@@ -96,6 +96,8 @@ export interface Recipe {
   referred_by: string | null;
   adapted_from_name: string | null;
   adapted_from_url: string | null;
+  /** Region for schema.org recipeCuisine. Defaults to American. */
+  cuisine: string;
   created_at: string;
   updated_at: string;
   published_at: string | null;

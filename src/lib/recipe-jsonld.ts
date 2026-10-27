@@ -1,3 +1,4 @@
+import { DEFAULT_CUISINE } from "@/lib/cuisines";
 import { siteUrl } from "@/lib/env";
 import { publicUrl } from "@/lib/media";
 import { titleCase } from "@/lib/format";
@@ -188,6 +189,7 @@ export function buildRecipeJsonLd(
       ? opts.categoryNames[0]
       : opts.categoryNames;
   }
+  data.recipeCuisine = recipe.cuisine?.trim() || DEFAULT_CUISINE;
   if (video) data.video = video;
 
   const rating = opts.rating;
