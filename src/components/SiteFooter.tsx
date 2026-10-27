@@ -80,17 +80,6 @@ function PatreonIcon() {
   );
 }
 
-function SubstackIcon() {
-  return (
-    <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" focusable="false">
-      <path
-        fill="currentColor"
-        d="M22.539 8.242H1.46V5.406h21.08v2.836zM1.46 10.812V24L12 18.11 22.54 24V10.812H1.46zM22.54 0H1.46v2.836h21.08V0z"
-      />
-    </svg>
-  );
-}
-
 function PinterestIcon() {
   return (
     <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" focusable="false">
@@ -240,14 +229,6 @@ export function SiteFooter() {
                 aria-label="Totally Gone Bananas on Reddit"
               >
                 <RedditIcon />
-              </a>
-              <a
-                href="https://substack.com/@totallygonebananas"
-                target="_blank"
-                rel="noopener noreferrer"
-                aria-label="Totally Gone Bananas on Substack"
-              >
-                <SubstackIcon />
               </a>
               <a
                 href="https://www.pinterest.com/totallygonebananas/"
