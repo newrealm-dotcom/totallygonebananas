@@ -98,11 +98,15 @@ const clarityInit = CLARITY_PROJECT_ID
 
 const themeInit = `(function(){try{var t=localStorage.getItem("theme");if(t!=="light"&&t!=="dark"){t="light"}document.documentElement.setAttribute("data-theme",t)}catch(e){document.documentElement.setAttribute("data-theme","light")}})();`;
 
+const GROW_FAVES_SITE_ID = "U2l0ZTpjMzIzODNmYi0zM2U4LTQ1YzgtODNhZC1jYzkxOWM1Yzg5M2Y=";
+const growInit = `!(function(){window.growMe||((window.growMe=function(e){window.growMe._.push(e);}),(window.growMe._=[]));var e=document.createElement("script");(e.type="text/javascript"),(e.src="https://faves.grow.me/main.js"),(e.defer=!0),e.setAttribute("data-grow-faves-site-id","${GROW_FAVES_SITE_ID}");var t=document.getElementsByTagName("script")[0];t.parentNode.insertBefore(e,t);})();`;
+
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en" data-theme="light" suppressHydrationWarning>
       <head>
         <link rel="alternate" type="application/rss+xml" title="Totally Gone Bananas" href={`${site}/feed.xml`} />
+        <script data-grow-initializer="" suppressHydrationWarning dangerouslySetInnerHTML={{ __html: growInit }} />
       </head>
       <body>
         <noscript>
