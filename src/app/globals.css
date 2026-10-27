@@ -2736,18 +2736,15 @@ body:has(.recipes-index) footer {
   margin: .55rem 0 0;
   padding: .7rem 1rem;
   font-weight: 700;
-  color: var(--muted);
-  background: linear-gradient(180deg, #fff 0%, var(--panel) 100%);
+  color: var(--on-yellow);
+  background: var(--yellow);
   border: 3px solid var(--line);
   border-radius: 18px;
   box-shadow: 3px 3px 0 var(--line);
 }
-html[data-theme="dark"] .adapted-from {
-  background: linear-gradient(180deg, var(--paper) 0%, var(--panel) 100%);
-}
 .adapted-from-source { display: inline; }
 .adapted-from a {
-  color: var(--ink);
+  color: var(--on-yellow);
   font-weight: 800;
   text-underline-offset: 3px;
 }
