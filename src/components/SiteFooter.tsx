@@ -148,12 +148,12 @@ export function SiteFooter() {
 
           <div className="footer-base">
             <div className="footer-mascot" aria-hidden="true">
+              {/* No sizes: a sizes prop shares the hero's 1920w src, so Next marks that LCP image lazy. */}
               <Image
                 src="/main-slider/main-banana-first.webp"
                 alt=""
-                width={640}
-                height={640}
-                sizes="(max-width: 900px) 0px, 220px"
+                width={224}
+                height={224}
               />
             </div>
 
@@ -163,8 +163,9 @@ export function SiteFooter() {
                   className="footer-brand-mark"
                   src="/logo.png"
                   alt=""
-                  width={132}
-                  height={143}
+                  width={390}
+                  height={420}
+                  style={{ height: "auto" }}
                   sizes="132px"
                 />
                 <p className="footer-name">Totally Gone Bananas</p>

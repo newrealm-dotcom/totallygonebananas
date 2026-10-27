@@ -42,6 +42,7 @@ export default async function LoginPage({ searchParams }: PageProps<"/login">) {
           alt=""
           width={1200}
           height={800}
+          style={{ width: "100%", height: "auto" }}
           priority
         />
         <Image
@@ -50,6 +51,7 @@ export default async function LoginPage({ searchParams }: PageProps<"/login">) {
           alt=""
           width={1200}
           height={800}
+          style={{ width: "100%", height: "auto" }}
           priority
         />
       </div>

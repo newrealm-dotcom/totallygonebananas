@@ -45,6 +45,7 @@ export function HeroSlide({
         width={920}
         height={520}
         priority
+        loading="eager"
         fetchPriority="high"
         sizes={sizes}
       />
@@ -61,6 +62,7 @@ export function HeroSlide({
         width={920}
         height={520}
         priority
+        loading="eager"
         fetchPriority="high"
         sizes={sizes}
       />

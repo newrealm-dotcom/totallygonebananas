@@ -34,24 +34,30 @@ export function BrandLogo() {
         className="brand-logo brand-logo-default"
         src="/logo.png"
         alt=""
-        width={158}
-        height={171}
+        width={390}
+        height={420}
+        style={{ height: "auto" }}
+        sizes="(max-width: 1023px) 145px, 158px"
         priority
       />
       <Image
         className="brand-logo brand-logo-scroll brand-logo-scroll-light"
         src="/img-login.webp"
         alt=""
-        width={158}
-        height={105}
+        width={1200}
+        height={800}
+        style={{ height: "auto" }}
+        sizes="(max-width: 1023px) 145px, 158px"
         loading="lazy"
       />
       <Image
         className="brand-logo brand-logo-scroll brand-logo-scroll-dark"
         src="/img-login-dark.webp"
         alt=""
-        width={158}
-        height={105}
+        width={1200}
+        height={800}
+        style={{ height: "auto" }}
+        sizes="(max-width: 1023px) 145px, 158px"
         loading="lazy"
       />
     </Link>
