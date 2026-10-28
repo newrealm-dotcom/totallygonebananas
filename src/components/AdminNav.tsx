@@ -69,6 +69,7 @@ export function AdminNav({
       ...(isAdmin
         ? [
             { href: "/admin/pinterest", label: "Pinterest", match: (p: string) => p.startsWith("/admin/pinterest") },
+            { href: "/admin/tiktok", label: "TikTok", match: (p: string) => p.startsWith("/admin/tiktok") },
             { href: "/admin/users", label: "Users", match: (p: string) => p.startsWith("/admin/users") },
           ]
         : []),

@@ -48,11 +48,22 @@ export async function postToFacebook({
   config,
   message,
   link,
+  imageUrl,
 }: {
   config: MetaConfig;
   message: string;
   link: string;
+  imageUrl?: string | null;
 }): Promise<{ id: string }> {
+  if (imageUrl) {
+    const caption = [message, link].filter(Boolean).join("\n\n").slice(0, 63206);
+    const photo = await graph<{ id?: string; post_id?: string }>(config, `${config.pageId}/photos`, {
+      params: { url: imageUrl, caption, published: "true" },
+    });
+    const id = photo.post_id || photo.id;
+    if (!id) throw new Error("Facebook did not return a post id");
+    return { id };
+  }
   return graph<{ id: string }>(config, `${config.pageId}/feed`, { params: { message, link } });
 }
 

@@ -4,10 +4,11 @@ import { siteUrl } from "@/lib/env";
 import { stripInlineMarkdown } from "@/lib/render-post-markdown";
 import { metaConfig, postToFacebook, postToInstagram, type MetaConfig } from "@/lib/social/meta";
 import { pinterestConfig, postToPinterest, type PinterestConfig } from "@/lib/social/pinterest";
+import { postToTikTok, tiktokConfig, type TikTokConfig } from "@/lib/social/tiktok";
 import { postToTwitter, twitterConfig, type TwitterConfig } from "@/lib/social/twitter";
 
 export type SocialKind = "recipe" | "post";
-type SocialNetwork = "facebook" | "instagram" | "twitter" | "pinterest";
+type SocialNetwork = "facebook" | "instagram" | "twitter" | "pinterest" | "tiktok";
 
 export interface SocialShareInput {
   kind: SocialKind;
@@ -74,6 +75,16 @@ function pinterestDescription(input: SocialShareInput): string {
   return [summary, HASHTAGS].filter(Boolean).join("\n\n");
 }
 
+/** TikTok photo posts take a short title plus a caption. The image URL is sent separately. */
+function tiktokCaption(input: SocialShareInput): { title: string; description: string } {
+  const summary = truncate(cleanText(input.summary), 500);
+  const cta = input.kind === "recipe" ? "Get the full recipe at totallygonebananas.com" : "Read the full post at totallygonebananas.com";
+  return {
+    title: cleanText(input.title).slice(0, 90),
+    description: [summary, cta, pageUrl(input), HASHTAGS].filter(Boolean).join("\n\n").slice(0, 4000),
+  };
+}
+
 type Supabase = Awaited<ReturnType<typeof createClient>>;
 
 /** Inserts the log row first. A posted row is left alone; a failed row is claimed again so a later publish can retry. */
@@ -123,40 +134,64 @@ async function shareTo(
   }
 }
 
+function coverUrl(input: SocialShareInput, network: string): string {
+  if (!input.hasCover) throw new Error(`${network} needs a cover image`);
+  return socialImageUrl(input);
+}
+
 async function shareNow(
   meta: MetaConfig | null,
   twitter: TwitterConfig | null,
   pinterest: PinterestConfig | null,
+  tiktok: TikTokConfig | null,
   input: SocialShareInput,
 ) {
   const supabase = await createClient();
+  const imageUrl = input.hasCover ? socialImageUrl(input) : null;
   const jobs: Promise<void>[] = [];
   if (meta) {
-    jobs.push(shareTo(supabase, input, "facebook", () => postToFacebook({ config: meta, message: facebookMessage(input), link: pageUrl(input) })));
+    jobs.push(
+      shareTo(supabase, input, "facebook", () =>
+        postToFacebook({ config: meta, message: facebookMessage(input), link: pageUrl(input), imageUrl }),
+      ),
+    );
     if (meta.igUserId) {
       jobs.push(
-        shareTo(supabase, input, "instagram", () => {
-          if (!input.hasCover) throw new Error("Instagram needs a cover image");
-          return postToInstagram({ config: meta, imageUrl: socialImageUrl(input), caption: instagramCaption(input) });
-        }),
+        shareTo(supabase, input, "instagram", () =>
+          postToInstagram({ config: meta, imageUrl: coverUrl(input, "Instagram"), caption: instagramCaption(input) }),
+        ),
       );
     }
   }
   if (twitter) {
-    jobs.push(shareTo(supabase, input, "twitter", () => postToTwitter({ config: twitter, text: twitterText(input) })));
+    jobs.push(
+      shareTo(supabase, input, "twitter", () => postToTwitter({ config: twitter, text: twitterText(input), imageUrl })),
+    );
   }
   if (pinterest) {
     jobs.push(
-      shareTo(supabase, input, "pinterest", () => {
-        if (!input.hasCover) throw new Error("Pinterest needs a cover image");
-        return postToPinterest({
+      shareTo(supabase, input, "pinterest", () =>
+        postToPinterest({
           config: pinterest,
           title: cleanText(input.title),
           description: pinterestDescription(input),
           link: pageUrl(input),
-          imageUrl: socialImageUrl(input),
-        });
-      }),
+          imageUrl: coverUrl(input, "Pinterest"),
+        }),
+      ),
+    );
+  }
+  if (tiktok) {
+    const caption = tiktokCaption(input);
+    jobs.push(
+      shareTo(supabase, input, "tiktok", () =>
+        postToTikTok({
+          config: tiktok,
+          title: caption.title,
+          description: caption.description,
+          imageUrl: coverUrl(input, "TikTok"),
+        }),
+      ),
     );
   }
   await Promise.all(jobs);
@@ -167,12 +202,13 @@ export function scheduleSocialShare(input: SocialShareInput): void {
   // Networks fetch links and images from the public site, so local URLs can't work.
   if (/localhost|127\.0\.0\.1/.test(siteUrl())) return;
   after(async () => {
-    const [meta, twitter, pinterest] = await Promise.all([
+    const [meta, twitter, pinterest, tiktok] = await Promise.all([
       Promise.resolve(metaConfig()),
       Promise.resolve(twitterConfig()),
       pinterestConfig(),
+      tiktokConfig(),
     ]);
-    if (!meta && !twitter && !pinterest) return;
-    await shareNow(meta, twitter, pinterest, input);
+    if (!meta && !twitter && !pinterest && !tiktok) return;
+    await shareNow(meta, twitter, pinterest, tiktok, input);
   });
 }
