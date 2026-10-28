@@ -1614,6 +1614,54 @@ html[data-theme="dark"] .hero-slide-stack .hero-slide-dark { display: block; }
   .hero-copy .lede {
     white-space: nowrap;
   }
+  /* Photo background on desktop only. The menu stays in the header; the copy, search, and categories stay on the left. */
+  .hero {
+    position: relative;
+    isolation: isolate;
+    background-color: #163018;
+    background-image: url("/images/hero-bg.webp");
+    background-repeat: no-repeat;
+    background-position: right bottom;
+    background-size: cover;
+    min-height: clamp(28rem, 38vw, 36rem);
+    padding-top: 1.75rem;
+    padding-bottom: 2rem;
+  }
+  .hero::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+      90deg,
+      color-mix(in srgb, var(--cream) 94%, transparent) 0%,
+      color-mix(in srgb, var(--cream) 72%, transparent) 36%,
+      transparent 62%
+    );
+    pointer-events: none;
+    z-index: 0;
+  }
+  html[data-theme="dark"] .hero {
+    background-color: #102014;
+    background-image: url("/images/hero-bg.webp");
+  }
+  html[data-theme="dark"] .hero::before {
+    background: linear-gradient(
+      90deg,
+      color-mix(in srgb, var(--bg) 90%, transparent) 0%,
+      color-mix(in srgb, var(--bg) 62%, transparent) 38%,
+      transparent 64%
+    );
+  }
+  .hero-grid {
+    position: relative;
+    z-index: 1;
+    grid-template-columns: minmax(0, 40rem);
+    min-height: clamp(24rem, 32vw, 32rem);
+    align-items: center;
+  }
+  .hero-art {
+    display: none;
+  }
 }
 @media (max-width: 900px) {
   .hero { padding-bottom: .25rem; }
@@ -1881,6 +1929,9 @@ html[data-theme="dark"] .home-seo-copy a {
 #latest.block {
   padding-top: .75rem;
   padding-bottom: max(0px, calc(clamp(2rem, 5vw, 3.5rem) - 40px));
+}
+@media (min-width: 1024px) {
+  #latest.block { padding-top: calc(0.75rem + 30px); }
 }
 .home-band-section { margin-top: 0; }
 .home-band-section > .wrap:first-child { padding-top: 25px; }
@@ -5416,6 +5467,15 @@ html[data-theme="dark"] .login-hero-stack .login-hero-dark { display: block; }
   #main:has(> .hero:first-child) > .hero { padding-top: 12px; }
   #main > .wrap > .page-head:first-child,
   #main > .wrap.page-head { padding-top: 0; }
+}
+@media (min-width: 1024px) {
+  /* Header is transparent. Pull the hero photo up behind it (186px is header.top at rest). */
+  #main:has(> .hero:first-child) > .hero {
+    --hero-under-header: 186px;
+    margin-top: calc(-1 * var(--hero-under-header));
+    padding-top: calc(var(--hero-under-header) + 12px);
+    min-height: calc(clamp(28rem, 38vw, 36rem) + var(--hero-under-header));
+  }
 }
 
 /* ---------- responsive ---------- */
