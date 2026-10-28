@@ -440,6 +440,14 @@ nav.main.top-nav {
     text-transform: uppercase;
     white-space: nowrap;
   }
+  nav.main.top-nav .top-blog-menu {
+    position: relative;
+  }
+  nav.main.top-nav .top-blog-link {
+    display: inline-flex;
+    align-items: center;
+    gap: .4rem;
+  }
   nav.main.top-nav .top-more {
     position: relative;
   }
@@ -465,7 +473,8 @@ nav.main.top-nav {
     border-bottom: 2.5px solid currentColor;
     transform: translateY(-.18rem) rotate(45deg);
   }
-  nav.main.top-nav .top-more-menu {
+  nav.main.top-nav .top-more-menu,
+  nav.main.top-nav .top-blog-submenu {
     position: absolute;
     top: calc(100% + .65rem);
     left: 0;
@@ -482,10 +491,26 @@ nav.main.top-nav {
   nav.main.top-nav .top-more:not([open]) .top-more-menu {
     display: none;
   }
-  nav.main.top-nav .top-more-menu a {
+  nav.main.top-nav .top-blog-menu:not(:hover):not(:focus-within) .top-blog-submenu {
+    display: none;
+  }
+  nav.main.top-nav .top-more-menu a,
+  nav.main.top-nav .top-blog-submenu a {
     display: block;
     border-radius: 12px;
     padding: .45rem .6rem;
+  }
+  nav.main.top-nav .listen-now {
+    background: var(--yellow);
+    border-color: var(--brown);
+    color: var(--on-yellow);
+    letter-spacing: .04em;
+    padding-inline: .9rem;
+  }
+  nav.main.top-nav .listen-now:hover,
+  nav.main.top-nav .listen-now:focus-visible {
+    color: var(--on-yellow);
+    text-decoration: none;
   }
   nav.main.top-nav a:hover,
   nav.main.top-nav a:focus-visible,
@@ -515,6 +540,30 @@ nav.main.top-nav {
   }
   .mobile-nav-panel {
     width: 20%;
+  }
+  .mobile-listen-now {
+    display: none !important;
+  }
+}
+
+.listen-now-mic {
+  animation: listen-mic-flash 1s steps(2, end) infinite;
+  flex: 0 0 auto;
+}
+
+@keyframes listen-mic-flash {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: .2;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .listen-now-mic {
+    animation: none;
   }
 }
 

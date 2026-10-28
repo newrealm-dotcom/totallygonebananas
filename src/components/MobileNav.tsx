@@ -20,6 +20,20 @@ const LINKS = [
   { href: "/banana-growing-zones", label: "Grow Zones", match: (p: string) => p === "/banana-growing-zones" },
 ] as const;
 
+const SPOTIFY_SHOW_URL =
+  "https://open.spotify.com/show/7z5KxVvy3bUH3hqvbloNl0?si=-_stzhQhQjyH8AtujHqpRg&nd=1&dlsi=4a46fea448f04c42";
+
+function MicIcon() {
+  return (
+    <svg className="listen-now-mic" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" focusable="false">
+      <path
+        fill="currentColor"
+        d="M12 14a3 3 0 0 0 3-3V6a3 3 0 1 0-6 0v5a3 3 0 0 0 3 3Zm5-3a5 5 0 0 1-10 0H5a7 7 0 0 0 6 6.92V21H8v2h8v-2h-3v-3.08A7 7 0 0 0 19 11h-2Z"
+      />
+    </svg>
+  );
+}
+
 /** Site hamburger menu — left on desktop, in the mobile tools stack on small screens. */
 export function MobileNav({
   signedIn = false,
@@ -115,6 +129,10 @@ export function MobileNav({
           <Link className="btn" href="/recipes/new" onClick={close}>
             Add a recipe
           </Link>
+          <a className="btn listen-now mobile-listen-now" href={SPOTIFY_SHOW_URL} target="_blank" rel="noopener noreferrer" onClick={close}>
+            <MicIcon />
+            Listen Now
+          </a>
         </div>
       </div>
     </div>

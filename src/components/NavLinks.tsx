@@ -8,7 +8,6 @@ const LEFT = [
   { href: "/", label: "Home", match: (p: string) => p === "/" },
   { href: "/recipes", label: "Recipes", match: (p: string) => p.startsWith("/recipes") && p !== "/recipes/new" },
   { href: "/blog", label: "Blog", match: (p: string) => p.startsWith("/blog") },
-  { href: "/our-faves", label: "Our Faves", match: (p: string) => p.startsWith("/our-faves") },
   {
     href: "https://store.totallygonebananas.com/",
     label: "Merch",
@@ -32,6 +31,24 @@ const MORE_INFO = [
   { href: "/about", label: "About", match: (p: string) => p === "/about" },
   { href: "/banana-growing-zones", label: "Grow Zones", match: (p: string) => p === "/banana-growing-zones" },
 ] as const;
+
+const BLOG_MENU = [
+  { href: "/our-faves", label: "Our Faves", match: (p: string) => p.startsWith("/our-faves") },
+] as const;
+
+const SPOTIFY_SHOW_URL =
+  "https://open.spotify.com/show/7z5KxVvy3bUH3hqvbloNl0?si=-_stzhQhQjyH8AtujHqpRg&nd=1&dlsi=4a46fea448f04c42";
+
+function MicIcon() {
+  return (
+    <svg className="listen-now-mic" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" focusable="false">
+      <path
+        fill="currentColor"
+        d="M12 14a3 3 0 0 0 3-3V6a3 3 0 1 0-6 0v5a3 3 0 0 0 3 3Zm5-3a5 5 0 0 1-10 0H5a7 7 0 0 0 6 6.92V21H8v2h8v-2h-3v-3.08A7 7 0 0 0 19 11h-2Z"
+      />
+    </svg>
+  );
+}
 
 export function NavLinks({
   side,
@@ -64,6 +81,19 @@ export function NavLinks({
           <a key={l.href} href={l.href} target="_blank" rel="noopener noreferrer">
             {l.label}
           </a>
+        ) : l.href === "/blog" ? (
+          <div key={l.href} className="top-blog-menu">
+            <Link className="top-blog-link" href={l.href} aria-current={l.match(path) ? "page" : undefined}>
+              {l.label} <span className="top-more-arrow" aria-hidden="true" />
+            </Link>
+            <div className="top-blog-submenu">
+              {BLOG_MENU.map((item) => (
+                <Link key={item.href} href={item.href} aria-current={item.match(path) ? "page" : undefined}>
+                  {item.label}
+                </Link>
+              ))}
+            </div>
+          </div>
         ) : (
           <Link key={l.href} href={l.href} aria-current={l.match(path) ? "page" : undefined}>
             {l.label}
@@ -94,6 +124,12 @@ export function NavLinks({
             ))}
           </div>
         </details>
+      ) : null}
+      {side === "left" ? (
+        <a className="btn small listen-now" href={SPOTIFY_SHOW_URL} target="_blank" rel="noopener noreferrer">
+          <MicIcon />
+          Listen Now
+        </a>
       ) : null}
     </nav>
   );
