@@ -1668,7 +1668,7 @@ html[data-theme="dark"] .hero-slide-stack .hero-slide-dark { display: block; }
     position: relative;
     isolation: isolate;
     background-color: #163018;
-    background-image: url("/images/hero-bg.webp");
+    background-image: url("/images/hero-bg-new.webp");
     background-repeat: no-repeat;
     background-position: right bottom;
     background-size: cover;
@@ -1691,7 +1691,7 @@ html[data-theme="dark"] .hero-slide-stack .hero-slide-dark { display: block; }
   }
   html[data-theme="dark"] .hero {
     background-color: #102014;
-    background-image: url("/images/hero-bg.webp");
+    background-image: url("/images/hero-bg-new.webp");
   }
   html[data-theme="dark"] .hero::before {
     background: linear-gradient(
