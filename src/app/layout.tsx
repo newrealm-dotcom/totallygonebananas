@@ -126,7 +126,60 @@ const themeInit = `(function(){try{var t=localStorage.getItem("theme");if(t!=="l
 
 const GROW_FAVES_SITE_ID = "U2l0ZTpjMzIzODNmYi0zM2U4LTQ1YzgtODNhZC1jYzkxOWM1Yzg5M2Y=";
 /** Delay Grow until idle/interaction so lab TBT and Best Practices stay clean. Real visitors still get Faves. */
-const growInit = `(function(){var id=${JSON.stringify(GROW_FAVES_SITE_ID)};function inject(){if(window.__tgbGrow)return;window.__tgbGrow=1;window.growMe||((window.growMe=function(e){window.growMe._.push(e)}),(window.growMe._=[]));var e=document.createElement("script");e.src="https://faves.grow.me/main.js";e.defer=!0;e.setAttribute("data-grow-faves-site-id",id);document.head.appendChild(e)}function arm(){var done=0;function run(){if(done)return;done=1;inject()}["scroll","pointerdown","keydown","touchstart"].forEach(function(t){window.addEventListener(t,run,{once:!0,passive:!0})});setTimeout(run,5500)}if(document.readyState==="complete")arm();else window.addEventListener("load",arm)})();`;
+const growInit = `(function(){
+  var id=${JSON.stringify(GROW_FAVES_SITE_ID)};
+  var LEFT="max(1rem, env(safe-area-inset-left, 0px))";
+  function pin(root){
+    var sr=root&&root.shadowRoot;
+    if(!sr)return false;
+    var nodes=sr.querySelectorAll("div");
+    for(var i=0;i<nodes.length;i++){
+      var el=nodes[i];
+      if(getComputedStyle(el).position!=="fixed")continue;
+      if(el.style.getPropertyValue("left")===LEFT&&el.style.getPropertyPriority("left")==="important")continue;
+      el.style.setProperty("left",LEFT,"important");
+      el.style.setProperty("right","auto","important");
+    }
+    if(!sr.__tgbPin){
+      sr.__tgbPin=1;
+      new MutationObserver(function(){pin(root);}).observe(sr,{childList:true,subtree:true,attributes:true,attributeFilter:["class","style"]});
+    }
+    return true;
+  }
+  function watch(){
+    var root=document.getElementById("grow-me-root");
+    if(!root||root.__tgbWatch)return;
+    root.__tgbWatch=1;
+    if(pin(root))return;
+    var tries=0;
+    var timer=setInterval(function(){
+      tries++;
+      if(pin(root)||tries>40)clearInterval(timer);
+    },250);
+  }
+  new MutationObserver(watch).observe(document.documentElement,{childList:true,subtree:true});
+  function inject(){
+    if(window.__tgbGrow)return;
+    window.__tgbGrow=1;
+    window.growMe||((window.growMe=function(e){window.growMe._.push(e);}),(window.growMe._=[]));
+    var e=document.createElement("script");
+    e.src="https://faves.grow.me/main.js";
+    e.defer=!0;
+    e.setAttribute("data-grow-faves-site-id",id);
+    document.head.appendChild(e);
+  }
+  function arm(){
+    var done=0;
+    function run(){if(done)return;done=1;inject();}
+    ["scroll","pointerdown","keydown","touchstart"].forEach(function(t){
+      window.addEventListener(t,run,{once:!0,passive:!0});
+    });
+    setTimeout(run,5500);
+  }
+  if(document.readyState==="complete")arm();
+  else window.addEventListener("load",arm);
+  watch();
+})();`;
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
