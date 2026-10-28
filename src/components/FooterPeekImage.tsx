@@ -67,12 +67,11 @@ export function FooterPeekImage() {
       aria-hidden="true"
     >
       <Image
-        src="/images/bottom-img.png"
+        src="/images/bottom-img.webp"
         alt=""
         width={600}
         height={600}
         sizes="30vmin"
-        unoptimized
         priority={false}
       />
     </div>

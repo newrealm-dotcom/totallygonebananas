@@ -4,8 +4,8 @@
   --brown: #462018; --yellow: #F3CF31; --cream: #FBF9E6; --orange: #E8793A;
   --bg: #FBF9E6; --paper: #FFFDF2; --panel: #F4EDCB; --ink: #462018; --muted: #6E4A3F;
   --line: #462018; --on-yellow: #462018; --danger: #B3261E; --ok: #2E6B30;
-  --display: "Shrikhand", "Cooper Black", Georgia, serif;
-  --body: "Nunito Variable", "Nunito", "Trebuchet MS", "Segoe UI", system-ui, sans-serif;
+  --display: var(--font-shrikhand), "Cooper Black", Georgia, serif;
+  --body: var(--font-nunito), "Trebuchet MS", "Segoe UI", system-ui, sans-serif;
   color-scheme: light;
 }
 html[data-theme="dark"] {

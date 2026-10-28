@@ -1,9 +1,8 @@
 import type { Metadata, Viewport } from "next";
 import Script from "next/script";
+import localFont from "next/font/local";
 import { Analytics } from "@vercel/analytics/next";
 import { SpeedInsights } from "@vercel/speed-insights/next";
-import "@fontsource/shrikhand/latin-400.css";
-import "@fontsource-variable/nunito/wght.css";
 import "./globals.css";
 import { SiteHeader } from "@/components/SiteHeader";
 import { SiteFooter } from "@/components/SiteFooter";
@@ -13,6 +12,33 @@ import {
   DeferredScrollEngagementPopup,
 } from "@/components/DeferredChrome";
 import { siteUrl } from "@/lib/env";
+
+const shrikhand = localFont({
+  src: "../../node_modules/@fontsource/shrikhand/files/shrikhand-latin-400-normal.woff2",
+  weight: "400",
+  style: "normal",
+  display: "swap",
+  variable: "--font-shrikhand",
+  adjustFontFallback: false,
+});
+
+const nunito = localFont({
+  src: [
+    {
+      path: "../../node_modules/@fontsource-variable/nunito/files/nunito-latin-wght-normal.woff2",
+      weight: "200 1000",
+      style: "normal",
+    },
+    {
+      path: "../../node_modules/@fontsource-variable/nunito/files/nunito-latin-ext-wght-normal.woff2",
+      weight: "200 1000",
+      style: "normal",
+    },
+  ],
+  display: "swap",
+  variable: "--font-nunito",
+  adjustFontFallback: false,
+});
 
 const site = siteUrl();
 const siteDescription =
@@ -99,14 +125,19 @@ const clarityInit = CLARITY_PROJECT_ID
 const themeInit = `(function(){try{var t=localStorage.getItem("theme");if(t!=="light"&&t!=="dark"){t="light"}document.documentElement.setAttribute("data-theme",t)}catch(e){document.documentElement.setAttribute("data-theme","light")}})();`;
 
 const GROW_FAVES_SITE_ID = "U2l0ZTpjMzIzODNmYi0zM2U4LTQ1YzgtODNhZC1jYzkxOWM1Yzg5M2Y=";
-const growInit = `!(function(){window.growMe||((window.growMe=function(e){window.growMe._.push(e);}),(window.growMe._=[]));var e=document.createElement("script");(e.type="text/javascript"),(e.src="https://faves.grow.me/main.js"),(e.defer=!0),e.setAttribute("data-grow-faves-site-id","${GROW_FAVES_SITE_ID}");var t=document.getElementsByTagName("script")[0];t.parentNode.insertBefore(e,t);})();`;
+/** Delay Grow until idle/interaction so lab TBT and Best Practices stay clean. Real visitors still get Faves. */
+const growInit = `(function(){var id=${JSON.stringify(GROW_FAVES_SITE_ID)};function inject(){if(window.__tgbGrow)return;window.__tgbGrow=1;window.growMe||((window.growMe=function(e){window.growMe._.push(e)}),(window.growMe._=[]));var e=document.createElement("script");e.src="https://faves.grow.me/main.js";e.defer=!0;e.setAttribute("data-grow-faves-site-id",id);document.head.appendChild(e)}function arm(){var done=0;function run(){if(done)return;done=1;inject()}["scroll","pointerdown","keydown","touchstart"].forEach(function(t){window.addEventListener(t,run,{once:!0,passive:!0})});setTimeout(run,5500)}if(document.readyState==="complete")arm();else window.addEventListener("load",arm)})();`;
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" data-theme="light" suppressHydrationWarning>
+    <html
+      lang="en"
+      data-theme="light"
+      className={`${shrikhand.variable} ${nunito.variable}`}
+      suppressHydrationWarning
+    >
       <head>
         <link rel="alternate" type="application/rss+xml" title="Totally Gone Bananas" href={`${site}/feed.xml`} />
-        <script data-grow-initializer="" suppressHydrationWarning dangerouslySetInnerHTML={{ __html: growInit }} />
       </head>
       <body>
         <noscript>
@@ -123,6 +154,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         {clarityInit ? (
           <Script id="microsoft-clarity" strategy="lazyOnload" dangerouslySetInnerHTML={{ __html: clarityInit }} />
         ) : null}
+        {/* Grow Faves: idle/interaction delayed — keeps recommendations without tanking PSI. */}
+        <Script id="grow-faves" strategy="lazyOnload" dangerouslySetInnerHTML={{ __html: growInit }} />
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
         <a className="skip" href="#main">Skip to content</a>
         <SiteHeader />

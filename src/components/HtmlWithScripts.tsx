@@ -27,6 +27,14 @@ export function HtmlWithScripts({
       next.textContent = old.textContent;
       old.replaceWith(next);
     }
+
+    // Best Practices: cross-origin target=_blank needs noopener/noreferrer.
+    for (const a of Array.from(root.querySelectorAll<HTMLAnchorElement>('a[target="_blank"]'))) {
+      const rel = new Set((a.getAttribute("rel") || "").split(/\s+/).filter(Boolean));
+      rel.add("noopener");
+      rel.add("noreferrer");
+      a.setAttribute("rel", Array.from(rel).join(" "));
+    }
   }, [html]);
 
   return <div ref={ref} className={className} dangerouslySetInnerHTML={{ __html: html }} />;

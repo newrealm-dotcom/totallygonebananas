@@ -171,7 +171,7 @@ export function ScrollEngagementPopup() {
 
         <div className="scroll-popup-newsletter-art" aria-hidden="true">
           <Image
-            src="/images/footer-img.png"
+            src="/images/footer-img.webp"
             alt=""
             width={1200}
             height={420}

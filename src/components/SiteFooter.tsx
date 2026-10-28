@@ -95,7 +95,7 @@ function FooterDivider() {
   return (
     <div className="footer-divider" aria-hidden="true">
       <Image
-        src="/images/footer-img.png"
+        src="/images/footer-img.webp"
         alt=""
         width={1400}
         height={280}
