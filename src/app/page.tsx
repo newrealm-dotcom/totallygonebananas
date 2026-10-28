@@ -84,7 +84,10 @@ export default async function HomePage({ searchParams }: PageProps<"/">) {
       <section className="hero">
         <div className="wrap hero-grid">
           <div className="hero-copy">
-            <h1>What are we going bananas for today?</h1>
+            <h1>
+              What are we going <br className="hero-h-break" />
+              bananas for today?
+            </h1>
             <p className="hero-subhead">Tested banana recipes for every stage of ripeness, from green to gone.</p>
             <p className="lede">From 5-minute smoothies to weekend bakes. Pick a craving below.</p>
             <form className="hero-search" action="/recipes" role="search">

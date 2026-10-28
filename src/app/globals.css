@@ -1521,6 +1521,8 @@ html[data-theme="dark"] .hero {
   text-wrap: wrap;
   white-space: normal;
 }
+/* Desktop headline is two rows. Hide the break everywhere else so the sentence wraps on its own. */
+.hero-h-break { display: none; }
 .hero-subhead {
   margin: 0 0 .45rem;
   color: var(--ink);
@@ -1659,6 +1661,12 @@ html[data-theme="dark"] .hero-slide-stack .hero-slide-dark { display: block; }
   }
 }
 @media (min-width: 1024px) {
+  .hero-h-break { display: inline; }
+  .hero-copy h1 {
+    /* "What are we going" / "bananas for today?" — keep each row on one line. */
+    white-space: nowrap;
+    font-size: clamp(2.4rem, 8.9cqi, 3.7rem);
+  }
   .hero-subhead,
   .hero-copy .lede {
     white-space: nowrap;
