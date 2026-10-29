@@ -442,11 +442,16 @@ nav.main.top-nav {
   }
   nav.main.top-nav .top-blog-menu {
     position: relative;
+    /* The gap under Blog stays inside this box, so the pointer can reach the item. */
+    padding-bottom: .7rem;
+    margin-bottom: -.7rem;
   }
   nav.main.top-nav .top-blog-link {
     display: inline-flex;
     align-items: center;
     gap: .4rem;
+    padding: .7rem .6rem 0;
+    margin: -.7rem -.6rem 0;
   }
   nav.main.top-nav .top-more {
     position: relative;
@@ -488,6 +493,9 @@ nav.main.top-nav {
     box-shadow: 5px 5px 0 var(--line);
     padding: .7rem;
   }
+  nav.main.top-nav .top-blog-submenu {
+    top: 100%;
+  }
   nav.main.top-nav .top-more:not([open]) .top-more-menu {
     display: none;
   }
@@ -499,6 +507,15 @@ nav.main.top-nav {
     display: block;
     border-radius: 12px;
     padding: .45rem .6rem;
+  }
+  nav.main.top-nav .top-blog-submenu a {
+    padding: .8rem 1rem;
+  }
+  nav.main.top-nav .top-blog-submenu a:hover,
+  nav.main.top-nav .top-blog-submenu a:focus-visible {
+    background: color-mix(in srgb, var(--yellow) 72%, var(--panel));
+    color: var(--ink);
+    text-decoration: none;
   }
   nav.main.top-nav .listen-now {
     background: var(--yellow);
