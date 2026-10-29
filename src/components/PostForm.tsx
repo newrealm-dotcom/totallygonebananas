@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState, useTransition } from "react";
+import { useMemo, useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { createClient } from "@/lib/supabase/client";
@@ -81,6 +81,8 @@ export function PostForm({
   );
   const [customTag, setCustomTag] = useState("");
   const [tagError, setTagError] = useState("");
+  const [tagsOpen, setTagsOpen] = useState(false);
+  const tagsAccordionRef = useRef<HTMLDetailsElement>(null);
   const [body, setBody] = useState(post?.body ?? "");
   const [publishedAtLocal, setPublishedAtLocal] = useState(() =>
     toEasternDatetimeLocal(post?.published_at),
@@ -334,6 +336,10 @@ export function PostForm({
         post?.id,
       );
       if (!result.ok) {
+        if (result.errors.tags) {
+          setTagsOpen(true);
+          if (tagsAccordionRef.current) tagsAccordionRef.current.open = true;
+        }
         setErrors(result.errors);
         return;
       }
@@ -450,66 +456,80 @@ export function PostForm({
         )}
         {errors.categories && <p className="f-err">{errors.categories}</p>}
       </fieldset>
-      <fieldset className="f" id="post-tags">
-        <legend>Tags</legend>
-        <p className="hint">Same tag list as recipes. Tick active tags or add your own.</p>
-        <div className="tagbox">
-          {activeTags.map((t) => (
-            <label key={t}>
-              <input
-                type="checkbox"
-                checked={tags.includes(t)}
-                onChange={(e) => {
-                  setTagError("");
-                  setTags((prev) => (e.target.checked ? [...prev, t] : prev.filter((x) => x !== t)));
-                }}
-              />{" "}
-              {t}
-            </label>
-          ))}
-          {tags.filter((t) => !activeTags.includes(t)).map((t) => (
-            <label key={t} className="tag-custom">
-              <input
-                type="checkbox"
-                checked
-                onChange={() => {
-                  setTagError("");
-                  setTags((prev) => prev.filter((x) => x !== t));
-                }}
-              />{" "}
-              {t}
-            </label>
-          ))}
+      <details
+        className="tag-accordion"
+        id="post-tags"
+        ref={tagsAccordionRef}
+        open={tagsOpen}
+        onToggle={(e) => setTagsOpen(e.currentTarget.open)}
+      >
+        <summary className="tag-accordion-summary">
+          <span>Tags</span>
+          <span className="tag-accordion-meta">
+            {tags.length > 0 ? `${tags.length} selected` : "Optional"}
+            <span className="tag-accordion-chevron" aria-hidden="true" />
+          </span>
+        </summary>
+        <div className="tag-accordion-body">
+          <p className="hint">Same tag list as recipes. Tick active tags or add your own.</p>
+          <div className="tagbox">
+            {activeTags.map((t) => (
+              <label key={t}>
+                <input
+                  type="checkbox"
+                  checked={tags.includes(t)}
+                  onChange={(e) => {
+                    setTagError("");
+                    setTags((prev) => (e.target.checked ? [...prev, t] : prev.filter((x) => x !== t)));
+                  }}
+                />{" "}
+                {t}
+              </label>
+            ))}
+            {tags.filter((t) => !activeTags.includes(t)).map((t) => (
+              <label key={t} className="tag-custom">
+                <input
+                  type="checkbox"
+                  checked
+                  onChange={() => {
+                    setTagError("");
+                    setTags((prev) => prev.filter((x) => x !== t));
+                  }}
+                />{" "}
+                {t}
+              </label>
+            ))}
+          </div>
+          <div className="tag-add">
+            <label className="sr" htmlFor="post-tag-in">Add custom tags</label>
+            <input
+              id="post-tag-in"
+              className="field"
+              value={customTag}
+              placeholder="tag one, tag two, tag three…"
+              aria-invalid={!!(tagError || errors.tags)}
+              aria-describedby={tagError || errors.tags ? "post-tag-err" : undefined}
+              onChange={(e) => {
+                setCustomTag(e.target.value);
+                if (tagError) setTagError("");
+              }}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  e.preventDefault();
+                  addCustomTag();
+                }
+              }}
+            />
+            <button type="button" className="btn ghost small" onClick={addCustomTag} disabled={!customTag.trim()}>
+              Add tags
+            </button>
+          </div>
+          <p className="hint">Separate multiple tags with commas. Letters, numbers, spaces, or hyphens. No profanity or nonsense.</p>
+          {(tagError || errors.tags) && (
+            <p className="f-err" id="post-tag-err" role="alert">{tagError || errors.tags}</p>
+          )}
         </div>
-        <div className="tag-add">
-          <label className="sr" htmlFor="post-tag-in">Add custom tags</label>
-          <input
-            id="post-tag-in"
-            className="field"
-            value={customTag}
-            placeholder="tag one, tag two, tag three…"
-            aria-invalid={!!(tagError || errors.tags)}
-            aria-describedby={tagError || errors.tags ? "post-tag-err" : undefined}
-            onChange={(e) => {
-              setCustomTag(e.target.value);
-              if (tagError) setTagError("");
-            }}
-            onKeyDown={(e) => {
-              if (e.key === "Enter") {
-                e.preventDefault();
-                addCustomTag();
-              }
-            }}
-          />
-          <button type="button" className="btn ghost small" onClick={addCustomTag} disabled={!customTag.trim()}>
-            Add tags
-          </button>
-        </div>
-        <p className="hint">Separate multiple tags with commas. Letters, numbers, spaces, or hyphens. No profanity or nonsense.</p>
-        {(tagError || errors.tags) && (
-          <p className="f-err" id="post-tag-err" role="alert">{tagError || errors.tags}</p>
-        )}
-      </fieldset>
+      </details>
       <div className="f">
         <label htmlFor="post-body">Body</label>
         <PostBodyEditor value={body} onChange={setBody} invalid={!!errors.body} />

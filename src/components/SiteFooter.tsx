@@ -171,7 +171,10 @@ export function SiteFooter() {
                 <p className="footer-name">Totally Gone Bananas</p>
               </Link>
               <p className="footer-tagline">Recipes for every banana, from green to gone.</p>
-              <p className="footer-copy">© {year}. Totally Gone Bananas. All Rights Reserved.</p>
+              <p className="footer-copy">
+                © {year}. Totally Gone Bananas. All Rights Reserved. Designed by{" "}
+                <a href="https://www.newrealm.com" target="_blank" rel="noopener noreferrer">New Realm Graphics</a>.
+              </p>
             </div>
 
             <div className="footer-social" aria-label="Social links">

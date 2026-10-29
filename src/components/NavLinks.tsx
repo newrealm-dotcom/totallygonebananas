@@ -50,6 +50,23 @@ function MicIcon() {
   );
 }
 
+function useHoverMenu() {
+  const [open, setOpen] = useState(false);
+  const closeTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  function openMenu() {
+    if (closeTimer.current) clearTimeout(closeTimer.current);
+    setOpen(true);
+  }
+
+  function closeMenu() {
+    if (closeTimer.current) clearTimeout(closeTimer.current);
+    closeTimer.current = setTimeout(() => setOpen(false), 120);
+  }
+
+  return { open, setOpen, openMenu, closeMenu };
+}
+
 export function NavLinks({
   side,
   includeHome = true,
@@ -61,18 +78,8 @@ export function NavLinks({
 }) {
   const path = usePathname();
   const links = (side === "left" ? LEFT : RIGHT).filter((l) => includeHome || l.href !== "/");
-  const [moreOpen, setMoreOpen] = useState(false);
-  const closeTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
-
-  function openMoreMenu() {
-    if (closeTimer.current) clearTimeout(closeTimer.current);
-    setMoreOpen(true);
-  }
-
-  function closeMoreMenu() {
-    if (closeTimer.current) clearTimeout(closeTimer.current);
-    closeTimer.current = setTimeout(() => setMoreOpen(false), 120);
-  }
+  const more = useHoverMenu();
+  const blog = useHoverMenu();
 
   return (
     <nav className={`main ${side}${className ? ` ${className}` : ""}`} aria-label={side === "left" ? "Main" : "Account"}>
@@ -82,13 +89,28 @@ export function NavLinks({
             {l.label}
           </a>
         ) : l.href === "/blog" ? (
-          <div key={l.href} className="top-blog-menu">
+          <div
+            key={l.href}
+            className="top-blog-menu"
+            data-open={blog.open ? "true" : undefined}
+            onMouseEnter={blog.openMenu}
+            onMouseLeave={blog.closeMenu}
+            onFocus={blog.openMenu}
+            onBlur={(e) => {
+              if (!(e.relatedTarget instanceof Node) || !e.currentTarget.contains(e.relatedTarget)) blog.setOpen(false);
+            }}
+          >
             <Link className="top-blog-link" href={l.href} aria-current={l.match(path) ? "page" : undefined}>
               {l.label} <span className="top-more-arrow" aria-hidden="true" />
             </Link>
             <div className="top-blog-submenu">
               {BLOG_MENU.map((item) => (
-                <Link key={item.href} href={item.href} aria-current={item.match(path) ? "page" : undefined}>
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  aria-current={item.match(path) ? "page" : undefined}
+                  onClick={() => blog.setOpen(false)}
+                >
                   {item.label}
                 </Link>
               ))}
@@ -104,13 +126,13 @@ export function NavLinks({
         <details
           className="top-more"
           data-active={MORE_INFO.some((l) => l.match(path)) ? "true" : undefined}
-          open={moreOpen}
-          onMouseEnter={openMoreMenu}
-          onMouseLeave={closeMoreMenu}
-          onFocus={openMoreMenu}
-          onToggle={(e) => setMoreOpen(e.currentTarget.open)}
+          open={more.open}
+          onMouseEnter={more.openMenu}
+          onMouseLeave={more.closeMenu}
+          onFocus={more.openMenu}
+          onToggle={(e) => more.setOpen(e.currentTarget.open)}
           onBlur={(e) => {
-            if (!(e.relatedTarget instanceof Node) || !e.currentTarget.contains(e.relatedTarget)) setMoreOpen(false);
+            if (!(e.relatedTarget instanceof Node) || !e.currentTarget.contains(e.relatedTarget)) more.setOpen(false);
           }}
         >
           <summary className="top-more-summary">
@@ -118,7 +140,7 @@ export function NavLinks({
           </summary>
           <div className="top-more-menu">
             {MORE_INFO.map((l) => (
-              <Link key={l.href} href={l.href} aria-current={l.match(path) ? "page" : undefined} onClick={() => setMoreOpen(false)}>
+              <Link key={l.href} href={l.href} aria-current={l.match(path) ? "page" : undefined} onClick={() => more.setOpen(false)}>
                 {l.label}
               </Link>
             ))}
