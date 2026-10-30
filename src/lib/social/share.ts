@@ -1,7 +1,16 @@
 import { after } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { siteUrl } from "@/lib/env";
-import { stripInlineMarkdown } from "@/lib/render-post-markdown";
+import {
+  cleanSocialText,
+  facebookMessage,
+  instagramCaption,
+  pageUrl,
+  pinterestDescription,
+  socialImageUrl,
+  tiktokCaption,
+  twitterText,
+} from "@/lib/social/messages";
 import { metaConfig, postToFacebook, postToInstagram, type MetaConfig } from "@/lib/social/meta";
 import { pinterestConfig, postToPinterest, type PinterestConfig } from "@/lib/social/pinterest";
 import { postToTikTok, tiktokConfig, type TikTokConfig } from "@/lib/social/tiktok";
@@ -17,72 +26,6 @@ export interface SocialShareInput {
   title: string;
   summary?: string | null;
   hasCover: boolean;
-}
-
-const HASHTAGS = "#TotallyGoneBananas #banana #bananarecipes";
-const MAX_SUMMARY = 300;
-
-function cleanText(value: string | null | undefined): string {
-  return stripInlineMarkdown(value ?? "").replace(/\s+/g, " ").trim();
-}
-
-function truncate(value: string, max = MAX_SUMMARY): string {
-  return value.length <= max ? value : `${value.slice(0, max - 1).trimEnd()}…`;
-}
-
-function pageUrl({ kind, slug }: Pick<SocialShareInput, "kind" | "slug">): string {
-  return `${siteUrl()}${kind === "recipe" ? "/recipes" : "/blog"}/${slug}`;
-}
-
-function socialImageUrl({ kind, slug }: Pick<SocialShareInput, "kind" | "slug">): string {
-  return `${siteUrl()}/api/social-image/${kind}/${slug}.jpg`;
-}
-
-function facebookMessage(input: SocialShareInput): string {
-  const summary = truncate(cleanText(input.summary));
-  return [cleanText(input.title), summary, HASHTAGS].filter(Boolean).join("\n\n");
-}
-
-/** Instagram captions can't hold clickable links, so point people to the site by name. */
-function instagramCaption(input: SocialShareInput): string {
-  const summary = truncate(cleanText(input.summary));
-  const cta = input.kind === "recipe" ? "Get the full recipe at totallygonebananas.com" : "Read the full post at totallygonebananas.com";
-  return [cleanText(input.title), summary, cta, HASHTAGS].filter(Boolean).join("\n\n").slice(0, 2200);
-}
-
-/** X counts every http(s) URL as 23 characters. Stay inside the 280-character standard limit. */
-const TCO_URL_LENGTH = 23;
-const TWEET_MAX = 280;
-
-function twitterText(input: SocialShareInput): string {
-  const url = pageUrl(input);
-  const title = cleanText(input.title);
-  const tags = HASHTAGS;
-  const sep = "\n\n";
-  const summary = cleanText(input.summary);
-  const used = title.length + TCO_URL_LENGTH + tags.length + sep.length * 2;
-  const summaryRoom = TWEET_MAX - used - sep.length;
-  if (summary && summaryRoom > 12) {
-    return [title, truncate(summary, summaryRoom), url, tags].join(sep);
-  }
-  if (used <= TWEET_MAX) return [title, url, tags].join(sep);
-  const titleRoom = TWEET_MAX - TCO_URL_LENGTH - tags.length - sep.length * 2;
-  return [truncate(title, Math.max(1, titleRoom)), url, tags].join(sep);
-}
-
-function pinterestDescription(input: SocialShareInput): string {
-  const summary = truncate(cleanText(input.summary), 500);
-  return [summary, HASHTAGS].filter(Boolean).join("\n\n");
-}
-
-/** TikTok photo posts take a short title plus a caption. The image URL is sent separately. */
-function tiktokCaption(input: SocialShareInput): { title: string; description: string } {
-  const summary = truncate(cleanText(input.summary), 500);
-  const cta = input.kind === "recipe" ? "Get the full recipe at totallygonebananas.com" : "Read the full post at totallygonebananas.com";
-  return {
-    title: cleanText(input.title).slice(0, 90),
-    description: [summary, cta, pageUrl(input), HASHTAGS].filter(Boolean).join("\n\n").slice(0, 4000),
-  };
 }
 
 type Supabase = Awaited<ReturnType<typeof createClient>>;
@@ -134,9 +77,9 @@ async function shareTo(
   }
 }
 
-function coverUrl(input: SocialShareInput, network: string): string {
+function coverUrl(input: SocialShareInput, network: string, baseUrl: string): string {
   if (!input.hasCover) throw new Error(`${network} needs a cover image`);
-  return socialImageUrl(input);
+  return socialImageUrl(input, baseUrl);
 }
 
 async function shareNow(
@@ -147,25 +90,26 @@ async function shareNow(
   input: SocialShareInput,
 ) {
   const supabase = await createClient();
-  const imageUrl = input.hasCover ? socialImageUrl(input) : null;
+  const baseUrl = siteUrl();
+  const imageUrl = input.hasCover ? socialImageUrl(input, baseUrl) : null;
   const jobs: Promise<void>[] = [];
   if (meta) {
     jobs.push(
       shareTo(supabase, input, "facebook", () =>
-        postToFacebook({ config: meta, message: facebookMessage(input), link: pageUrl(input), imageUrl }),
+        postToFacebook({ config: meta, message: facebookMessage(input), link: pageUrl(input, baseUrl), imageUrl }),
       ),
     );
     if (meta.igUserId) {
       jobs.push(
         shareTo(supabase, input, "instagram", () =>
-          postToInstagram({ config: meta, imageUrl: coverUrl(input, "Instagram"), caption: instagramCaption(input) }),
+          postToInstagram({ config: meta, imageUrl: coverUrl(input, "Instagram", baseUrl), caption: instagramCaption(input) }),
         ),
       );
     }
   }
   if (twitter) {
     jobs.push(
-      shareTo(supabase, input, "twitter", () => postToTwitter({ config: twitter, text: twitterText(input), imageUrl })),
+      shareTo(supabase, input, "twitter", () => postToTwitter({ config: twitter, text: twitterText(input, baseUrl), imageUrl })),
     );
   }
   if (pinterest) {
@@ -173,23 +117,23 @@ async function shareNow(
       shareTo(supabase, input, "pinterest", () =>
         postToPinterest({
           config: pinterest,
-          title: cleanText(input.title),
+          title: cleanSocialText(input.title),
           description: pinterestDescription(input),
-          link: pageUrl(input),
-          imageUrl: coverUrl(input, "Pinterest"),
+          link: pageUrl(input, baseUrl),
+          imageUrl: coverUrl(input, "Pinterest", baseUrl),
         }),
       ),
     );
   }
   if (tiktok) {
-    const caption = tiktokCaption(input);
+    const caption = tiktokCaption(input, baseUrl);
     jobs.push(
       shareTo(supabase, input, "tiktok", () =>
         postToTikTok({
           config: tiktok,
           title: caption.title,
           description: caption.description,
-          imageUrl: coverUrl(input, "TikTok"),
+          imageUrl: coverUrl(input, "TikTok", baseUrl),
         }),
       ),
     );
