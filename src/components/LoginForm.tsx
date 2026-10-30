@@ -7,7 +7,7 @@ import { trackButtonClick, trackEvent, trackFormFill } from "@/lib/analytics/dat
 import { createClient } from "@/lib/supabase/client";
 import { TurnstileField } from "@/components/TurnstileField";
 
-const TURNSTILE_ENABLED = Boolean(process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY?.trim());
+const TURNSTILE_CONFIGURED = Boolean(process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY?.trim());
 
 export function LoginForm({
   next,
@@ -43,8 +43,10 @@ export function LoginForm({
     document.cookie = `${HAS_ACCOUNT_COOKIE}=1; Path=/; Max-Age=${HAS_ACCOUNT_MAX_AGE}; SameSite=Lax${secure}`;
   }
 
-  async function sendLink(e: React.FormEvent) {
+  async function sendLink(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
+    const formToken = new FormData(e.currentTarget).get("cf-turnstile-response");
+    const captchaToken = turnstileToken || (typeof formToken === "string" ? formToken : "");
     if (!/^\S+@\S+\.\S+$/.test(email)) {
       setState("error");
       setError("Enter a valid email address.");
@@ -52,7 +54,12 @@ export function LoginForm({
     }
     setState("sending");
     setError("");
-    if (TURNSTILE_ENABLED && !turnstileToken) {
+    if (!TURNSTILE_CONFIGURED) {
+      setState("error");
+      setError("Captcha isn't configured yet. Please try again later.");
+      return;
+    }
+    if (!captchaToken) {
       setState("error");
       setError("Please complete the captcha and try again.");
       return;
@@ -62,7 +69,7 @@ export function LoginForm({
     trackEvent("sign_up_start", { method: "email", intent: intent ?? undefined });
     const { error } = await createClient().auth.signInWithOtp({
       email,
-      options: { emailRedirectTo: callback(), captchaToken: turnstileToken || undefined },
+      options: { emailRedirectTo: callback(), captchaToken },
     });
     if (error) {
       setState("error");
