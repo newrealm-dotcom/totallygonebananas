@@ -97,7 +97,7 @@ export function LoginForm({
 
   if (state === "sent" || state === "verifying") {
     return (
-      <div className="panel stack">
+      <div className="panel stack" data-clarity-mask="true">
         <div>
           <h2>Check your email</h2>
           <p>
@@ -105,7 +105,7 @@ export function LoginForm({
             that email below.
           </p>
         </div>
-        <form onSubmit={verifyCode} className="stack" noValidate>
+        <form onSubmit={verifyCode} className="stack" noValidate data-clarity-mask="true">
           <div className="f">
             <label htmlFor="otp">One-time code</label>
             <input
@@ -144,8 +144,8 @@ export function LoginForm({
   }
 
   return (
-    <div className="panel stack">
-      <form onSubmit={sendLink} className="stack" noValidate>
+    <div className="panel stack" data-clarity-mask="true">
+      <form onSubmit={sendLink} className="stack" noValidate data-clarity-mask="true">
         <div className="f">
           <label htmlFor="email">Email</label>
           <input

@@ -77,6 +77,7 @@ export function ProfileForm({ profile }: { profile: Profile }) {
     <form
       className="panel stack"
       noValidate
+      data-clarity-mask="true"
       onSubmit={(e) => {
         e.preventDefault();
         setSaved(false);

@@ -619,7 +619,7 @@ export function RecipeForm({ userId, isEditor, categories, cuisines = [...CUISIN
 
   /* ------------------------------------------------------------------ render */
   return (
-    <form className="rf" noValidate onSubmit={(e) => { e.preventDefault(); submit(isEditor ? "publish" : "submit"); }}>
+    <form className="rf" noValidate data-clarity-mask="true" onSubmit={(e) => { e.preventDefault(); submit(isEditor ? "publish" : "submit"); }}>
       <nav className="rf-toc" aria-label="Form sections">
         {SECTIONS.map(([id, label], i) => (
           <a key={id} href={`#${fid(id)}`}><span aria-hidden="true">{i + 1}</span>{label}</a>
