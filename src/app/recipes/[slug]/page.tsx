@@ -1,8 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { cookies, headers } from "next/headers";
 import { notFound } from "next/navigation";
-import { RecipeSignupGate } from "@/components/RecipeSignupGate";
 import {
   canEdit,
   getCategories,
@@ -13,11 +11,6 @@ import {
   getViewer,
   isEditorRole,
 } from "@/lib/queries";
-import {
-  RECIPE_PREVIEW_COOKIE,
-  anonymousRecipeIsBlocked,
-  recipePreviewSlugFromCookie,
-} from "@/lib/recipe-preview";
 import { createClient } from "@/lib/supabase/server";
 import { publicUrl } from "@/lib/media";
 import { shortDate, tintFor, titleCase } from "@/lib/format";
@@ -89,17 +82,6 @@ export default async function RecipePage({ params, searchParams }: PageProps<"/r
     notFound();
   }
 
-  const savedPreview = recipePreviewSlugFromCookie((await cookies()).get(RECIPE_PREVIEW_COOKIE)?.value);
-  if (r.status === "published" && anonymousRecipeIsBlocked(savedPreview, r.slug, Boolean(userId))) {
-    return (
-      <RecipeSignupGate
-        title={titleCase(r.title)}
-        slug={r.slug}
-        googleEnabled={process.env.NEXT_PUBLIC_AUTH_GOOGLE === "true"}
-      />
-    );
-  }
-
   const [categories, ratings] = await Promise.all([getCategories(), getRatings([r.id])]);
   const saved = (await getSavedIds(userId)).has(r.id);
   const supabase = await createClient();
@@ -135,12 +117,10 @@ export default async function RecipePage({ params, searchParams }: PageProps<"/r
         )
       : null;
 
-  const nonce = (await headers()).get("x-nonce") ?? undefined;
-
   return (
     <div className="wrap">
       {recipeLd ? (
-        <script nonce={nonce} type="application/ld+json" dangerouslySetInnerHTML={{ __html: recipeLd }} />
+        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: recipeLd }} />
       ) : null}
       {sp.saved === "published" && <BananaRain active />}
       {savedMsg && (
