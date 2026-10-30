@@ -1,4 +1,4 @@
-import DOMPurify from "isomorphic-dompurify";
+import sanitizeHtml from "sanitize-html";
 
 const ALLOWED_TAGS = [
   "p",
@@ -28,30 +28,20 @@ const ALLOWED_TAGS = [
 
 const ALLOWED_ATTR = ["href", "src", "alt", "title", "width", "height", "rel", "target", "loading"];
 
-let hooked = false;
-
-function ensureHooks(): void {
-  if (hooked) return;
-  hooked = true;
-  DOMPurify.addHook("afterSanitizeAttributes", (node) => {
-    if (node.nodeName === "A") {
-      node.setAttribute("rel", "noopener noreferrer");
-      const href = node.getAttribute("href") ?? "";
-      if (href && !/^(https?:|mailto:|\/(?!\/)|#)/i.test(href)) node.removeAttribute("href");
-    }
-    if (node.nodeName === "IMG") {
-      const src = node.getAttribute("src") ?? "";
-      if (src && !/^(https?:|\/(?!\/))/i.test(src)) node.removeAttribute("src");
-    }
-  });
-}
-
 /** Strip scripts, handlers, and other active markup from member-written HTML. */
 export function sanitizeUserHtml(html: string): string {
-  ensureHooks();
-  return DOMPurify.sanitize(html, {
-    ALLOWED_TAGS,
-    ALLOWED_ATTR,
-    ALLOW_DATA_ATTR: false,
+  return sanitizeHtml(html, {
+    allowedTags: ALLOWED_TAGS,
+    allowedAttributes: {
+      "*": ALLOWED_ATTR,
+    },
+    allowedSchemes: ["http", "https", "mailto"],
+    allowedSchemesByTag: {
+      img: ["http", "https"],
+    },
+    allowProtocolRelative: false,
+    transformTags: {
+      a: sanitizeHtml.simpleTransform("a", { rel: "noopener noreferrer" }, true),
+    },
   });
 }
