@@ -1,7 +1,8 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useCallback, useState, useTransition } from "react";
 import { sendContactMessage } from "@/actions/contact";
+import { TurnstileField } from "@/components/TurnstileField";
 
 export function ContactForm() {
   const [pending, startTransition] = useTransition();
@@ -10,14 +11,18 @@ export function ContactForm() {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [comments, setComments] = useState("");
+  const [turnstileToken, setTurnstileToken] = useState("");
+  const [turnstileResetKey, setTurnstileResetKey] = useState(0);
+  const onTurnstileToken = useCallback((token: string) => setTurnstileToken(token), []);
 
   function onSubmit(e: React.FormEvent) {
     e.preventDefault();
     setErrors({});
     startTransition(async () => {
-      const result = await sendContactMessage({ name, email, comments });
+      const result = await sendContactMessage({ name, email, comments, turnstileToken });
       if (!result.ok) {
         setErrors(result.errors);
+        setTurnstileResetKey((v) => v + 1);
         return;
       }
       setSent(true);
@@ -86,6 +91,7 @@ export function ContactForm() {
           {errors.form}
         </p>
       ) : null}
+      <TurnstileField onTokenChange={onTurnstileToken} resetKey={turnstileResetKey} />
       <div className="row-actions">
         <button className="btn" type="submit" disabled={pending}>
           {pending ? "Sending…" : "Send message"}

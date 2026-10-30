@@ -27,6 +27,7 @@ export function contentSecurityPolicy(nonce: string): string {
     "https://www.clarity.ms",
     "https://scripts.clarity.ms",
     "https://*.clarity.ms",
+    "https://challenges.cloudflare.com",
     isDev ? "'unsafe-eval'" : "",
   ]
     .filter(Boolean)
@@ -40,6 +41,7 @@ export function contentSecurityPolicy(nonce: string): string {
     "https://*.googletagmanager.com",
     "https://*.clarity.ms",
     "https://c.bing.com",
+    "https://challenges.cloudflare.com",
     isDev ? "ws: wss:" : "",
   ]
     .filter(Boolean)
@@ -53,7 +55,7 @@ export function contentSecurityPolicy(nonce: string): string {
     "font-src 'self' data:",
     `connect-src ${connectSrc}`,
     "media-src 'self' blob: https:",
-    "frame-src 'self' https://www.googletagmanager.com https://www.youtube.com https://www.youtube-nocookie.com",
+    "frame-src 'self' https://www.googletagmanager.com https://www.youtube.com https://www.youtube-nocookie.com https://challenges.cloudflare.com",
     "worker-src 'self' blob:",
     "object-src 'none'",
     "base-uri 'self'",

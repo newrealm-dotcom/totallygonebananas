@@ -2,6 +2,7 @@
 
 import { Resend } from "resend";
 import { contactInput, fieldErrors } from "@/lib/validation";
+import { verifyTurnstileToken } from "@/lib/turnstile";
 
 export type SendContactResult =
   | { ok: true }
@@ -15,6 +16,8 @@ export async function sendContactMessage(raw: unknown): Promise<SendContactResul
   const parsed = contactInput.safeParse(raw);
   if (!parsed.success) return { ok: false, errors: fieldErrors(parsed.error) };
   const { name, email, comments } = parsed.data;
+  const captcha = await verifyTurnstileToken(parsed.data.turnstileToken);
+  if (!captcha.ok) return { ok: false, errors: { form: captcha.error } };
 
   const apiKey = process.env.RESEND_API_KEY?.trim();
   if (!apiKey) {

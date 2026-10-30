@@ -6418,3 +6418,33 @@ html[data-theme="dark"] .bgz h2 { color: var(--ink); }
 @media (prefers-reduced-motion: reduce) {
   .banana-rain { display: none; }
 }
+
+/* ---------- MFA and bot checks ---------- */
+.mfa-panel {
+  gap: 1rem;
+}
+.mfa-qr {
+  width: min(220px, 100%);
+  height: auto;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: #fff;
+  padding: .75rem;
+}
+.mfa-factor-list {
+  display: grid;
+  gap: .65rem;
+}
+.mfa-factor {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: .8rem;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: color-mix(in srgb, var(--card) 92%, #fff);
+}
+.turnstile-field {
+  min-height: 65px;
+}

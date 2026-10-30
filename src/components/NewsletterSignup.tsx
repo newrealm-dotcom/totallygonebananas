@@ -1,8 +1,9 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useCallback, useState, useTransition } from "react";
 import Link from "next/link";
 import { subscribeNewsletter } from "@/actions/newsletter";
+import { TurnstileField } from "@/components/TurnstileField";
 import { trackEvent, trackFormFill } from "@/lib/analytics/datalayer";
 
 export function NewsletterSignup() {
@@ -11,14 +12,18 @@ export function NewsletterSignup() {
   const [email, setEmail] = useState("");
   const [subscribedEmail, setSubscribedEmail] = useState("");
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [turnstileToken, setTurnstileToken] = useState("");
+  const [turnstileResetKey, setTurnstileResetKey] = useState(0);
+  const onTurnstileToken = useCallback((token: string) => setTurnstileToken(token), []);
 
   function onSubmit(e: React.FormEvent) {
     e.preventDefault();
     setErrors({});
     startTransition(async () => {
-      const result = await subscribeNewsletter({ email });
+      const result = await subscribeNewsletter({ email, turnstileToken });
       if (!result.ok) {
         setErrors(result.errors);
+        setTurnstileResetKey((v) => v + 1);
         return;
       }
       const clean = email.trim();
@@ -81,6 +86,7 @@ export function NewsletterSignup() {
           {errors.email || errors.form}
         </p>
       ) : null}
+      <TurnstileField onTokenChange={onTurnstileToken} resetKey={turnstileResetKey} />
     </form>
   );
 }

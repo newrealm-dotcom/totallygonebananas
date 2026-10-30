@@ -1,7 +1,8 @@
 "use server";
 
 import { Resend } from "resend";
-import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
+import { verifyTurnstileToken } from "@/lib/turnstile";
 import { fieldErrors, newsletterInput } from "@/lib/validation";
 
 export type NewsletterSignupResult =
@@ -19,8 +20,15 @@ export async function subscribeNewsletter(raw: unknown): Promise<NewsletterSignu
   if (!parsed.success) return { ok: false, errors: fieldErrors(parsed.error) };
   const email = parsed.data.email;
   const source = parsed.data.source || "footer";
+  const captcha = await verifyTurnstileToken(parsed.data.turnstileToken);
+  if (!captcha.ok) return { ok: false, errors: { form: captcha.error } };
 
-  const supabase = await createClient();
+  let supabase: ReturnType<typeof createAdminClient>;
+  try {
+    supabase = createAdminClient();
+  } catch {
+    return { ok: false, errors: { form: "Newsletter signup isn't configured yet. Please try again later." } };
+  }
   const { data, error } = await supabase
     .from("newsletter_signups")
     .insert({ email, source })

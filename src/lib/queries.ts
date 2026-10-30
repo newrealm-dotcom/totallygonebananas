@@ -55,10 +55,11 @@ export const getViewer = cache(async () => {
   const { data } = await supabase.auth.getClaims();
   const claims = data?.claims;
   const userId = (claims?.sub as string | undefined) ?? null;
-  if (!userId) return { userId: null, profile: null as Profile | null };
+  const aal = typeof claims?.aal === "string" ? claims.aal : "aal1";
+  if (!userId) return { userId: null, profile: null as Profile | null, aal };
 
   const { data: existing } = await supabase.from("profiles").select("*").eq("id", userId).maybeSingle<Profile>();
-  if (existing) return { userId, profile: existing };
+  if (existing) return { userId, profile: existing, aal };
 
   // Accounts created before the schema (or if the auth trigger missed) have no row yet.
   const email = typeof claims?.email === "string" ? claims.email : "";
@@ -70,7 +71,7 @@ export const getViewer = cache(async () => {
     .upsert({ id: userId, display_name: display }, { onConflict: "id", ignoreDuplicates: false })
     .select("*")
     .maybeSingle<Profile>();
-  return { userId, profile: created ?? null };
+  return { userId, profile: created ?? null, aal };
 });
 
 export const isEditorRole = (p: Profile | null) => p?.role === "editor" || p?.role === "admin";

@@ -1,10 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useCallback, useState } from "react";
 import { useRouter } from "next/navigation";
 import { AUTH_NEXT_COOKIE, HAS_ACCOUNT_COOKIE, HAS_ACCOUNT_MAX_AGE, withAuthJoinedFlag } from "@/lib/auth-next";
 import { trackButtonClick, trackEvent, trackFormFill } from "@/lib/analytics/datalayer";
 import { createClient } from "@/lib/supabase/client";
+import { TurnstileField } from "@/components/TurnstileField";
 
 export function LoginForm({
   next,
@@ -22,6 +23,9 @@ export function LoginForm({
   const [code, setCode] = useState("");
   const [state, setState] = useState<"idle" | "sending" | "sent" | "verifying" | "error">("idle");
   const [error, setError] = useState("");
+  const [turnstileToken, setTurnstileToken] = useState("");
+  const [turnstileResetKey, setTurnstileResetKey] = useState(0);
+  const onTurnstileToken = useCallback((token: string) => setTurnstileToken(token), []);
 
   // Keep redirectTo free of query params — GoTrue's PKCE redirect can drop `code`
   // when the allow-listed URL already has a query string.
@@ -51,10 +55,11 @@ export function LoginForm({
     trackEvent("sign_up_start", { method: "email", intent: intent ?? undefined });
     const { error } = await createClient().auth.signInWithOtp({
       email,
-      options: { emailRedirectTo: callback() },
+      options: { emailRedirectTo: callback(), captchaToken: turnstileToken || undefined },
     });
     if (error) {
       setState("error");
+      setTurnstileResetKey((v) => v + 1);
       const msg = error.message.toLowerCase();
       setError(
         msg.includes("sending magic link") || msg.includes("error sending")
@@ -64,6 +69,7 @@ export function LoginForm({
     } else {
       setState("sent");
       setCode("");
+      setTurnstileResetKey((v) => v + 1);
     }
   }
 
@@ -83,6 +89,18 @@ export function LoginForm({
       return;
     }
     rememberHasAccount();
+    const supabase = createClient();
+    const { data: claimsData } = await supabase.auth.getClaims();
+    const userId = typeof claimsData?.claims?.sub === "string" ? claimsData.claims.sub : null;
+    const aal = typeof claimsData?.claims?.aal === "string" ? claimsData.claims.aal : "aal1";
+    if (userId) {
+      const { data: profile } = await supabase.from("profiles").select("role").eq("id", userId).maybeSingle<{ role: string }>();
+      if (profile?.role === "admin" && aal !== "aal2") {
+        router.replace(`/login/mfa?next=${encodeURIComponent(next)}`);
+        router.refresh();
+        return;
+      }
+    }
     // `joined=1` triggers AuthJoinedBeacon once (same path as magic-link / OAuth).
     router.replace(withAuthJoinedFlag(next));
     router.refresh();
@@ -163,6 +181,7 @@ export function LoginForm({
             {error}
           </p>
         )}
+        <TurnstileField onTokenChange={onTurnstileToken} resetKey={turnstileResetKey} />
         <button className="btn" type="submit" disabled={state === "sending"}>
           {state === "sending" ? "Sending…" : "Email me a sign-in link"}
         </button>

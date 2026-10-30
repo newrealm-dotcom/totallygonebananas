@@ -10,6 +10,12 @@ import {
 } from "@/lib/auth-next";
 import { getSupabaseEnv } from "@/lib/env";
 
+function copyRedirectCookies(source: NextResponse, destination: URL): NextResponse {
+  const next = NextResponse.redirect(destination);
+  for (const cookie of source.cookies.getAll()) next.cookies.set(cookie);
+  return next;
+}
+
 /** Finishes sign-in for magic links (token_hash) and OAuth (PKCE code). */
 export async function GET(request: NextRequest) {
   const url = request.nextUrl;
@@ -60,6 +66,19 @@ export async function GET(request: NextRequest) {
     const failed = NextResponse.redirect(login);
     failed.cookies.set(AUTH_NEXT_COOKIE, "", { path: "/", maxAge: 0 });
     return failed;
+  }
+
+  const { data: claimsData } = await supabase.auth.getClaims();
+  const claims = claimsData?.claims;
+  const userId = typeof claims?.sub === "string" ? claims.sub : null;
+  const aal = typeof claims?.aal === "string" ? claims.aal : "aal1";
+  if (userId) {
+    const { data: profile } = await supabase.from("profiles").select("role").eq("id", userId).maybeSingle<{ role: string }>();
+    if (profile?.role === "admin" && aal !== "aal2") {
+      const mfa = new URL("/login/mfa", url.origin);
+      mfa.searchParams.set("next", next);
+      response = copyRedirectCookies(response, mfa);
+    }
   }
 
   response.cookies.set(HAS_ACCOUNT_COOKIE, "1", hasAccountCookieOptions());

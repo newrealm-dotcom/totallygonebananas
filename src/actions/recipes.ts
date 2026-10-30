@@ -11,6 +11,7 @@ import { flattenSteps, normalizeStepGroups } from "@/lib/steps";
 import { estimateRecipeNutrition } from "@/lib/nutrition";
 import { renderPostMarkdown } from "@/lib/render-post-markdown";
 import { sanitizeUserHtml } from "@/lib/sanitize-html";
+import { verifyTurnstileToken } from "@/lib/turnstile";
 import { REFERRAL_COOKIE, sanitizeReferral } from "@/lib/referral";
 import { scheduleSocialShare } from "@/lib/social/share";
 import type { RecipeStatus } from "@/lib/types";
@@ -38,6 +39,10 @@ export async function saveRecipe(raw: unknown, recipeId?: string): Promise<SaveR
   const { userId, profile } = await getViewer();
   if (!userId) return { ok: false, errors: { form: "Please sign in again, then try saving." } };
   const editor = isEditorRole(profile);
+  if (!editor) {
+    const captcha = await verifyTurnstileToken(input.turnstileToken);
+    if (!captcha.ok) return { ok: false, errors: { form: captcha.error } };
+  }
   const supabase = await createClient();
 
   // Existing recipe (for edits): re-read it rather than trusting the client.

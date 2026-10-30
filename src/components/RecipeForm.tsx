@@ -22,6 +22,7 @@ import {
   type Upload,
 } from "@/lib/recipe-form-values";
 import { PostBodyEditor } from "@/components/PostBodyEditor";
+import { TurnstileField } from "@/components/TurnstileField";
 import { ingredientUrlError } from "@/lib/ingredients";
 import { slugify, titleCase } from "@/lib/format";
 
@@ -77,6 +78,9 @@ export function RecipeForm({ userId, isEditor, categories, cuisines = [...CUISIN
   const [categoryDraft, setCategoryDraft] = useState("");
   const [cuisineDraft, setCuisineDraft] = useState("");
   const [cuisinePending, startCuisine] = useTransition();
+  const [turnstileToken, setTurnstileToken] = useState("");
+  const [turnstileResetKey, setTurnstileResetKey] = useState(0);
+  const onTurnstileToken = useCallback((token: string) => setTurnstileToken(token), []);
   const [cuisineChoices, setCuisineChoices] = useState<string[]>(() => {
     const names = cuisines.length ? [...cuisines] : [...CUISINES];
     const current = (initial ?? blankValues()).cuisine;
@@ -586,6 +590,7 @@ export function RecipeForm({ userId, isEditor, categories, cuisines = [...CUISIN
       adaptedFromUrl: v.adaptedFromUrl.trim(),
       cuisine: v.cuisine,
       intent,
+      turnstileToken,
     };
     // Drafts may be incomplete; give the server something valid to hold on to.
     if (intent === "draft") {
@@ -600,6 +605,7 @@ export function RecipeForm({ userId, isEditor, categories, cuisines = [...CUISIN
     start(async () => {
       const res = await saveRecipe(payload, recipeId);
       if (!res.ok) {
+        if (!isEditor) setTurnstileResetKey((v) => v + 1);
         if (res.errors.tags) {
           setTagsOpen(true);
           if (tagsAccordionRef.current) tagsAccordionRef.current.open = true;
@@ -1254,6 +1260,7 @@ export function RecipeForm({ userId, isEditor, categories, cuisines = [...CUISIN
       <div className="rf-submit">
         {errors.form && <p className="f-err" role="alert">{errors.form}</p>}
         {uploading && <p className="hint" role="status">Waiting for uploads to finish…</p>}
+        {!isEditor ? <TurnstileField onTokenChange={onTurnstileToken} resetKey={turnstileResetKey} /> : null}
         <div className="row-actions">
           <button type="submit" className="btn" disabled={pending || uploading}>
             {pending ? "Saving…" : isEditor ? publishLabel : "Submit for review"}

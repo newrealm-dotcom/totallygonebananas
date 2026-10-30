@@ -147,6 +147,7 @@ export const recipeInput = z.object({
     .default("")
     .refine((s) => !s || /^https?:\/\/.+/i.test(s), "Use a full http:// or https:// link"),
   intent: z.enum(["draft", "submit", "publish"]),
+  turnstileToken: z.string().trim().max(4096).default(""),
 });
 
 export type RecipeInput = z.input<typeof recipeInput>;
@@ -311,6 +312,7 @@ export const contactInput = z.object({
     .trim()
     .min(10, "Say a little more — at least 10 characters")
     .max(5000, "Keep your comments under 5,000 characters"),
+  turnstileToken: z.string().trim().max(4096).default(""),
 });
 
 export type ContactInput = z.input<typeof contactInput>;
@@ -322,6 +324,7 @@ export const newsletterInput = z.object({
     .email("Enter a valid email address")
     .max(120, "Keep your email under 120 characters"),
   source: z.string().trim().min(1).max(40).default("footer"),
+  turnstileToken: z.string().trim().max(4096).default(""),
 });
 
 export type NewsletterInput = z.input<typeof newsletterInput>;
