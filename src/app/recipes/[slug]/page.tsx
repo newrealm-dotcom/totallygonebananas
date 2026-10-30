@@ -41,23 +41,10 @@ import type { CookLog } from "@/lib/types";
  */
 export const dynamic = "force-dynamic";
 
-async function previewBlocksRecipe(slug: string): Promise<boolean> {
-  const [{ userId }, jar] = await Promise.all([getViewer(), cookies()]);
-  const saved = recipePreviewSlugFromCookie(jar.get(RECIPE_PREVIEW_COOKIE)?.value);
-  return anonymousRecipeIsBlocked(saved, slug, Boolean(userId));
-}
-
 export async function generateMetadata({ params }: PageProps<"/recipes/[slug]">): Promise<Metadata> {
   const { slug } = await params;
   const r = (await getPublishedRecipeBySlug(slug)) ?? (await getRecipeBySlug(slug));
   if (!r) return { title: "Recipe not found" };
-  if (r.status === "published" && (await previewBlocksRecipe(slug))) {
-    return {
-      title: "Sign up free to read more recipes",
-      robots: { index: false, follow: true },
-      alternates: { canonical: `/recipes/${slug}` },
-    };
-  }
   const img = publicUrl(r.cover_path);
   const title = titleCase(r.title);
   const description = r.description ?? undefined;
@@ -133,7 +120,7 @@ export default async function RecipePage({ params, searchParams }: PageProps<"/r
     .filter((c): c is (typeof categories)[number] => !!c);
   const primary = recipeCats[0];
   const rating = ratings.get(r.id);
-  const editable = canEdit(r, userId, profile);
+  const editable = canEdit(r, userId, profile, aal);
   const savedMsg = typeof sp.saved === "string" ? SAVED_MSG[sp.saved] : undefined;
   const gallery = r.recipe_media;
   const hero = gallery[0];
