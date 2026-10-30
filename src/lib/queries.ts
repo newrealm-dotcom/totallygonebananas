@@ -74,7 +74,8 @@ export const getViewer = cache(async () => {
   return { userId, profile: created ?? null, aal };
 });
 
-export const isEditorRole = (p: Profile | null) => p?.role === "editor" || p?.role === "admin";
+export const isEditorRole = (p: Profile | null, aal?: string) =>
+  p?.role === "editor" || (p?.role === "admin" && (aal === undefined || aal === "aal2"));
 export const isAdminRole = (p: Profile | null) => p?.role === "admin";
 
 /** Saved / made / published counts → points + rank for the signed-in user. */
@@ -318,9 +319,9 @@ export const getRecipeBySlug = cache(async (slug: string): Promise<RecipeWithExt
 });
 
 /** Can this viewer edit this recipe? Mirrors the database policy. */
-export function canEdit(recipe: Pick<Recipe, "author_id" | "status">, userId: string | null, profile: Profile | null) {
+export function canEdit(recipe: Pick<Recipe, "author_id" | "status">, userId: string | null, profile: Profile | null, aal?: string) {
   if (!userId) return false;
-  if (isEditorRole(profile)) return true;
+  if (isEditorRole(profile, aal)) return true;
   return recipe.author_id === userId && recipe.status !== "published";
 }
 

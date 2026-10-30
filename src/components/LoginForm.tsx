@@ -7,6 +7,8 @@ import { trackButtonClick, trackEvent, trackFormFill } from "@/lib/analytics/dat
 import { createClient } from "@/lib/supabase/client";
 import { TurnstileField } from "@/components/TurnstileField";
 
+const TURNSTILE_ENABLED = Boolean(process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY?.trim());
+
 export function LoginForm({
   next,
   googleEnabled,
@@ -50,6 +52,11 @@ export function LoginForm({
     }
     setState("sending");
     setError("");
+    if (TURNSTILE_ENABLED && !turnstileToken) {
+      setState("error");
+      setError("Please complete the captcha and try again.");
+      return;
+    }
     rememberNext();
     trackFormFill("login_email", { intent: intent ?? undefined });
     trackEvent("sign_up_start", { method: "email", intent: intent ?? undefined });

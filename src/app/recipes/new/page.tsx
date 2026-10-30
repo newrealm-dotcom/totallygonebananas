@@ -7,7 +7,7 @@ export const metadata: Metadata = { title: "Share a recipe" };
 
 export default async function NewRecipePage({ searchParams }: PageProps<"/recipes/new">) {
   const sp = await searchParams;
-  const [{ userId, profile }, categories, recipeTags, cuisines] = await Promise.all([
+  const [{ userId, profile, aal }, categories, recipeTags, cuisines] = await Promise.all([
     getViewer(),
     getCategories(),
     getRecipeTags(),
@@ -22,7 +22,7 @@ export default async function NewRecipePage({ searchParams }: PageProps<"/recipe
     const q = next.toString();
     redirect(`/login?next=${encodeURIComponent(`/recipes/new${q ? `?${q}` : ""}`)}`);
   }
-  const editor = isEditorRole(profile);
+  const editor = isEditorRole(profile, aal);
   return (
     <div className="wrap narrow">
       <div className="page-head">

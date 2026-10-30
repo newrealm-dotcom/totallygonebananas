@@ -10,7 +10,7 @@ export const metadata: Metadata = { title: "Edit recipe" };
 
 export default async function EditRecipePage({ params }: PageProps<"/recipes/[slug]/edit">) {
   const { slug } = await params;
-  const [{ userId, profile }, categories, recipe, recipeTags, cuisines] = await Promise.all([
+  const [{ userId, profile, aal }, categories, recipe, recipeTags, cuisines] = await Promise.all([
     getViewer(),
     getCategories(),
     getRecipeBySlug(slug),
@@ -19,7 +19,7 @@ export default async function EditRecipePage({ params }: PageProps<"/recipes/[sl
   ]);
   if (!userId) redirect(`/login?next=/recipes/${slug}/edit`);
   if (!recipe) notFound();
-  if (!canEdit(recipe, userId, profile)) redirect(`/recipes/${slug}`);
+  if (!canEdit(recipe, userId, profile, aal)) redirect(`/recipes/${slug}`);
   const initial = valuesFromRecipe(recipe);
   initial.notes = sanitizeUserHtml(initial.notes);
   return (
@@ -30,7 +30,7 @@ export default async function EditRecipePage({ params }: PageProps<"/recipes/[sl
       </div>
       <RecipeForm
         userId={userId}
-        isEditor={isEditorRole(profile)}
+        isEditor={isEditorRole(profile, aal)}
         categories={categories}
         cuisines={cuisines}
         activeTags={recipeTags.map((t) => t.name)}

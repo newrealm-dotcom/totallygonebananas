@@ -97,8 +97,8 @@ export default async function RecipePage({ params, searchParams }: PageProps<"/r
   if (!r) r = await getRecipeBySlug(slug);
   if (!r) notFound();
 
-  const { userId, profile } = await getViewer();
-  if (r.status !== "published" && !canEdit(r, userId, profile) && !isEditorRole(profile)) {
+  const { userId, profile, aal } = await getViewer();
+  if (r.status !== "published" && !canEdit(r, userId, profile, aal) && !isEditorRole(profile, aal)) {
     notFound();
   }
 
@@ -283,7 +283,7 @@ export default async function RecipePage({ params, searchParams }: PageProps<"/r
                           {"🍌".repeat(l.rating)}
                         </span>
                         <span className="muted">{shortDate(l.created_at)}</span>
-                        {(l.user_id === userId || isEditorRole(profile)) && <RemoveLogButton id={l.id} />}
+                        {(l.user_id === userId || isEditorRole(profile, aal)) && <RemoveLogButton id={l.id} />}
                       </div>
                       {l.tip && <p>{l.tip}</p>}
                     </li>
@@ -377,7 +377,7 @@ export default async function RecipePage({ params, searchParams }: PageProps<"/r
                 />
               </div>
             ) : null}
-            {r.status === "pending" && isEditorRole(profile) && (
+            {r.status === "pending" && isEditorRole(profile, aal) && (
               <div className="panel" style={{ marginTop: "1.2rem" }}>
                 <h2>Review</h2>
                 <ReviewButtons recipeId={r.id} />

@@ -63,6 +63,7 @@ export function TurnstileField({
         src="https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit"
         strategy="lazyOnload"
         onLoad={() => setLoaded(true)}
+        onReady={() => setLoaded(true)}
       />
       <div id={id} ref={containerRef} />
     </div>

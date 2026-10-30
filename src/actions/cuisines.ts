@@ -8,8 +8,8 @@ export type SaveCuisineResult = { ok: true; name: string } | { ok: false; error:
 
 /** Insert a cuisine if it is not already in the catalog. Editors only. */
 export async function ensureRecipeCuisine(raw: string): Promise<SaveCuisineResult> {
-  const { profile } = await getViewer();
-  if (!isEditorRole(profile)) return { ok: false, error: "Only editors can add a cuisine." };
+  const { profile, aal } = await getViewer();
+  if (!isEditorRole(profile, aal)) return { ok: false, error: "Only editors can add a cuisine." };
 
   const name = normalizeCuisine(raw);
   const issue = cuisineIssue(name);
