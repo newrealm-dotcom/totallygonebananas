@@ -88,6 +88,7 @@ export function RecipeForm({ userId, isEditor, categories, cuisines = [...CUISIN
     return names;
   });
   const inputs = useRef(new Map<string, HTMLInputElement | HTMLTextAreaElement>());
+  const formRef = useRef<HTMLFormElement>(null);
   const tagsAccordionRef = useRef<HTMLDetailsElement>(null);
 
   const isPublished = initialStatus === "published";
@@ -543,6 +544,9 @@ export function RecipeForm({ userId, isEditor, categories, cuisines = [...CUISIN
       const bad = v.tags.map((t) => tagIssue(t)).find(Boolean);
       if (bad) local.tags = bad;
     }
+    const formToken = formRef.current ? new FormData(formRef.current).get("cf-turnstile-response") : "";
+    const effectiveTurnstileToken = turnstileToken || (typeof formToken === "string" ? formToken : "");
+    if (!isEditor && !effectiveTurnstileToken) local.form = "Please complete the captcha and try again.";
     if (Object.keys(local).length) {
       if (local.tags) {
         setTagsOpen(true);
@@ -590,7 +594,7 @@ export function RecipeForm({ userId, isEditor, categories, cuisines = [...CUISIN
       adaptedFromUrl: v.adaptedFromUrl.trim(),
       cuisine: v.cuisine,
       intent,
-      turnstileToken,
+      turnstileToken: effectiveTurnstileToken,
     };
     // Drafts may be incomplete; give the server something valid to hold on to.
     if (intent === "draft") {
@@ -625,7 +629,7 @@ export function RecipeForm({ userId, isEditor, categories, cuisines = [...CUISIN
 
   /* ------------------------------------------------------------------ render */
   return (
-    <form className="rf" noValidate data-clarity-mask="true" onSubmit={(e) => { e.preventDefault(); submit(isEditor ? "publish" : "submit"); }}>
+    <form ref={formRef} className="rf" noValidate data-clarity-mask="true" onSubmit={(e) => { e.preventDefault(); submit(isEditor ? "publish" : "submit"); }}>
       <nav className="rf-toc" aria-label="Form sections">
         {SECTIONS.map(([id, label], i) => (
           <a key={id} href={`#${fid(id)}`}><span aria-hidden="true">{i + 1}</span>{label}</a>
