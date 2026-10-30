@@ -4,8 +4,6 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { geoAlbersUsa, geoContains, geoPath } from "d3-geo";
 import { feature, mesh } from "topojson-client";
 import statesTopology from "us-atlas/states-10m.json";
-import type { Feature, FeatureCollection, Geometry } from "geojson";
-import type { GeometryCollection as TopoGeometryCollection, Topology } from "topojson-specification";
 
 interface BananaVariety {
   id: string;
@@ -37,8 +35,49 @@ type ZoneProperties = {
   [key: string]: unknown;
 };
 
-type ZoneFeature = Feature<Geometry, ZoneProperties>;
-type ZoneCollection = FeatureCollection<Geometry, ZoneProperties>;
+type Geometry = {
+  type: string;
+  coordinates?: unknown;
+  geometries?: Geometry[];
+  [key: string]: unknown;
+};
+
+interface Feature<Properties = Record<string, unknown>> {
+  type: "Feature";
+  geometry: Geometry;
+  properties: Properties;
+  id?: string | number;
+  bbox?: number[];
+}
+
+interface FeatureCollection<Properties = Record<string, unknown>> {
+  type: "FeatureCollection";
+  features: Feature<Properties>[];
+  bbox?: number[];
+}
+
+interface TopoGeometry<Properties = Record<string, unknown>> {
+  type: string;
+  properties?: Properties;
+  [key: string]: unknown;
+}
+
+interface TopoGeometryCollection<Properties = Record<string, unknown>> {
+  type: "GeometryCollection";
+  geometries: TopoGeometry<Properties>[];
+  [key: string]: unknown;
+}
+
+interface Topology<Objects extends Record<string, unknown>> {
+  type: "Topology";
+  objects: Objects;
+  arcs: unknown[];
+  transform?: unknown;
+  bbox?: number[];
+}
+
+type ZoneFeature = Feature<ZoneProperties>;
+type ZoneCollection = FeatureCollection<ZoneProperties>;
 type ZoneTopology = Topology<{ zones: TopoGeometryCollection<ZoneProperties> }>;
 
 interface ZoneLookupResult {
@@ -520,7 +559,10 @@ async function loadZoneFile(path: string): Promise<ZoneFeature[]> {
   const res = await fetch(path);
   if (!res.ok) throw new Error(`Could not load ${path}`);
   const topology = (await res.json()) as ZoneTopology;
-  const collection = feature(topology, topology.objects.zones) as unknown as ZoneCollection;
+  const collection = (feature as (topology: unknown, object: unknown) => unknown)(
+    topology,
+    topology.objects.zones,
+  ) as ZoneCollection;
   return collection.features;
 }
 
@@ -541,22 +583,21 @@ export function BananaGrowingZones() {
 
   const projection = useMemo(() => geoAlbersUsa().fitSize([WIDTH, HEIGHT], { type: "Sphere" }), []);
   const path = useMemo(() => geoPath(projection), [projection]);
-  const stateMesh = useMemo(
-    () =>
-      mesh(
-        statesTopology as unknown as Topology<{ states: TopoGeometryCollection }>,
-        (statesTopology as unknown as Topology<{ states: TopoGeometryCollection }>).objects.states,
-        (a, b) => a !== b,
-      ),
-    [],
-  );
+  const stateMesh = useMemo(() => {
+    const topology = statesTopology as unknown as { objects: { states: unknown } };
+    return (mesh as (topology: unknown, object: unknown, filter?: (a: unknown, b: unknown) => boolean) => unknown)(
+      topology,
+      topology.objects.states,
+      (a, b) => a !== b,
+    );
+  }, []);
 
   const zonePaths = useMemo(
     () =>
       zones
         .map((zone) => ({
           feature: zone,
-          d: path(zone) ?? "",
+          d: path(zone as never) ?? "",
           zone: zone.properties.zone,
         }))
         .filter((zone) => zone.d),
@@ -639,7 +680,7 @@ export function BananaGrowingZones() {
 
   function findContainingZone(lat: number, lon: number): string | null {
     const point: [number, number] = [lon, lat];
-    const found = zones.find((zone) => geoContains(zone, point));
+    const found = zones.find((zone) => geoContains(zone as never, point));
     return found?.properties.zone ?? null;
   }
 
@@ -764,7 +805,7 @@ export function BananaGrowingZones() {
                   }}
                 />
               ))}
-              <path className="bgz-state-lines" d={path(stateMesh) ?? ""} aria-hidden="true" />
+              <path className="bgz-state-lines" d={path(stateMesh as never) ?? ""} aria-hidden="true" />
             </g>
             <g aria-hidden="true">
               {ZONE_LABELS.map((label) => {
