@@ -3,6 +3,7 @@
 import { Resend } from "resend";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { verifyTurnstileToken } from "@/lib/turnstile";
+import { formSubmissionBlocked } from "@/lib/form-rate-limit";
 import { fieldErrors, newsletterInput } from "@/lib/validation";
 
 export type NewsletterSignupResult =
@@ -22,6 +23,8 @@ export async function subscribeNewsletter(raw: unknown): Promise<NewsletterSignu
   const source = parsed.data.source || "footer";
   const captcha = await verifyTurnstileToken(parsed.data.turnstileToken);
   if (!captcha.ok) return { ok: false, errors: { form: captcha.error } };
+  const limited = await formSubmissionBlocked("newsletter");
+  if (limited) return { ok: false, errors: { form: limited } };
 
   let supabase: ReturnType<typeof createAdminClient>;
   try {

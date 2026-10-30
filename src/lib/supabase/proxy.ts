@@ -15,7 +15,10 @@ import { REFERRAL_COOKIE, sanitizeReferral } from "@/lib/referral";
 const PROTECTED = [/^\/profile(\/|$)/, /^\/recipes\/new$/, /^\/recipes\/[^/]+\/edit$/, /^\/admin(\/|$)/];
 
 /** Refreshes the auth session cookie on every request and guards signed-in-only pages. */
-export async function updateSession(request: NextRequest, requestHeaders?: Headers) {
+export async function updateSession(
+  request: NextRequest,
+  requestHeaders?: Headers,
+): Promise<{ response: NextResponse; userId: string | null }> {
   const forwarded = requestHeaders ? { request: { headers: requestHeaders } } : { request };
   let response = NextResponse.next(forwarded);
   const { url, key } = getSupabaseEnv();
@@ -36,7 +39,8 @@ export async function updateSession(request: NextRequest, requestHeaders?: Heade
 
   // Do not put code between createServerClient and getClaims: it keeps the session fresh.
   const { data } = await supabase.auth.getClaims();
-  const signedIn = Boolean(data?.claims?.sub);
+  const userId = typeof data?.claims?.sub === "string" ? data.claims.sub : null;
+  const signedIn = Boolean(userId);
 
   // Remember that this browser has an account so the header can say "Sign In" after logout.
   if (signedIn && request.cookies.get(HAS_ACCOUNT_COOKIE)?.value !== "1") {
@@ -74,7 +78,7 @@ export async function updateSession(request: NextRequest, requestHeaders?: Heade
     const login = request.nextUrl.clone();
     login.pathname = "/login";
     login.search = `?next=${encodeURIComponent(path + request.nextUrl.search)}`;
-    return NextResponse.redirect(login);
+    return { response: NextResponse.redirect(login), userId };
   }
 
   // Remember the first published recipe an anonymous visitor actually opens.
@@ -87,5 +91,5 @@ export async function updateSession(request: NextRequest, requestHeaders?: Heade
     }
   }
 
-  return response;
+  return { response, userId };
 }

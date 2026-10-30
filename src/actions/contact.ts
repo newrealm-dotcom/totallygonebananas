@@ -1,6 +1,7 @@
 "use server";
 
 import { Resend } from "resend";
+import { formSubmissionBlocked } from "@/lib/form-rate-limit";
 import { contactInput, fieldErrors } from "@/lib/validation";
 import { verifyTurnstileToken } from "@/lib/turnstile";
 
@@ -18,6 +19,8 @@ export async function sendContactMessage(raw: unknown): Promise<SendContactResul
   const { name, email, comments } = parsed.data;
   const captcha = await verifyTurnstileToken(parsed.data.turnstileToken);
   if (!captcha.ok) return { ok: false, errors: { form: captcha.error } };
+  const limited = await formSubmissionBlocked("contact");
+  if (limited) return { ok: false, errors: { form: limited } };
 
   const apiKey = process.env.RESEND_API_KEY?.trim();
   if (!apiKey) {
