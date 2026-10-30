@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { notFound, redirect } from "next/navigation";
-import { canEdit, getCategories, getRecipeBySlug, getRecipeCuisines, getRecipeTags, getViewer, isEditorRole } from "@/lib/queries";
+import { canEdit, getCategories, getRecipeBySlug, getRecipeCuisines, getRecipeTags, getViewer, isAdminRole, isEditorRole } from "@/lib/queries";
 import { RecipeForm } from "@/components/RecipeForm";
 import { valuesFromRecipe } from "@/lib/recipe-form-values";
 import { sanitizeUserHtml } from "@/lib/sanitize-html";
@@ -18,6 +18,7 @@ export default async function EditRecipePage({ params }: PageProps<"/recipes/[sl
     getRecipeCuisines(),
   ]);
   if (!userId) redirect(`/login?next=/recipes/${slug}/edit`);
+  if (isAdminRole(profile) && aal !== "aal2") redirect(`/login/mfa?next=${encodeURIComponent(`/recipes/${slug}/edit`)}`);
   if (!recipe) notFound();
   if (!canEdit(recipe, userId, profile, aal)) redirect(`/recipes/${slug}`);
   const initial = valuesFromRecipe(recipe);

@@ -1,7 +1,7 @@
 "use server";
 
 import { cuisineIssue, normalizeCuisine } from "@/lib/cuisines";
-import { getViewer, isEditorRole } from "@/lib/queries";
+import { getViewer, isAdminRole, isEditorRole } from "@/lib/queries";
 import { createClient } from "@/lib/supabase/server";
 
 export type SaveCuisineResult = { ok: true; name: string } | { ok: false; error: string };
@@ -9,6 +9,7 @@ export type SaveCuisineResult = { ok: true; name: string } | { ok: false; error:
 /** Insert a cuisine if it is not already in the catalog. Editors only. */
 export async function ensureRecipeCuisine(raw: string): Promise<SaveCuisineResult> {
   const { profile, aal } = await getViewer();
+  if (isAdminRole(profile) && aal !== "aal2") return { ok: false, error: "Please complete multi-factor authentication before adding cuisines." };
   if (!isEditorRole(profile, aal)) return { ok: false, error: "Only editors can add a cuisine." };
 
   const name = normalizeCuisine(raw);
