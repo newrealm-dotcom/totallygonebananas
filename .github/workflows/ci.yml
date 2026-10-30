@@ -16,12 +16,13 @@ jobs:
       NEXT_TELEMETRY_DISABLED: 1
     steps:
       - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10.28.0
       - uses: actions/setup-node@v4
         with:
           node-version: 22
           cache: pnpm
-      - run: corepack enable
-      - run: corepack prepare pnpm@10.28.0 --activate
       - run: pnpm install --frozen-lockfile
       - run: pnpm run lint
       - run: pnpm run typecheck
