@@ -3,8 +3,8 @@
 import { useEffect, useRef } from "react";
 
 /**
- * Renders trusted HTML (from editor/admin content) and re-inserts `<script>`
- * tags so they execute — browsers ignore scripts set via innerHTML.
+ * Renders trusted admin HTML and re-inserts `<script>` tags so they execute.
+ * Do not use this for recipes, comments, or other member-written content.
  */
 export function HtmlWithScripts({
   html,

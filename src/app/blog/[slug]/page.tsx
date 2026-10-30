@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { headers } from "next/headers";
 import Link from "next/link";
 import Image from "next/image";
 import { notFound } from "next/navigation";
@@ -80,12 +81,14 @@ export default async function BlogPostPage({ params }: PageProps<"/blog/[slug]">
     : null;
   const sectionHref = isFavorite ? "/our-faves" : "/blog";
   const sectionLabel = isFavorite ? "Our Faves" : "Blog";
+  const nonce = (await headers()).get("x-nonce") ?? undefined;
 
   return (
     <>
       <article className="wrap blog-post">
         {headJson ? (
           <script
+            nonce={nonce}
             type="application/ld+json"
             dangerouslySetInnerHTML={{ __html: headJson }}
           />

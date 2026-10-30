@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { cookies } from "next/headers";
+import { cookies, headers } from "next/headers";
 import { notFound } from "next/navigation";
 import { RecipeSignupGate } from "@/components/RecipeSignupGate";
 import {
@@ -22,8 +22,8 @@ import { createClient } from "@/lib/supabase/server";
 import { publicUrl } from "@/lib/media";
 import { shortDate, tintFor, titleCase } from "@/lib/format";
 import { buildRecipeJsonLd, jsonLdScript, numberRecipeStepBlocks } from "@/lib/recipe-jsonld";
-import { HtmlWithScripts } from "@/components/HtmlWithScripts";
 import { renderPostMarkdown } from "@/lib/render-post-markdown";
+import { sanitizeUserHtml } from "@/lib/sanitize-html";
 import { MediaView } from "@/components/MediaView";
 import { SaveButton } from "@/components/SaveButton";
 import { IngredientPanel } from "@/components/IngredientPanel";
@@ -148,10 +148,12 @@ export default async function RecipePage({ params, searchParams }: PageProps<"/r
         )
       : null;
 
+  const nonce = (await headers()).get("x-nonce") ?? undefined;
+
   return (
     <div className="wrap">
       {recipeLd ? (
-        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: recipeLd }} />
+        <script nonce={nonce} type="application/ld+json" dangerouslySetInnerHTML={{ __html: recipeLd }} />
       ) : null}
       {sp.saved === "published" && <BananaRain active />}
       {savedMsg && (
@@ -369,7 +371,10 @@ export default async function RecipePage({ params, searchParams }: PageProps<"/r
             {r.notes?.trim() ? (
               <div className="recipe-notes" aria-labelledby="notes-title">
                 <h2 id="notes-title">Notes</h2>
-                <HtmlWithScripts className="recipe-notes-body" html={renderPostMarkdown(r.notes)} />
+                <div
+                  className="recipe-notes-body"
+                  dangerouslySetInnerHTML={{ __html: sanitizeUserHtml(renderPostMarkdown(r.notes)) }}
+                />
               </div>
             ) : null}
             {r.status === "pending" && isEditorRole(profile) && (

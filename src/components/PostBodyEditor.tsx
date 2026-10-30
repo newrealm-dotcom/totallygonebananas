@@ -296,8 +296,14 @@ export function PostBodyEditor({
         />
       )}
       <p className="hint" style={{ marginTop: ".55rem" }}>
-        Code mode accepts full HTML, including <code>&lt;img&gt;</code>, <code>&lt;style&gt;</code>, and <code>&lt;script&gt;</code>.
-        Stay in Code while editing those so Visual doesn&apos;t reshape them.
+        {compact ? (
+          <>Formatting is kept. Scripts and other active code are removed when the recipe is shown.</>
+        ) : (
+          <>
+            Code mode accepts full HTML, including <code>&lt;img&gt;</code>, <code>&lt;style&gt;</code>, and <code>&lt;script&gt;</code>.
+            Stay in Code while editing those so Visual doesn&apos;t reshape them.
+          </>
+        )}
       </p>
     </div>
   );

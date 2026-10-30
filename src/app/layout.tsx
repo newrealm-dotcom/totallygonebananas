@@ -1,4 +1,5 @@
 import type { Metadata, Viewport } from "next";
+import { headers } from "next/headers";
 import Script from "next/script";
 import localFont from "next/font/local";
 import { Analytics } from "@vercel/analytics/next";
@@ -181,7 +182,8 @@ const growInit = `(function(){
   watch();
 })();`;
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default async function RootLayout({ children }: { children: React.ReactNode }) {
+  const nonce = (await headers()).get("x-nonce") ?? undefined;
   return (
     <html
       lang="en"
@@ -201,15 +203,15 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             style={{ display: "none", visibility: "hidden" }}
           />
         </noscript>
-        <Script id="theme-init" strategy="beforeInteractive" dangerouslySetInnerHTML={{ __html: themeInit }} />
+        <Script id="theme-init" strategy="beforeInteractive" nonce={nonce} dangerouslySetInnerHTML={{ __html: themeInit }} />
         {/* Defer GTM so tag scripts don't compete with LCP / inflate TBT on mobile. */}
-        <Script id="gtm-init" strategy="lazyOnload" dangerouslySetInnerHTML={{ __html: gtmInit }} />
+        <Script id="gtm-init" strategy="lazyOnload" nonce={nonce} dangerouslySetInnerHTML={{ __html: gtmInit }} />
         {clarityInit ? (
-          <Script id="microsoft-clarity" strategy="lazyOnload" dangerouslySetInnerHTML={{ __html: clarityInit }} />
+          <Script id="microsoft-clarity" strategy="lazyOnload" nonce={nonce} dangerouslySetInnerHTML={{ __html: clarityInit }} />
         ) : null}
-        {/* Grow Faves: idle/interaction delayed — keeps recommendations without tanking PSI. */}
+        {/* Grow Faves is not in the script allowlist, so this loader stays without a nonce and CSP blocks it. */}
         <Script id="grow-faves" strategy="lazyOnload" dangerouslySetInnerHTML={{ __html: growInit }} />
-        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
+        <script nonce={nonce} type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
         <a className="skip" href="#main">Skip to content</a>
         <SiteHeader />
         <main id="main">{children}</main>

@@ -3,6 +3,7 @@ import { notFound, redirect } from "next/navigation";
 import { canEdit, getCategories, getRecipeBySlug, getRecipeCuisines, getRecipeTags, getViewer, isEditorRole } from "@/lib/queries";
 import { RecipeForm } from "@/components/RecipeForm";
 import { valuesFromRecipe } from "@/lib/recipe-form-values";
+import { sanitizeUserHtml } from "@/lib/sanitize-html";
 import { titleCase } from "@/lib/format";
 
 export const metadata: Metadata = { title: "Edit recipe" };
@@ -19,6 +20,8 @@ export default async function EditRecipePage({ params }: PageProps<"/recipes/[sl
   if (!userId) redirect(`/login?next=/recipes/${slug}/edit`);
   if (!recipe) notFound();
   if (!canEdit(recipe, userId, profile)) redirect(`/recipes/${slug}`);
+  const initial = valuesFromRecipe(recipe);
+  initial.notes = sanitizeUserHtml(initial.notes);
   return (
     <div className="wrap narrow">
       <div className="page-head">
@@ -32,7 +35,7 @@ export default async function EditRecipePage({ params }: PageProps<"/recipes/[sl
         cuisines={cuisines}
         activeTags={recipeTags.map((t) => t.name)}
         recipeId={recipe.id}
-        initial={valuesFromRecipe(recipe)}
+        initial={initial}
         initialStatus={recipe.status}
       />
     </div>

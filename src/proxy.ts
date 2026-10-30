@@ -1,4 +1,5 @@
 import { NextResponse, type NextRequest } from "next/server";
+import { contentSecurityPolicy } from "@/lib/csp";
 import { CANONICAL_SITE_URL } from "@/lib/env";
 import { updateSession } from "@/lib/supabase/proxy";
 
@@ -17,7 +18,16 @@ function vercelAppRedirect(request: NextRequest): NextResponse | null {
 export async function proxy(request: NextRequest) {
   const redirect = vercelAppRedirect(request);
   if (redirect) return redirect;
-  return updateSession(request);
+
+  const nonce = Buffer.from(crypto.randomUUID()).toString("base64");
+  const csp = contentSecurityPolicy(nonce);
+  const requestHeaders = new Headers(request.headers);
+  requestHeaders.set("x-nonce", nonce);
+  requestHeaders.set("Content-Security-Policy", csp);
+
+  const response = await updateSession(request, requestHeaders);
+  response.headers.set("Content-Security-Policy", csp);
+  return response;
 }
 
 export const config = {

@@ -15,8 +15,9 @@ import { REFERRAL_COOKIE, sanitizeReferral } from "@/lib/referral";
 const PROTECTED = [/^\/profile(\/|$)/, /^\/recipes\/new$/, /^\/recipes\/[^/]+\/edit$/, /^\/admin(\/|$)/];
 
 /** Refreshes the auth session cookie on every request and guards signed-in-only pages. */
-export async function updateSession(request: NextRequest) {
-  let response = NextResponse.next({ request });
+export async function updateSession(request: NextRequest, requestHeaders?: Headers) {
+  const forwarded = requestHeaders ? { request: { headers: requestHeaders } } : { request };
+  let response = NextResponse.next(forwarded);
   const { url, key } = getSupabaseEnv();
 
   const supabase = createServerClient(url, key, {
@@ -26,7 +27,7 @@ export async function updateSession(request: NextRequest) {
       },
       setAll(cookiesToSet, headers) {
         cookiesToSet.forEach(({ name, value }) => request.cookies.set(name, value));
-        response = NextResponse.next({ request });
+        response = NextResponse.next(forwarded);
         cookiesToSet.forEach(({ name, value, options }) => response.cookies.set(name, value, options));
         Object.entries(headers).forEach(([k, v]) => response.headers.set(k, v));
       },

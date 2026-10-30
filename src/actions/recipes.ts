@@ -10,6 +10,7 @@ import { slugify } from "@/lib/format";
 import { flattenSteps, normalizeStepGroups } from "@/lib/steps";
 import { estimateRecipeNutrition } from "@/lib/nutrition";
 import { renderPostMarkdown } from "@/lib/render-post-markdown";
+import { sanitizeUserHtml } from "@/lib/sanitize-html";
 import { REFERRAL_COOKIE, sanitizeReferral } from "@/lib/referral";
 import { scheduleSocialShare } from "@/lib/social/share";
 import type { RecipeStatus } from "@/lib/types";
@@ -100,7 +101,7 @@ export async function saveRecipe(raw: unknown, recipeId?: string): Promise<SaveR
   }
 
   const cover = input.gallery.find((g) => g.kind === "image")?.path ?? null;
-  const notesHtml = input.notes ? renderPostMarkdown(input.notes) : "";
+  const notesHtml = input.notes ? sanitizeUserHtml(renderPostMarkdown(input.notes)) : "";
   const nutrition = estimateRecipeNutrition(input.ingredients, input.servings || null);
   const row = {
     title: input.title,
