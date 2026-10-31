@@ -11,8 +11,8 @@ const ScrollEngagementPopup = dynamic(
   () => import("@/components/ScrollEngagementPopup").then((m) => m.ScrollEngagementPopup),
   { ssr: false },
 );
-const AuthJoinedBeacon = dynamic(
-  () => import("@/components/AuthJoinedBeacon").then((m) => m.AuthJoinedBeacon),
+const AuthClientEffects = dynamic(
+  () => import("@/components/AuthClientEffects").then((m) => m.AuthClientEffects),
   { ssr: false },
 );
 
@@ -27,7 +27,7 @@ export function DeferredScrollEngagementPopup() {
 export function DeferredAuthJoinedBeacon() {
   return (
     <Suspense fallback={null}>
-      <AuthJoinedBeacon />
+      <AuthClientEffects />
     </Suspense>
   );
 }

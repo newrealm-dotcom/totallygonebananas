@@ -1432,6 +1432,13 @@ textarea.field { resize: vertical; line-height: 1.45; }
   cursor: not-allowed;
 }
 .row-actions { display: flex; flex-wrap: wrap; gap: .7rem; align-items: center; }
+.welcome-stand { margin: 0 0 1.4rem; }
+.welcome-kicker { margin: 0; font-weight: 800; letter-spacing: .04em; text-transform: uppercase; color: var(--brown); }
+.welcome-stand h2 { margin: 0; }
+.welcome-steps { list-style: none; margin: 0; padding: 0; display: grid; gap: .7rem; }
+.welcome-steps li { display: grid; gap: .15rem; padding: .8rem 1rem; border: 3px solid var(--brown); border-radius: 16px; background: #C7E7D7; }
+.welcome-steps a { font-weight: 800; }
+.welcome-steps span { font-weight: 700; }
 .notice-inline { display: flex; gap: 1rem; align-items: center; flex-wrap: wrap; background: #C7E7D7; color: var(--brown); border: 3px solid var(--brown); border-radius: 18px; padding: 1rem; font-weight: 800; margin: 1.2rem 0 0; }
 .notice-inline.warn { background: var(--yellow); }
 .notice-inline .linkbtn { color: var(--brown); }

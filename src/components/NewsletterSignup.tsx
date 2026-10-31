@@ -1,55 +1,38 @@
 "use client";
 
 import { useCallback, useState, useTransition } from "react";
-import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { subscribeNewsletter } from "@/actions/newsletter";
 import { TurnstileField } from "@/components/TurnstileField";
 import { trackEvent, trackFormFill } from "@/lib/analytics/datalayer";
+import { newsletterContinuePath } from "@/lib/newsletter-next";
 
 export function NewsletterSignup() {
+  const router = useRouter();
   const [pending, startTransition] = useTransition();
-  const [done, setDone] = useState(false);
   const [email, setEmail] = useState("");
-  const [subscribedEmail, setSubscribedEmail] = useState("");
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [turnstileToken, setTurnstileToken] = useState("");
   const [turnstileResetKey, setTurnstileResetKey] = useState(0);
   const onTurnstileToken = useCallback((token: string) => setTurnstileToken(token), []);
 
-  function onSubmit(e: React.FormEvent) {
+  function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setErrors({});
+    const formToken = new FormData(e.currentTarget).get("cf-turnstile-response");
+    const captchaToken = turnstileToken || (typeof formToken === "string" ? formToken : "");
     startTransition(async () => {
-      const result = await subscribeNewsletter({ email, turnstileToken });
+      const result = await subscribeNewsletter({ email, turnstileToken: captchaToken });
       if (!result.ok) {
         setErrors(result.errors);
         setTurnstileResetKey((v) => v + 1);
         return;
       }
       const clean = email.trim();
-      setSubscribedEmail(clean);
-      setDone(true);
-      setEmail("");
       trackEvent("newsletter_signup", { source: "footer" });
       trackFormFill("newsletter", { source: "footer" });
+      router.push(newsletterContinuePath(clean));
     });
-  }
-
-  if (done) {
-    const loginHref = `/login?next=${encodeURIComponent("/profile")}&intent=newsletter&email=${encodeURIComponent(subscribedEmail)}`;
-    return (
-      <div className="footer-newsletter is-done">
-        <p className="footer-newsletter-thanks" role="status">
-          You&apos;re on the list — thanks for joining the bunch.
-        </p>
-        <p className="footer-newsletter-bridge">
-          <Link href={loginHref} className="footer-newsletter-bridge-link">
-            Create your free Banana Stand
-          </Link>{" "}
-          with the same email to save recipes and earn points.
-        </p>
-      </div>
-    );
   }
 
   return (

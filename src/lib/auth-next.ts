@@ -35,6 +35,33 @@ export function sanitizeAuthNext(raw: string | null | undefined, requestOrigin?:
   return null;
 }
 
+const FRESH_ACCOUNT_MS = 20 * 60 * 1000;
+
+/** True when the auth user was created moments ago — their first confirmation, not a later sign-in. */
+export function isFreshAccount(createdAt: string | null | undefined, now = Date.now()): boolean {
+  if (!createdAt) return false;
+  const created = Date.parse(createdAt);
+  if (!Number.isFinite(created)) return false;
+  const age = now - created;
+  return age >= 0 && age < FRESH_ACCOUNT_MS;
+}
+
+/**
+ * First confirmation lands on the Banana Stand, with a welcome and a way back
+ * to whatever they were trying to open.
+ */
+export function firstLoginDestination(next: string): string {
+  const safe = sanitizeAuthNext(next) ?? "/profile";
+  const pathOnly = safe.split(/[?#]/)[0] ?? safe;
+  const existing = new URLSearchParams(safe.split("?")[1]?.split("#")[0] ?? "");
+  const params = new URLSearchParams();
+  params.set("welcome", "1");
+  const priorReturn = sanitizeAuthNext(existing.get("return"));
+  if (priorReturn) params.set("return", priorReturn);
+  else if (pathOnly !== "/profile") params.set("return", safe);
+  return withAuthJoinedFlag(`/profile?${params.toString()}`);
+}
+
 /** Append `joined=1` so the client can fire a one-time conversion beacon. */
 export function withAuthJoinedFlag(path: string): string {
   const hashIdx = path.indexOf("#");

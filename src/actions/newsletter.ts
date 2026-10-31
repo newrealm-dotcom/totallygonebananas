@@ -1,6 +1,8 @@
 "use server";
 
 import { Resend } from "resend";
+import { siteUrl } from "@/lib/env";
+import { newsletterContinuePath } from "@/lib/newsletter-next";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { verifyTurnstileToken } from "@/lib/turnstile";
 import { formSubmissionBlocked } from "@/lib/form-rate-limit";
@@ -52,14 +54,29 @@ export async function subscribeNewsletter(raw: unknown): Promise<NewsletterSignu
     return { ok: true };
   }
 
+  const continueUrl = new URL(newsletterContinuePath(email), siteUrl()).toString();
   const resend = new Resend(apiKey);
-  await resend.emails.send({
-    from: NEWSLETTER_FROM,
-    to: [NEWSLETTER_TO],
-    replyTo: email,
-    subject: `Newsletter signup: ${email}`,
-    text: [`New newsletter signup`, ``, `Email: ${email}`, `Source: ${source}`].join("\n"),
-  });
+  await Promise.allSettled([
+    resend.emails.send({
+      from: NEWSLETTER_FROM,
+      to: [email],
+      subject: "You're on the Totally Gone Bananas list",
+      text: [
+        "You're on the list.",
+        "",
+        "We'll send what's cooking and the latest banana musings to this address.",
+        "",
+        `Create your free Banana Stand: ${continueUrl}`,
+      ].join("\n"),
+    }),
+    resend.emails.send({
+      from: NEWSLETTER_FROM,
+      to: [NEWSLETTER_TO],
+      replyTo: email,
+      subject: `Newsletter signup: ${email}`,
+      text: [`New newsletter signup`, ``, `Email: ${email}`, `Source: ${source}`].join("\n"),
+    }),
+  ]);
 
   return { ok: true };
 }

@@ -252,6 +252,11 @@ otp_expiry = 3600
 subject = "Your sign-in link"
 content_path = "./supabase/templates/magic_link.html"
 
+# First signup confirmation. Same token_hash path, then the app opens /profile.
+[auth.email.template.confirmation]
+subject = "Confirm your email"
+content_path = "./supabase/templates/confirmation.html"
+
 # Uncomment to customize notification email template
 # [auth.email.notification.password_changed]
 # enabled = true

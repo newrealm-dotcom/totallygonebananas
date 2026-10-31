@@ -2,7 +2,14 @@
 
 import { useCallback, useState } from "react";
 import { useRouter } from "next/navigation";
-import { AUTH_NEXT_COOKIE, HAS_ACCOUNT_COOKIE, HAS_ACCOUNT_MAX_AGE, withAuthJoinedFlag } from "@/lib/auth-next";
+import {
+  AUTH_NEXT_COOKIE,
+  HAS_ACCOUNT_COOKIE,
+  HAS_ACCOUNT_MAX_AGE,
+  firstLoginDestination,
+  isFreshAccount,
+  withAuthJoinedFlag,
+} from "@/lib/auth-next";
 import { trackButtonClick, trackEvent, trackFormFill } from "@/lib/analytics/datalayer";
 import { createClient } from "@/lib/supabase/client";
 import { TurnstileField } from "@/components/TurnstileField";
@@ -96,14 +103,17 @@ export function LoginForm({
     }
     setState("verifying");
     setError("");
-    const { error } = await createClient().auth.verifyOtp({ email, token, type: "email" });
-    if (error) {
+    const supabase = createClient();
+    // Confirmation emails use type "signup"; later sign-ins use "email".
+    const emailTry = await supabase.auth.verifyOtp({ email, token, type: "email" });
+    const signupTry = emailTry.error ? await supabase.auth.verifyOtp({ email, token, type: "signup" }) : null;
+    const verified = signupTry && !signupTry.error ? signupTry : emailTry;
+    if (verified.error) {
       setState("sent");
-      setError(error.message);
+      setError(verified.error.message);
       return;
     }
     rememberHasAccount();
-    const supabase = createClient();
     const { data: claimsData } = await supabase.auth.getClaims();
     const userId = typeof claimsData?.claims?.sub === "string" ? claimsData.claims.sub : null;
     const aal = typeof claimsData?.claims?.aal === "string" ? claimsData.claims.aal : "aal1";
@@ -115,8 +125,11 @@ export function LoginForm({
         return;
       }
     }
-    // `joined=1` triggers AuthJoinedBeacon once (same path as magic-link / OAuth).
-    router.replace(withAuthJoinedFlag(next));
+    const createdAt = verified.data.user?.created_at;
+    const confirmedSignup = Boolean(signupTry && !signupTry.error);
+    const landing =
+      confirmedSignup || isFreshAccount(createdAt) ? firstLoginDestination(next) : withAuthJoinedFlag(next);
+    router.replace(landing);
     router.refresh();
   }
 
@@ -133,9 +146,13 @@ export function LoginForm({
         <div>
           <h2>Check your email</h2>
           <p>
-            We sent a sign-in link to <b>{email}</b>. You can open the link, or enter the code from
-            that email below.
+            We sent a message to <b>{email}</b>. Open it to confirm your address. A new account
+            lands on your Banana Stand. You can also enter the code from that email below.
           </p>
+          <ol className="welcome-steps">
+            <li>Open the email and tap the link.</li>
+            <li>Your profile opens so you can name your stand and save a recipe.</li>
+          </ol>
         </div>
         <form onSubmit={verifyCode} className="stack" noValidate data-clarity-mask="true">
           <div className="f">
@@ -158,7 +175,7 @@ export function LoginForm({
             </p>
           )}
           <button className="btn" type="submit" disabled={state === "verifying"}>
-            {state === "verifying" ? "Signing in…" : "Sign in with code"}
+            {state === "verifying" ? "Confirming…" : "Confirm and continue"}
           </button>
         </form>
         <button

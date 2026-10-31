@@ -16,6 +16,8 @@ import {
   type SavedRecipeItem,
 } from "@/components/ProfileCollection";
 import { siteUrlSafe } from "@/app/profile/helpers";
+import { NewMemberWelcome } from "@/components/NewMemberWelcome";
+import { sanitizeAuthNext } from "@/lib/auth-next";
 import { getDarkMainSliderImages, getMainSliderImages, pickRandomSlide } from "@/lib/main-slider";
 import { referralHandle } from "@/lib/referral";
 import { LEVELS, meterTone, pointsFromCounts, standingsFor } from "@/lib/standings";
@@ -24,10 +26,20 @@ import type { Rating } from "@/lib/types";
 export const metadata: Metadata = { title: "My Banana Stand" };
 
 export default async function ProfilePage({ searchParams }: PageProps<"/profile">) {
-  const { userId, profile } = await getViewer();
-  if (!userId || !profile) redirect("/login?next=/profile");
   const sp = await searchParams;
   const tab = (["saved", "recipes", "made"] as const).find((t) => t === sp.tab) ?? "saved";
+  const welcome = sp.welcome === "1";
+  const subscribed = sp.newsletter === "1";
+  const returnTo = sanitizeAuthNext(typeof sp.return === "string" ? sp.return : null);
+  const { userId, profile } = await getViewer();
+  if (!userId || !profile) {
+    const back = new URLSearchParams();
+    if (welcome) back.set("welcome", "1");
+    if (subscribed) back.set("newsletter", "1");
+    if (returnTo) back.set("return", returnTo);
+    const dest = back.size ? `/profile?${back.toString()}` : "/profile";
+    redirect(`/login?next=${encodeURIComponent(dest)}`);
+  }
   const supabase = await createClient();
 
   const [savesRes, mineRes, logsRes, lightSlides, darkSlides] = await Promise.all([
@@ -96,6 +108,12 @@ export default async function ProfilePage({ searchParams }: PageProps<"/profile"
 
   return (
     <div className="wrap">
+      {welcome ? <NewMemberWelcome needsName={!profile.username} returnTo={returnTo} tab={tab} /> : null}
+      {subscribed && !welcome ? (
+        <p className="notice-inline" role="status">
+          You&apos;re on the newsletter. We&apos;ll send what&apos;s cooking to the address you used.
+        </p>
+      ) : null}
       <section className="stand-hero">
         <HeroSlide lightSrc={heroLight} darkSrc={heroDark} />
         <div>

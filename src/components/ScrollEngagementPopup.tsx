@@ -2,10 +2,12 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
-import { useEffect, useId, useRef, useState, useTransition } from "react";
+import { usePathname, useRouter } from "next/navigation";
+import { useCallback, useEffect, useId, useRef, useState, useTransition } from "react";
 import { subscribeNewsletter } from "@/actions/newsletter";
+import { TurnstileField } from "@/components/TurnstileField";
 import { trackButtonClick, trackEvent, trackFormFill } from "@/lib/analytics/datalayer";
+import { newsletterContinuePath } from "@/lib/newsletter-next";
 
 const STORAGE_KEY = "tgb-scroll-engagement-popup";
 const SHOW_AT_SCROLL = 0.33;
@@ -33,11 +35,15 @@ export function ScrollEngagementPopup() {
   const inputId = useId();
   const closeRef = useRef<HTMLButtonElement>(null);
   const pathname = usePathname();
+  const router = useRouter();
   const [gate, setGate] = useState<Gate>(() => readGate());
   const [open, setOpen] = useState(false);
   const [pending, startTransition] = useTransition();
   const [email, setEmail] = useState("");
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [turnstileToken, setTurnstileToken] = useState("");
+  const [turnstileResetKey, setTurnstileResetKey] = useState(0);
+  const onTurnstileToken = useCallback((token: string) => setTurnstileToken(token), []);
 
   useEffect(() => {
     if (gate !== "eligible" || open) return;
@@ -86,19 +92,27 @@ export function ScrollEngagementPopup() {
     closePopup();
   }
 
-  function onSubmit(e: React.FormEvent) {
+  function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setErrors({});
+    const formToken = new FormData(e.currentTarget).get("cf-turnstile-response");
+    const captchaToken = turnstileToken || (typeof formToken === "string" ? formToken : "");
     startTransition(async () => {
-      const result = await subscribeNewsletter({ email, source: "scroll_engagement_popup" });
+      const result = await subscribeNewsletter({
+        email,
+        source: "scroll_engagement_popup",
+        turnstileToken: captchaToken,
+      });
       if (!result.ok) {
         setErrors(result.errors);
+        setTurnstileResetKey((v) => v + 1);
         return;
       }
-      closePopup();
-      setEmail("");
+      const clean = email.trim();
       trackEvent("newsletter_signup", { source: "scroll_engagement_popup" });
       trackFormFill("newsletter", { source: "scroll_engagement_popup" });
+      writeDone();
+      router.push(newsletterContinuePath(clean));
     });
   }
 
@@ -167,6 +181,7 @@ export function ScrollEngagementPopup() {
               {errors.email || errors.form}
             </p>
           ) : null}
+          <TurnstileField onTokenChange={onTurnstileToken} resetKey={turnstileResetKey} />
         </form>
 
         <div className="scroll-popup-newsletter-art" aria-hidden="true">

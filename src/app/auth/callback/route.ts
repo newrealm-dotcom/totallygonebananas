@@ -4,7 +4,9 @@ import type { EmailOtpType } from "@supabase/supabase-js";
 import {
   AUTH_NEXT_COOKIE,
   HAS_ACCOUNT_COOKIE,
+  firstLoginDestination,
   hasAccountCookieOptions,
+  isFreshAccount,
   sanitizeAuthNext,
   withAuthJoinedFlag,
 } from "@/lib/auth-next";
@@ -29,11 +31,10 @@ export async function GET(request: NextRequest) {
   const tokenHash = url.searchParams.get("token_hash");
   const type = (url.searchParams.get("type") as EmailOtpType | null) ?? "email";
 
-  const destination = withAuthJoinedFlag(next);
-
   // Build the redirect response first so session cookies are written onto it
   // (cookies().set alone can be dropped on a bare redirect in App Router).
-  let response = NextResponse.redirect(new URL(destination, url.origin));
+  // The final path is chosen after we know whether this is a brand-new account.
+  let response = NextResponse.redirect(new URL("/profile", url.origin));
   const { url: supabaseUrl, key } = getSupabaseEnv();
 
   const supabase = createServerClient(supabaseUrl, key, {
@@ -43,7 +44,7 @@ export async function GET(request: NextRequest) {
       },
       setAll(cookiesToSet) {
         cookiesToSet.forEach(({ name, value }) => request.cookies.set(name, value));
-        response = NextResponse.redirect(new URL(destination, url.origin));
+        response = NextResponse.redirect(new URL("/profile", url.origin));
         cookiesToSet.forEach(({ name, value, options }) => response.cookies.set(name, value, options));
       },
     },
@@ -51,15 +52,15 @@ export async function GET(request: NextRequest) {
 
   // Prefer token_hash (SSR-safe magic links). Fall back to PKCE code exchange for OAuth
   // and for older ConfirmationURL emails until the Magic Link template is updated.
-  const { error } = tokenHash
+  const verified = tokenHash
     ? await supabase.auth.verifyOtp({ token_hash: tokenHash, type })
     : code
       ? await supabase.auth.exchangeCodeForSession(code, flowId ? { flowId } : undefined)
-      : { error: new Error("missing auth credentials") };
+      : { data: { user: null }, error: new Error("missing auth credentials") };
 
   response.cookies.set(AUTH_NEXT_COOKIE, "", { path: "/", maxAge: 0 });
 
-  if (error) {
+  if (verified.error) {
     const login = new URL("/login", url.origin);
     login.searchParams.set("error", "auth");
     if (next !== "/profile") login.searchParams.set("next", next);
@@ -67,6 +68,11 @@ export async function GET(request: NextRequest) {
     failed.cookies.set(AUTH_NEXT_COOKIE, "", { path: "/", maxAge: 0 });
     return failed;
   }
+
+  const createdAt = verified.data.user?.created_at;
+  const landing =
+    type === "signup" || isFreshAccount(createdAt) ? firstLoginDestination(next) : withAuthJoinedFlag(next);
+  response = copyRedirectCookies(response, new URL(landing, url.origin));
 
   const { data: claimsData } = await supabase.auth.getClaims();
   const claims = claimsData?.claims;
@@ -76,7 +82,7 @@ export async function GET(request: NextRequest) {
     const { data: profile } = await supabase.from("profiles").select("role").eq("id", userId).maybeSingle<{ role: string }>();
     if (profile?.role === "admin" && aal !== "aal2") {
       const mfa = new URL("/login/mfa", url.origin);
-      mfa.searchParams.set("next", next);
+      mfa.searchParams.set("next", landing);
       response = copyRedirectCookies(response, mfa);
     }
   }
