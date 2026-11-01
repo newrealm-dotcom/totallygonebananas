@@ -13,6 +13,10 @@ export const MEDIA_PATH_RE = /^[0-9a-f-]{36}\/[A-Za-z0-9._-]{1,120}$/;
 
 export function publicUrl(path: string | null | undefined, bucket = RECIPE_BUCKET): string | null {
   if (!path) return null;
+  if (bucket === RECIPE_BUCKET) {
+    if (!MEDIA_PATH_RE.test(path)) return null;
+    return `/api/media/recipe/${path}`;
+  }
   const base = process.env.NEXT_PUBLIC_SUPABASE_URL?.replace(/\/$/, "");
   return base ? `${base}/storage/v1/object/public/${bucket}/${path}` : null;
 }

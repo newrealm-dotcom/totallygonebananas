@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<meta name="theme-color" content="#FBF9E6">
+<title>Totally Gone Bananas: From Green to Gone</title>
+<style>
+  html, body {
+    margin: 0; height: 100%; background: #FBF9E6; overflow: hidden;
+    touch-action: none; -webkit-user-select: none; user-select: none;
+    -webkit-tap-highlight-color: transparent; overscroll-behavior: none;
+  }
+  body { display: flex; align-items: center; justify-content: center; }
+  canvas {
+    display: block; border-radius: 18px; cursor: pointer; touch-action: none;
+    box-shadow: 0 10px 40px rgba(120, 90, 20, .18);
+  }
+  #hint {
+    position: fixed; left: 0; right: 0; bottom: 24px; text-align: center; display: none;
+    font: bold 15px "Arial Rounded MT Bold", "Trebuchet MS", system-ui, sans-serif; color: #8A6A1E;
+    pointer-events: none;
+  }
+  @media (orientation: portrait) and (max-width: 700px) { #hint { display: block; } }
+  @media (max-width: 700px), (max-height: 420px) {
+    canvas { border-radius: 0; box-shadow: none; }
+  }
+</style>
+</head>
+<body>
+<div id="hint">Turn your phone sideways for a bigger view 📱↻</div>
+<canvas id="game" role="img" aria-label="Totally Gone Bananas: an endless runner game. Press Space or tap to jump."></canvas>
+<script src="banana-runner.js" defer></script>
+</body>
+</html>

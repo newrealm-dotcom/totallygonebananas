@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
-import { getViewer, isEditorRole } from "@/lib/queries";
+import { getViewer, isEditorRole, isStaffRole } from "@/lib/queries";
 import { categoryInput, fieldErrors } from "@/lib/validation";
 import { slugify } from "@/lib/format";
 
@@ -13,8 +13,9 @@ export async function saveCategory(raw: unknown, existingId?: string): Promise<S
   if (!parsed.success) return { ok: false, errors: fieldErrors(parsed.error) };
   const input = parsed.data;
 
-  const { profile } = await getViewer();
-  if (!isEditorRole(profile)) return { ok: false, errors: { form: "Only editors can manage categories." } };
+  const { profile, aal } = await getViewer();
+  if (!isStaffRole(profile)) return { ok: false, errors: { form: "Only editors can manage categories." } };
+  if (!isEditorRole(profile, aal)) return { ok: false, errors: { form: "Please complete multi-factor authentication before managing categories." } };
 
   const supabase = await createClient();
   const id = existingId || input.id || slugify(input.name).slice(0, 40);
@@ -44,8 +45,9 @@ export async function saveCategory(raw: unknown, existingId?: string): Promise<S
 }
 
 export async function deleteCategory(id: string): Promise<{ ok: true } | { ok: false; error: string }> {
-  const { profile } = await getViewer();
-  if (!isEditorRole(profile)) return { ok: false, error: "Only editors can delete categories." };
+  const { profile, aal } = await getViewer();
+  if (!isStaffRole(profile)) return { ok: false, error: "Only editors can delete categories." };
+  if (!isEditorRole(profile, aal)) return { ok: false, error: "Please complete multi-factor authentication before deleting categories." };
   const supabase = await createClient();
   const { data: recipes } = await supabase.from("recipes").select("id, categories").contains("categories", [id]);
   for (const recipe of recipes ?? []) {

@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
-import { getViewer, isEditorRole } from "@/lib/queries";
+import { getViewer, isEditorRole, isStaffRole } from "@/lib/queries";
 import { fieldErrors, recipeTagInput } from "@/lib/validation";
 
 export type SaveRecipeTagResult = { ok: true; name: string } | { ok: false; errors: Record<string, string> };
@@ -22,8 +22,9 @@ export async function saveRecipeTag(raw: unknown): Promise<SaveRecipeTagResult> 
   if (!parsed.success) return { ok: false, errors: fieldErrors(parsed.error) };
   const input = parsed.data;
 
-  const { profile } = await getViewer();
-  if (!isEditorRole(profile)) return { ok: false, errors: { form: "Only editors can manage tags." } };
+  const { profile, aal } = await getViewer();
+  if (!isStaffRole(profile)) return { ok: false, errors: { form: "Only editors can manage tags." } };
+  if (!isEditorRole(profile, aal)) return { ok: false, errors: { form: "Please complete multi-factor authentication before managing tags." } };
 
   const supabase = await createClient();
   const { count } = await supabase.from("recipe_tags").select("name", { count: "exact", head: true });
@@ -44,8 +45,9 @@ export async function saveRecipeTag(raw: unknown): Promise<SaveRecipeTagResult> 
 }
 
 export async function deleteRecipeTag(name: string): Promise<{ ok: true } | { ok: false; error: string }> {
-  const { profile } = await getViewer();
-  if (!isEditorRole(profile)) return { ok: false, error: "Only editors can delete tags." };
+  const { profile, aal } = await getViewer();
+  if (!isStaffRole(profile)) return { ok: false, error: "Only editors can delete tags." };
+  if (!isEditorRole(profile, aal)) return { ok: false, error: "Please complete multi-factor authentication before deleting tags." };
 
   const supabase = await createClient();
 
