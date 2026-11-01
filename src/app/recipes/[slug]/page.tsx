@@ -12,7 +12,9 @@ import {
   getViewer,
   isEditorRole,
 } from "@/lib/queries";
+import { RecipeFreePreviewBanner } from "@/components/RecipeFreePreviewBanner";
 import { RecipeSignupGate } from "@/components/RecipeSignupGate";
+import { HAS_ACCOUNT_COOKIE } from "@/lib/auth-next";
 import {
   anonymousRecipeIsBlocked,
   RECIPE_PREVIEW_COOKIE,
@@ -99,6 +101,7 @@ export default async function RecipePage({ params, searchParams }: PageProps<"/r
         slug={r.slug}
         coverPath={coverPath}
         googleEnabled={process.env.NEXT_PUBLIC_AUTH_GOOGLE === "true"}
+        hasAccount={jar.get(HAS_ACCOUNT_COOKIE)?.value === "1"}
       />
     );
   }
@@ -138,6 +141,9 @@ export default async function RecipePage({ params, searchParams }: PageProps<"/r
         )
       : null;
 
+  const showFreePreviewBanner =
+    r.status === "published" && !userId && (!savedSlug || savedSlug === slug);
+
   return (
     <div className="wrap">
       {recipeLd ? (
@@ -151,6 +157,7 @@ export default async function RecipePage({ params, searchParams }: PageProps<"/r
           <span>{savedMsg}</span>
         </div>
       )}
+      {showFreePreviewBanner ? <RecipeFreePreviewBanner /> : null}
       {r.status !== "published" && (
         <p className="notice-inline warn" role="status">
           {r.status === "pending" && "This recipe is waiting for review. Only you and the editors can see it."}

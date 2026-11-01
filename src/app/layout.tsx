@@ -13,6 +13,7 @@ import {
   DeferredScrollEngagementPopup,
 } from "@/components/DeferredChrome";
 import { siteUrl } from "@/lib/env";
+import { getViewer } from "@/lib/queries";
 
 const shrikhand = localFont({
   src: "../../node_modules/@fontsource/shrikhand/files/shrikhand-latin-400-normal.woff2",
@@ -183,7 +184,8 @@ const growInit = `(function(){
 })();`;
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
-  const nonce = (await headers()).get("x-nonce") ?? undefined;
+  const [nonceHeader, viewer] = await Promise.all([headers(), getViewer()]);
+  const nonce = nonceHeader.get("x-nonce") ?? undefined;
   return (
     <html
       lang="en"
@@ -216,7 +218,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         <SiteHeader />
         <main id="main">{children}</main>
         <SiteFooter />
-        <DeferredScrollEngagementPopup />
+        <DeferredScrollEngagementPopup signedIn={Boolean(viewer.userId)} />
         <DeferredAuthJoinedBeacon />
         <DeferredBackToTop />
         <Analytics />

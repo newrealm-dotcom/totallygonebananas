@@ -1,7 +1,9 @@
 import type { Metadata } from "next";
 import Image from "next/image";
+import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { LoginForm } from "@/components/LoginForm";
+import { HAS_ACCOUNT_COOKIE } from "@/lib/auth-next";
 import { getViewer } from "@/lib/queries";
 
 export const metadata: Metadata = {
@@ -31,8 +33,9 @@ export default async function LoginPage({ searchParams }: PageProps<"/login">) {
   const lede =
     (intent && INTENT_LEDE[intent]) ||
     "Sign in to save recipes, rate what you cook, and share your own.";
-  const { userId } = await getViewer();
+  const [{ userId }, jar] = await Promise.all([getViewer(), cookies()]);
   if (userId && !failed) redirect(next);
+  const hasAccount = jar.get(HAS_ACCOUNT_COOKIE)?.value === "1";
   return (
     <div className="wrap narrow login">
       <div className="login-hero-stack">
@@ -72,6 +75,7 @@ export default async function LoginPage({ searchParams }: PageProps<"/login">) {
         googleEnabled={process.env.NEXT_PUBLIC_AUTH_GOOGLE === "true"}
         initialEmail={initialEmail}
         intent={intent}
+        hasAccount={hasAccount}
       />
     </div>
   );

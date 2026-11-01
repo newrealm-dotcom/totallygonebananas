@@ -20,8 +20,8 @@ export function DeferredBackToTop() {
   return <BackToTop />;
 }
 
-export function DeferredScrollEngagementPopup() {
-  return <ScrollEngagementPopup />;
+export function DeferredScrollEngagementPopup({ signedIn = false }: { signedIn?: boolean }) {
+  return <ScrollEngagementPopup signedIn={signedIn} />;
 }
 
 export function DeferredAuthJoinedBeacon() {

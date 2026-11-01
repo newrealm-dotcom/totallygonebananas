@@ -4,12 +4,33 @@ export const AUTH_NEXT_COOKIE = "tgb-auth-next";
 export const HAS_ACCOUNT_COOKIE = "tgb_has_account";
 export const HAS_ACCOUNT_MAX_AGE = 60 * 60 * 24 * 365;
 
+/** Session flag: homepage join CTA was clicked — suppresses scroll popup briefly. */
+export const HOME_JOIN_INTERACTED_KEY = "tgb-home-join-interacted";
+
+/** Set after a successful newsletter subscribe so engagement popups stay quiet. */
+export const NEWSLETTER_SUBSCRIBED_KEY = "tgb-newsletter-subscribed";
+
 export function hasAccountCookieOptions() {
   return {
     path: "/",
     maxAge: HAS_ACCOUNT_MAX_AGE,
     sameSite: "lax" as const,
   };
+}
+
+/** Client-side: visitor previously authenticated on this browser. */
+export function readHasAccountCookie(cookieHeader?: string): boolean {
+  const raw =
+    cookieHeader ?? (typeof document !== "undefined" ? document.cookie : "");
+  if (!raw) return false;
+  return raw.split(";").some((part) => part.trim() === `${HAS_ACCOUNT_COOKIE}=1`);
+}
+
+/** No-op subscribe for cookie snapshots that only matter on first paint. */
+export function subscribeHasAccountCookie(onStoreChange: () => void): () => void {
+  if (typeof window === "undefined") return () => {};
+  window.addEventListener("storage", onStoreChange);
+  return () => window.removeEventListener("storage", onStoreChange);
 }
 
 /** Path-only post-login destination, or null if unsafe. */

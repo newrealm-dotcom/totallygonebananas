@@ -1,7 +1,9 @@
 import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
+import { cookies } from "next/headers";
 import { getBlogCategories, getCategories, getHomepagePromo, getViewer, listPosts, listRecipes } from "@/lib/queries";
+import { HAS_ACCOUNT_COOKIE } from "@/lib/auth-next";
 import { createClient } from "@/lib/supabase/server";
 import { CategoryStickers } from "@/components/CategoryStickers";
 import { FilterPillsScroller } from "@/components/FilterPillsScroller";
@@ -58,7 +60,7 @@ async function categoryCounts() {
 export default async function HomePage({ searchParams }: PageProps<"/">) {
   const sp = await searchParams;
   const active = typeof sp.category === "string" ? sp.category : undefined;
-  const [categories, counts, latest, rotdPool, lightSlides, darkSlides, promo, homePosts, blogCategories, viewer] = await Promise.all([
+  const [categories, counts, latest, rotdPool, lightSlides, darkSlides, promo, homePosts, blogCategories, viewer, jar] = await Promise.all([
     getCategories(),
     categoryCounts(),
     listRecipes({ category: active, limit: 8 }),
@@ -69,7 +71,9 @@ export default async function HomePage({ searchParams }: PageProps<"/">) {
     listPosts({ publishedOnly: true, limit: 3, offset: 0, excludeCategory: "favorites" }),
     getBlogCategories(),
     getViewer(),
+    cookies(),
   ]);
+  const hasAccount = jar.get(HAS_ACCOUNT_COOKIE)?.value === "1";
   const blogCategoryNames = Object.fromEntries(blogCategories.map((c) => [c.id, c.name]));
   const promoSrc = promoImageSrc(promo.image_path);
   const cat = categories.find((c) => c.id === active);
@@ -165,6 +169,8 @@ export default async function HomePage({ searchParams }: PageProps<"/">) {
                   href="/login?intent=join"
                   buttonText="Join the bunch, it's free"
                   intent="join"
+                  markHomeJoin
+                  hasAccount={hasAccount}
                 >
                   Join the bunch, it&apos;s free
                 </TrackedSignupLink>

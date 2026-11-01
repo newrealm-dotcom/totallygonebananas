@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useState } from "react";
+import { useCallback, useState, useSyncExternalStore } from "react";
 import { useRouter } from "next/navigation";
 import {
   AUTH_NEXT_COOKIE,
@@ -8,6 +8,8 @@ import {
   HAS_ACCOUNT_MAX_AGE,
   firstLoginDestination,
   isFreshAccount,
+  readHasAccountCookie,
+  subscribeHasAccountCookie,
   withAuthJoinedFlag,
 } from "@/lib/auth-next";
 import { trackButtonClick, trackEvent, trackFormFill } from "@/lib/analytics/datalayer";
@@ -22,11 +24,14 @@ export function LoginForm({
   googleEnabled,
   initialEmail = "",
   intent = null,
+  hasAccount: hasAccountProp = false,
 }: {
   next: string;
   googleEnabled: boolean;
   initialEmail?: string;
   intent?: string | null;
+  /** Server-known `tgb_has_account` cookie so the first paint matches. */
+  hasAccount?: boolean;
 }) {
   const router = useRouter();
   const [email, setEmail] = useState(initialEmail);
@@ -36,6 +41,14 @@ export function LoginForm({
   const [turnstileToken, setTurnstileToken] = useState("");
   const [turnstileResetKey, setTurnstileResetKey] = useState(0);
   const onTurnstileToken = useCallback((token: string) => setTurnstileToken(token), []);
+  const hasAccount = useSyncExternalStore(
+    subscribeHasAccountCookie,
+    readHasAccountCookie,
+    () => hasAccountProp,
+  );
+
+  const joinIntent = intent === "join" || intent === "recipe" || intent === "save" || intent === "rate" || intent === "share" || intent === "float" || intent === "newsletter";
+  const submitLabel = hasAccount || !joinIntent ? "Email me a sign-in link" : "Email me a free join link";
 
   // Keep redirectTo free of query params — GoTrue's PKCE redirect can drop `code`
   // when the allow-listed URL already has a query string.
@@ -233,7 +246,7 @@ export function LoginForm({
         )}
         <TurnstileField onTokenChange={onTurnstileToken} resetKey={turnstileResetKey} />
         <button className="btn" type="submit" disabled={state === "sending"}>
-          {state === "sending" ? "Sending…" : "Email me a sign-in link"}
+          {state === "sending" ? "Sending…" : submitLabel}
         </button>
       </form>
       {googleEnabled && (
@@ -246,7 +259,11 @@ export function LoginForm({
           </button>
         </>
       )}
-      <p className="hint">No password needed. New here? The same link creates your account.</p>
+      <p className="hint">
+        {hasAccount
+          ? "No password needed. We'll email you a sign-in link."
+          : "No password needed. New here? The same link creates your free Banana Stand."}
+      </p>
     </div>
   );
 }

@@ -5532,6 +5532,37 @@ html[data-theme="dark"] .back-to-top {
   box-shadow: 5px 5px 0 var(--line);
 }
 .login { max-width: 600px; padding-bottom: 3rem; }
+.recipe-free-preview {
+  margin-top: 1rem;
+  margin-bottom: 0;
+  font-size: .98rem;
+}
+.recipe-free-preview a {
+  color: inherit;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+.filter-tags-more {
+  margin: .35rem 0 .85rem;
+}
+.filter-tags-more-summary {
+  cursor: pointer;
+  font-weight: 800;
+  color: var(--muted);
+  list-style: none;
+}
+.filter-tags-more-summary::-webkit-details-marker { display: none; }
+.filter-tags-more-summary::before {
+  content: "▾ ";
+  font-size: .85em;
+}
+.filter-tags-more[open] > .filter-tags-more-summary::before { content: "▴ "; }
+.filter-tags-more-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .45rem .55rem;
+  margin-top: .65rem;
+}
 .recipe-gate { max-width: 640px; margin: 0 auto; padding-bottom: 3.5rem; }
 .recipe-gate-art {
   position: relative;

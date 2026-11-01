@@ -8,12 +8,14 @@ export function RecipeSignupGate({
   slug,
   coverPath,
   googleEnabled,
+  hasAccount = false,
 }: {
   title: string;
   slug: string;
   /** Published cover stays visible; only the recipe body stays behind the gate. */
   coverPath?: string | null;
   googleEnabled: boolean;
+  hasAccount?: boolean;
 }) {
   return (
     <div className="wrap narrow recipe-gate">
@@ -24,13 +26,18 @@ export function RecipeSignupGate({
         </div>
       ) : null}
       <div className="page-head">
-        <h1>Sign up free to read more recipes</h1>
+        <h1>Join free to keep cooking</h1>
         <p className="lede">
-          You can open one recipe without an account. Create a free Banana Stand to read <b>{title}</b> and every
-          other recipe on the site.
+          Guests get one full recipe. Your free preview is used up — create a free Banana Stand to open{" "}
+          <b>{title}</b> and every other recipe on the site.
         </p>
       </div>
-      <LoginForm next={`/recipes/${slug}`} googleEnabled={googleEnabled} intent="recipe" />
+      <LoginForm
+        next={`/recipes/${slug}`}
+        googleEnabled={googleEnabled}
+        intent="recipe"
+        hasAccount={hasAccount}
+      />
       <p className="recipe-gate-back">
         <Link href="/recipes">Back to all recipes</Link>
       </p>
