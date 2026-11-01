@@ -60,8 +60,8 @@ importers:
         specifier: 16.4.3
         version: 16.4.3(@babel/core@7.29.7)(@playwright/test@1.64.1)(@types/node@26.6.6)(react-dom@19.3.1(react@19.3.1))(react@19.3.1)
       parse-ingredient:
-        specifier: ^3.0.0
-        version: 3.0.0
+        specifier: ^3.1.0
+        version: 3.1.0
       react:
         specifier: 19.3.1
         version: 19.3.1
@@ -2249,8 +2249,8 @@ packages:
     resolution: {integrity: sha512-GQ2EWRpQV8/o+Aw8YqtfZZPfNRWZYkbidE9k5rpl/hC3vtHHBfGm2Ifi6qWV+coDGkrUKZAxE3Lot5kcsRlh+g==}
     engines: {node: '>=6'}
 
-  parse-ingredient@3.0.0:
-    resolution: {integrity: sha512-1pmfoDfK2i/rE2jIBmGfcATDGEoCvYD98hClaMKzKsh11VNdgQzX44hs1YW1R7dgy0fO08VkNiK5+3isNlYbZA==}
+  parse-ingredient@3.1.0:
+    resolution: {integrity: sha512-qMaidXMC/3Awb4sS0ZAc+EtXHmah8L+bGoMAOjjcB16C6Z7AD8NhASbwVrDLnRCjBf+XSW1ZG5nqDNKNAK/r4A==}
     engines: {node: '>=20'}
 
   parse-srcset@1.0.2:
@@ -4890,7 +4890,7 @@ snapshots:
     dependencies:
       callsites: 3.1.0
 
-  parse-ingredient@3.0.0:
+  parse-ingredient@3.1.0:
     dependencies:
       numeric-quantity: 3.3.3
 
