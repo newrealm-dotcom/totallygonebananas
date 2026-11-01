@@ -35,7 +35,7 @@ import { PrintRecipeButton } from "@/components/PrintRecipeButton";
 import { RecipeFacts } from "@/components/RecipeFacts";
 import { DeleteRecipeButton, RemoveLogButton, ReviewButtons } from "@/components/OwnerTools";
 import { BananaRain } from "@/components/BananaRain";
-import type { CookLog } from "@/lib/types";
+import type { CookLog, Rating } from "@/lib/types";
 
 /**
  * Per visitor: anonymous browsers may receive one full recipe, then a signup
@@ -93,20 +93,90 @@ export default async function RecipePage({ params, searchParams }: PageProps<"/r
 
   const jar = await cookies();
   const savedSlug = recipePreviewSlugFromCookie(jar.get(RECIPE_PREVIEW_COOKIE)?.value);
-  if (r.status === "published" && anonymousRecipeIsBlocked(savedSlug, r.slug, Boolean(userId))) {
-    const coverPath = r.cover_path ?? r.recipe_media.find((m) => m.kind === "image")?.path ?? null;
+  const gated =
+    r.status === "published" && anonymousRecipeIsBlocked(savedSlug, r.slug, Boolean(userId));
+
+  const [categories, ratings] = gated
+    ? ([await getCategories(), new Map<string, Rating>()] as const)
+    : await Promise.all([getCategories(), getRatings([r.id])]);
+
+  const recipeCats = (r.categories ?? [])
+    .map((id) => categories.find((c) => c.id === id))
+    .filter((c): c is (typeof categories)[number] => !!c);
+  const primary = recipeCats[0];
+  const rating = ratings.get(r.id);
+  const gallery = r.recipe_media;
+  const heroMedia = gallery[0] ?? null;
+  const heroPath = heroMedia?.path ?? r.cover_path;
+  const heroKind = heroMedia?.kind === "video" ? ("video" as const) : ("image" as const);
+  const heroAlt = heroMedia?.caption || r.title;
+
+  if (gated) {
     return (
-      <RecipeSignupGate
-        title={titleCase(r.title)}
-        slug={r.slug}
-        coverPath={coverPath}
-        googleEnabled={process.env.NEXT_PUBLIC_AUTH_GOOGLE === "true"}
-        hasAccount={jar.get(HAS_ACCOUNT_COOKIE)?.value === "1"}
-      />
+      <div className="wrap recipe-gated">
+        <nav className="crumbs" aria-label="Breadcrumb">
+          <Link href="/recipes">Recipes</Link>
+          {recipeCats.map((cat) => (
+            <span key={cat.id} className="crumbs-item">
+              <span aria-hidden="true">&gt;</span>
+              <Link href={`/recipes?category=${cat.id}`}>{cat.name}</Link>
+            </span>
+          ))}
+        </nav>
+
+        <section className="d-hero recipe-gated-teaser">
+          <div className="d-media">
+            <div className="d-art" style={{ background: tintFor(primary?.id ?? null, categories) }}>
+              {heroPath ? (
+                <MediaView
+                  path={heroPath}
+                  kind={heroKind}
+                  alt={heroAlt}
+                  priority
+                  sizes="(max-width: 900px) 100vw, 520px"
+                />
+              ) : (
+                <span aria-hidden="true">{r.emoji || primary?.emoji || "🍌"}</span>
+              )}
+            </div>
+            {r.tags.length > 0 && (
+              <div className="meta">
+                {r.tags.slice(0, 6).map((t) => (
+                  <Link key={t} className="pill" href={`/recipes?tag=${encodeURIComponent(t)}`}>
+                    {t}
+                  </Link>
+                ))}
+              </div>
+            )}
+            {r.author && (
+              <div className="d-credit">
+                <p className="byline">
+                  Shared by {r.author.display_name || "a banana fan"}
+                  {r.published_at ? ` on ${shortDate(r.published_at)}` : ""}
+                </p>
+              </div>
+            )}
+          </div>
+
+          <div className="d-right">
+            <div className="d-heading">
+              <h1 className="h1">{titleCase(r.title)}</h1>
+              <RecipeFacts difficulty={r.difficulty} servings={r.servings} totalMinutes={r.total_minutes} />
+              {r.description && <p className="lede">{r.description}</p>}
+            </div>
+          </div>
+        </section>
+
+        <RecipeSignupGate
+          title={titleCase(r.title)}
+          slug={r.slug}
+          googleEnabled={process.env.NEXT_PUBLIC_AUTH_GOOGLE === "true"}
+          hasAccount={jar.get(HAS_ACCOUNT_COOKIE)?.value === "1"}
+        />
+      </div>
     );
   }
 
-  const [categories, ratings] = await Promise.all([getCategories(), getRatings([r.id])]);
   const saved = (await getSavedIds(userId)).has(r.id);
   const supabase = await createClient();
   const { data: logsData } = await supabase
@@ -121,15 +191,8 @@ export default async function RecipePage({ params, searchParams }: PageProps<"/r
     : { data: [] as { id: string; display_name: string | null }[] };
   const nameOf = new Map((names ?? []).map((n) => [n.id, n.display_name]));
 
-  const recipeCats = (r.categories ?? [])
-    .map((id) => categories.find((c) => c.id === id))
-    .filter((c): c is (typeof categories)[number] => !!c);
-  const primary = recipeCats[0];
-  const rating = ratings.get(r.id);
   const editable = canEdit(r, userId, profile, aal);
   const savedMsg = typeof sp.saved === "string" ? SAVED_MSG[sp.saved] : undefined;
-  const gallery = r.recipe_media;
-  const hero = gallery[0];
   const stepBlocks = numberRecipeStepBlocks(r.steps);
   const recipeLd =
     r.status === "published"
@@ -180,11 +243,11 @@ export default async function RecipePage({ params, searchParams }: PageProps<"/r
       <section className="d-hero">
         <div className="d-media">
           <div className="d-art" style={{ background: tintFor(primary?.id ?? null, categories) }}>
-            {hero ? (
+            {heroPath ? (
               <MediaView
-                path={hero.path}
-                kind={hero.kind}
-                alt={hero.caption || r.title}
+                path={heroPath}
+                kind={heroKind}
+                alt={heroAlt}
                 priority
                 sizes="(max-width: 900px) 100vw, 520px"
               />
@@ -201,8 +264,8 @@ export default async function RecipePage({ params, searchParams }: PageProps<"/r
               recipe={{
                 title: titleCase(r.title),
                 description: r.description,
-                imageUrl: hero && hero.kind !== "video" ? publicUrl(hero.path) : null,
-                imageAlt: hero?.caption || r.title,
+                imageUrl: heroPath && heroKind !== "video" ? publicUrl(heroPath) : null,
+                imageAlt: heroAlt,
                 difficulty: r.difficulty,
                 servings: r.servings,
                 totalMinutes: r.total_minutes,
