@@ -7,8 +7,9 @@ import { disconnectTikTok } from "@/lib/social/tiktok";
 type Result = { ok: true } | { ok: false; error: string };
 
 export async function disconnectTikTokAccount(): Promise<Result> {
-  const { profile } = await getViewer();
+  const { profile, aal } = await getViewer();
   if (!isAdminRole(profile)) return { ok: false, error: "Only admins can disconnect TikTok." };
+  if (aal !== "aal2") return { ok: false, error: "Please complete multi-factor authentication before disconnecting TikTok." };
   try {
     await disconnectTikTok();
     revalidatePath("/admin/tiktok");

@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { MfaPanel } from "@/components/MfaPanel";
-import { getViewer, isAdminRole } from "@/lib/queries";
+import { getViewer, isStaffRole } from "@/lib/queries";
 import { ProfileForm } from "@/components/ProfileForm";
 
 export const metadata: Metadata = { title: "Edit profile" };
@@ -21,7 +21,7 @@ export default async function SettingsPage() {
       </nav>
       <div className="page-head"><h1>Edit profile</h1></div>
       <ProfileForm profile={profile} />
-      <MfaPanel isAdmin={isAdminRole(profile)} />
+      <MfaPanel isAdmin={isStaffRole(profile)} />
     </div>
   );
 }

@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
-import { getCategories, getRecipeCuisines, getRecipeTags, getViewer, isAdminRole, isEditorRole } from "@/lib/queries";
+import { getCategories, getRecipeCuisines, getRecipeTags, getViewer, isEditorRole, isStaffRole } from "@/lib/queries";
 import { RecipeForm } from "@/components/RecipeForm";
 
 export const metadata: Metadata = { title: "Share a recipe" };
@@ -23,7 +23,7 @@ export default async function NewRecipePage({ searchParams }: PageProps<"/recipe
   if (!userId) {
     redirect(`/login?next=${encodeURIComponent(nextPath)}`);
   }
-  if (isAdminRole(profile) && aal !== "aal2") redirect(`/login/mfa?next=${encodeURIComponent(nextPath)}`);
+  if (isStaffRole(profile) && aal !== "aal2") redirect(`/login/mfa?next=${encodeURIComponent(nextPath)}`);
   const editor = isEditorRole(profile, aal);
   return (
     <div className="wrap narrow">

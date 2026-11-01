@@ -158,7 +158,7 @@ export function MfaPanel({ isAdmin = false, required = false, next = "/profile" 
 
   function removeFactor(factorId: string) {
     if (isAdmin && verified.length <= 1) {
-      setError("Admins must keep at least one authenticator app enabled.");
+      setError("Editor and admin accounts must keep at least one authenticator app enabled.");
       return;
     }
     setError("");
@@ -180,9 +180,9 @@ export function MfaPanel({ isAdmin = false, required = false, next = "/profile" 
   if (required) {
     return (
       <div className="panel stack mfa-panel" data-clarity-mask="true">
-        <h2>Admin verification</h2>
+        <h2>Staff verification</h2>
         <p className="hint">
-          Admin accounts need an authenticator app before admin tools can be used.
+          Editor and admin accounts need an authenticator app before those tools can be used.
         </p>
         {needsAdminMfa && challengeFactor ? (
           <form className="stack" onSubmit={verifyChallenge} noValidate>
@@ -255,7 +255,7 @@ export function MfaPanel({ isAdmin = false, required = false, next = "/profile" 
       <div>
         <h2 id="mfa-settings-h">Authenticator app</h2>
         <p className="hint">
-          Add a one-time code from an authenticator app for extra protection. Admins must keep one enabled.
+          Add a one-time code from an authenticator app for extra protection. Editor and admin accounts must keep one enabled.
         </p>
       </div>
       {verified.length ? (
@@ -339,7 +339,7 @@ export function MfaPanel({ isAdmin = false, required = false, next = "/profile" 
       )}
       {error ? <p className="f-err" role="alert">{error}</p> : null}
       {message ? <p className="ok-msg" role="status">{message}</p> : null}
-      {isAdmin && verified.length <= 1 ? <p className="hint">Admin accounts must keep at least one verified authenticator app.</p> : null}
+      {isAdmin && verified.length <= 1 ? <p className="hint">Editor and admin accounts must keep at least one verified authenticator app.</p> : null}
     </section>
   );
 }

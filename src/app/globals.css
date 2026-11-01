@@ -78,7 +78,8 @@ button, input, select, textarea { font: inherit; color: inherit; }
   }
   .blog-post,
   .blog-index,
-  .our-faves-page {
+  .our-faves-page,
+  .not-found-page {
     width: 100%;
     max-width: none;
     padding-inline: 150px;
@@ -1520,8 +1521,7 @@ html[data-theme="dark"] .hero {
   align-self: center;
 }
 .hero-copy h1,
-.hero-copy .hero-subhead,
-.hero-copy .lede {
+.hero-copy .hero-subhead {
   display: block;
   width: 100%;
   max-width: none;
@@ -1536,17 +1536,13 @@ html[data-theme="dark"] .hero {
 /* Desktop headline is two rows. Hide the break everywhere else so the sentence wraps on its own. */
 .hero-h-break { display: none; }
 .hero-subhead {
-  margin: 0 0 .45rem;
-  color: var(--ink);
-  font-size: clamp(1.18rem, 4cqi, 1.45rem);
-  font-weight: 900;
-  line-height: 1.2;
-  text-wrap: balance;
-}
-.hero-copy .lede {
-  font-size: clamp(1.05rem, 3.5cqi, 1.25rem);
-  line-height: 1.45;
-  text-wrap: wrap;
+  margin: 0 0 .15rem;
+  color: var(--muted);
+  font-size: clamp(1.05rem, 3.4cqi, 1.22rem);
+  font-weight: 600;
+  line-height: 1.4;
+  text-wrap: pretty;
+  max-width: 36rem;
 }
 .hero-search {
   display: flex;
@@ -1648,11 +1644,8 @@ html[data-theme="dark"] .hero-slide-stack .hero-slide-dark { display: block; }
   .hero-copy h1 {
     font-size: clamp(2.2rem, 11.5cqi, 3.75rem);
   }
-  .hero-copy .lede {
-    font-size: clamp(1.05rem, 2.4cqi, 1.18rem);
-  }
   .hero-subhead {
-    font-size: clamp(1.08rem, 2.6cqi, 1.2rem);
+    font-size: clamp(1.05rem, 2.5cqi, 1.18rem);
   }
   .hero-art {
     justify-self: stretch;
@@ -1679,9 +1672,9 @@ html[data-theme="dark"] .hero-slide-stack .hero-slide-dark { display: block; }
     white-space: nowrap;
     font-size: clamp(2.4rem, 8.9cqi, 3.7rem);
   }
-  .hero-subhead,
-  .hero-copy .lede {
-    white-space: nowrap;
+  .hero-subhead {
+    white-space: normal;
+    max-width: 34rem;
   }
   /* Photo background on desktop only. The menu stays in the header; the copy, search, and categories stay on the left. */
   .hero {
@@ -5383,6 +5376,68 @@ article.blog-post {
 }
 
 /* ---------- about / login ---------- */
+.not-found-page {
+  padding-bottom: clamp(2rem, 4vw, 3.5rem);
+}
+.not-found {
+  position: relative;
+  isolation: isolate;
+  display: grid;
+  grid-template-columns: minmax(0, 3fr) minmax(0, 1fr);
+  gap: 2rem 2.5rem;
+  align-items: stretch;
+  padding: clamp(1.8rem, 4vw, 3rem) 0 2rem;
+}
+.not-found::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image: url("/images/404bg.webp");
+  background-repeat: no-repeat;
+  background-position: center top;
+  background-size: contain;
+  opacity: 0.2;
+  pointer-events: none;
+  z-index: 0;
+}
+.not-found > * {
+  position: relative;
+  z-index: 1;
+}
+.not-found-copy {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+.not-found-copy .h1 { margin-bottom: .9rem; }
+.not-found-status {
+  margin: 0 0 .35rem;
+  font-family: var(--sans);
+  font-size: .95rem;
+  font-weight: 900;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+  color: var(--brown);
+}
+.not-found-message {
+  margin: 0;
+  max-width: 42ch;
+  font-weight: 600;
+  color: var(--muted);
+}
+.not-found-actions { margin: 1.2rem 0 0; }
+.not-found-art {
+  justify-self: center;
+  align-self: center;
+  width: 100%;
+  max-width: 460px;
+}
+.not-found-art img {
+  width: 100%;
+  height: auto;
+  display: block;
+}
 .about { display: grid; grid-template-columns: minmax(0, 3fr) minmax(0, 2fr); gap: 2.5rem; align-items: start; padding: clamp(1.8rem, 4vw, 3rem) 0 2rem; }
 .about-copy { min-width: 0; }
 .about-copy .h1 { margin-bottom: .9rem; }
@@ -5477,7 +5532,49 @@ html[data-theme="dark"] .back-to-top {
   box-shadow: 5px 5px 0 var(--line);
 }
 .login { max-width: 600px; padding-bottom: 3rem; }
+.recipe-free-preview {
+  margin-top: 1rem;
+  margin-bottom: 0;
+  font-size: .98rem;
+}
+.recipe-free-preview a {
+  color: inherit;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+.filter-tags-more {
+  margin: .35rem 0 .85rem;
+}
+.filter-tags-more-summary {
+  cursor: pointer;
+  font-weight: 800;
+  color: var(--muted);
+  list-style: none;
+}
+.filter-tags-more-summary::-webkit-details-marker { display: none; }
+.filter-tags-more-summary::before {
+  content: "▾ ";
+  font-size: .85em;
+}
+.filter-tags-more[open] > .filter-tags-more-summary::before { content: "▴ "; }
+.filter-tags-more-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .45rem .55rem;
+  margin-top: .65rem;
+}
 .recipe-gate { max-width: 640px; margin: 0 auto; padding-bottom: 3.5rem; }
+.recipe-gate-art {
+  position: relative;
+  aspect-ratio: 4 / 3;
+  width: 100%;
+  margin: clamp(1.2rem, 3vw, 2rem) 0 0;
+  border: 3px solid var(--line);
+  border-radius: 32px;
+  box-shadow: 8px 8px 0 var(--line);
+  overflow: hidden;
+  background: var(--panel);
+}
 .recipe-gate .page-head { text-align: center; }
 .recipe-gate .lede { margin-inline: auto; }
 .recipe-gate-back { text-align: center; margin: 1.2rem 0 0; font-weight: 800; }
@@ -5547,7 +5644,8 @@ html[data-theme="dark"] .login-hero-stack .login-hero-dark { display: block; }
   /* Match /recipes first-content top spacing (.page-head) on these index pages. */
   .blog-index > .blog-archive-hero:not(:has(.blog-archive-slide)),
   .about-page .about,
-  .profile-page .stand-hero {
+  .profile-page .stand-hero,
+  .not-found-page .not-found {
     padding-top: clamp(1.8rem, 4vw, 3rem);
   }
   /* Keep the gold band continuous from the header into the hero gradient. */
@@ -5568,7 +5666,8 @@ html[data-theme="dark"] .login-hero-stack .login-hero-dark { display: block; }
 
 /* ---------- responsive ---------- */
 @media (max-width: 900px) {
-  .hero-grid, .stand-hero, .about { grid-template-columns: 1fr; }
+  .hero-grid, .stand-hero, .about, .not-found { grid-template-columns: 1fr; }
+  .not-found-art { order: -1; width: min(100%, 360px); margin-inline: auto; }
   .d-hero {
     grid-template-columns: 1fr;
     grid-template-areas:
