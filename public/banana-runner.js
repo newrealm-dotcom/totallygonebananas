@@ -43,7 +43,7 @@ const CFG = {
 // Ripeness stages: each hit moves one step to the right. Stage 4 = GONE.
 const STAGES = [
   { name: 'GREEN',    body: '#9CCB3B', shade: '#6E9A22', light: '#CBE77D', stem: '#5E7E1E' },
-  { name: 'YELLOW',   body: '#FFD93B', shade: '#E8B415', light: '#FFF2A8', stem: '#7A5A2A' },
+  { name: 'YELLOW',   body: '#F3CF31', shade: '#E8B415', light: '#FFF2A8', stem: '#7A5A2A' },
   { name: 'FRECKLED', body: '#F7CB2E', shade: '#DBA313', light: '#FFE88A', stem: '#6B4423' },
   { name: 'SPOTTY',   body: '#D9A43A', shade: '#AE7A1C', light: '#EDC46A', stem: '#5A3818' },
   { name: 'GONE',     body: '#6B4423', shade: '#4A2E15', light: '#8A5A30', stem: '#3B2410' },
@@ -53,6 +53,8 @@ const COLORS = {
   cream: '#FBF9E6', yellow: '#FFD93B', gold: '#F5B700', goldDark: '#B9860A',
   brown: '#6B4423', ink: '#3B2A14', red: '#E84A5F', white: '#FFFFFF',
 };
+// Brand character palette (from the site's mascot art / Mascot.tsx)
+const BRAND = { outline: '#462018', yellow: '#F3CF31' };
 const CONFETTI = ['#FFD93B', '#F5B700', '#E84A5F', '#7EC8E3', '#9ED99B', '#F7A1C4', '#FFFFFF'];
 const FONT = '"Arial Rounded MT Bold", "Varela Round", "Nunito", "Baloo 2", "Trebuchet MS", system-ui, sans-serif';
 
@@ -221,6 +223,10 @@ const Sound = {
    The image replaces the drawn sprite; opts.sx/sy/scale/alpha/rot are
    still honoured, so squash-and-stretch keeps working.
    ===================================================================== */
+// Official brand art, loaded from the site (same origin, so the site CSP allows it).
+const ART = { throne: new Image() };
+ART.throne.src = 'main-slider/main-banana-first.webp';
+
 const SPRITES = {
 
   /* ---------- image override helper ---------- */
@@ -242,28 +248,56 @@ const SPRITES = {
   },
 
   /* ---------- shared bits ---------- */
-  sunglasses(ctx, x, y, o = {}) {           // anchor: centre of bridge
+  // Wraparound brand shades. anchor: centre. Unscaled ≈ 46w × 15h.
+  sunglasses(ctx, x, y, o = {}) {
     ctx.save();
     ctx.translate(x, y);
     if (o.rot) ctx.rotate(o.rot);
     const s = o.scale || 1; ctx.scale(s, s);
-    ctx.strokeStyle = '#111'; ctx.lineWidth = 2.2; ctx.lineCap = 'round';
-    ctx.beginPath(); ctx.moveTo(-10, -2); ctx.lineTo(-20, 0); ctx.stroke();       // arm
-    ctx.fillStyle = '#141414';
-    // left lens
+    ctx.fillStyle = '#1A1210';
+    ctx.strokeStyle = BRAND.outline; ctx.lineWidth = 2; ctx.lineJoin = 'round';
     ctx.beginPath();
-    ctx.moveTo(-11, -5); ctx.lineTo(-1, -5); ctx.lineTo(-2, 1);
-    ctx.quadraticCurveTo(-6, 5, -10, 1); ctx.closePath(); ctx.fill();
-    // right lens
-    ctx.beginPath();
-    ctx.moveTo(1, -5); ctx.lineTo(13, -5); ctx.lineTo(12, 1);
-    ctx.quadraticCurveTo(7, 5, 2, 1); ctx.closePath(); ctx.fill();
-    // bridge
-    ctx.fillRect(-2, -5, 4, 2);
+    ctx.moveTo(-23, -5); ctx.quadraticCurveTo(0, -9, 23, -5);
+    ctx.lineTo(22, 2); ctx.quadraticCurveTo(16, 9, 7, 4);
+    ctx.quadraticCurveTo(0, 1, -7, 4); ctx.quadraticCurveTo(-16, 9, -22, 2);
+    ctx.closePath(); ctx.fill(); ctx.stroke();
     // glints
-    ctx.strokeStyle = o.gold ? 'rgba(255,215,90,0.95)' : 'rgba(255,255,255,0.8)';
-    ctx.lineWidth = 1.6;
-    ctx.beginPath(); ctx.moveTo(-8, -3); ctx.lineTo(-5, -3); ctx.moveTo(4, -3); ctx.lineTo(8, -3); ctx.stroke();
+    ctx.strokeStyle = o.gold ? 'rgba(255,215,90,0.95)' : 'rgba(255,255,255,0.85)';
+    ctx.lineWidth = 2; ctx.lineCap = 'round';
+    ctx.beginPath();
+    ctx.moveTo(-17, 1); ctx.lineTo(-12, -4);
+    ctx.moveTo(10, 1); ctx.lineTo(15, -4);
+    ctx.stroke();
+    ctx.restore();
+  },
+
+  /** Rubber-hose limb in the brand's thick dark-brown line. */
+  _limb(ctx, pts) {
+    ctx.strokeStyle = BRAND.outline; ctx.lineWidth = 5; ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+    ctx.beginPath(); ctx.moveTo(pts[0][0], pts[0][1]);
+    if (pts.length === 3) ctx.quadraticCurveTo(pts[1][0], pts[1][1], pts[2][0], pts[2][1]);
+    else for (let i = 1; i < pts.length; i++) ctx.lineTo(pts[i][0], pts[i][1]);
+    ctx.stroke();
+  },
+
+  /** Puffy white cartoon glove. */
+  _glove(ctx, x, y, gold) {
+    ctx.fillStyle = gold ? '#FFF3C4' : '#FFFFFF';
+    ctx.strokeStyle = BRAND.outline; ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.arc(x, y, 5.5, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+    ctx.beginPath(); ctx.arc(x - 4, y - 3, 2.6, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+  },
+
+  /** Chunky white sneaker (toe points right). */
+  _sneaker(ctx, x, y, rot = 0) {
+    ctx.save(); ctx.translate(x, y); ctx.rotate(rot);
+    ctx.strokeStyle = BRAND.outline; ctx.lineWidth = 2; ctx.lineJoin = 'round';
+    ctx.fillStyle = '#FFFFFF';
+    ctx.beginPath();
+    ctx.moveTo(-6, -7); ctx.lineTo(3, -7); ctx.quadraticCurveTo(12, -5, 12, 0);
+    ctx.lineTo(-7, 0); ctx.closePath(); ctx.fill(); ctx.stroke();
+    ctx.fillStyle = BRAND.outline; rr(ctx, -8, -1, 21, 4, 2); ctx.fill();      // sole
+    ctx.fillStyle = '#7A3A22'; rr(ctx, -6, -6, 5, 5, 1.5); ctx.fill();        // heel patch
     ctx.restore();
   },
 
@@ -277,14 +311,19 @@ const SPRITES = {
     ctx.closePath();
   },
 
-  /* ---------- PLAYER: the cool banana ----------
+  /* ---------- PLAYER: the Totally Gone Bananas mascot ----------
+     Drawn to match the brand character: chunky upright banana, thick
+     dark-brown outline, wraparound shades, big open grin, rubber-hose
+     limbs, white gloves and white sneakers.
      anchor: bottom-centre (between the feet).
      opts: stage 0-4, pose 'run'|'jump'|'sit', frame 0-2, sx, sy, scale,
            alpha, glow (0-1), rot */
   banana(ctx, x, y, o = {}) {
-    const st = STAGES[clamp(o.stage || 0, 0, 4)];
+    const stage = clamp(o.stage || 0, 0, 4);
+    const st = STAGES[stage];
     const pose = o.pose || 'run';
     const f = (o.frame || 0) % 3;
+    const gold = !!o.glow;
     ctx.save();
     ctx.translate(x, y);
     if (o.rot) ctx.rotate(o.rot);
@@ -294,56 +333,53 @@ const SPRITES = {
 
     // Golden "Too Cool" aura
     if (o.glow) {
-      const g = ctx.createRadialGradient(4, -44, 10, 4, -44, 70);
+      const g = ctx.createRadialGradient(2, -52, 10, 2, -52, 74);
       g.addColorStop(0, `rgba(255,215,64,${0.65 * o.glow})`);
       g.addColorStop(1, 'rgba(255,215,64,0)');
       ctx.fillStyle = g;
-      ctx.beginPath(); ctx.arc(4, -44, 70, 0, Math.PI * 2); ctx.fill();
+      ctx.beginPath(); ctx.arc(2, -52, 74, 0, Math.PI * 2); ctx.fill();
     }
 
-    ctx.strokeStyle = COLORS.ink; ctx.lineCap = 'round'; ctx.lineJoin = 'round';
-
-    // Legs: [hipX, hipY, footX, footY]
-    let legs;
-    if (pose === 'jump') legs = [[-5, -11, -13, -5], [7, -11, 13, -8]];
-    else if (pose === 'sit') legs = [[-3, -11, 16, -2], [7, -11, 24, -6]];
-    else legs = [
-      [[-5, -11, -13, 0], [7, -11, 12, 0]],
-      [[-5, -11, -1, 0], [7, -11, 4, -5]],
-      [[-5, -11, 7, 0], [7, -11, -8, -3]],
+    // Legs: hip -> knee(control) -> foot
+    const hips = [[-7, -17], [7, -17]];
+    let feet;
+    if (pose === 'jump') feet = [[-13, -6, -0.3], [13, -10, 0.25]];
+    else if (pose === 'sit') feet = [[16, -4, 0], [25, -9, -0.2]];
+    else feet = [
+      [[-15, 0, -0.15], [14, 0, 0]],
+      [[-3, 0, 0], [5, -7, 0.2]],
+      [[9, 0, 0], [-12, -4, -0.3]],
     ][f];
-    ctx.lineWidth = 4;
-    for (const [hx, hy, fx, fy] of legs) {
-      ctx.beginPath(); ctx.moveTo(hx, hy); ctx.lineTo(fx, fy); ctx.stroke();
-      ctx.fillStyle = COLORS.ink;
-      ctx.beginPath(); ctx.ellipse(fx + 3, fy, 6, 3.6, 0, 0, Math.PI * 2); ctx.fill();
-      ctx.fillStyle = '#fff';
-      ctx.fillRect(fx + 1, fy - 1.5, 3, 1.2);
+    for (let i = 0; i < 2; i++) {
+      const [hx, hy] = hips[i], [fx, fy, fr] = feet[i];
+      SPRITES._limb(ctx, [[hx, hy], [(hx + fx) / 2 + (pose === 'sit' ? 0 : 3), (hy + fy) / 2 + 1], [fx, fy - 3]]);
+      SPRITES._sneaker(ctx, fx + 1, fy, fr);
     }
 
-    // Arms (drawn behind body on the back side, in front on the front side)
-    const swing = pose === 'run' ? [6, -2, -6][f] : 0;
-    const armBack = pose === 'jump' ? [[-12, -42], [-24, -58]]
-      : pose === 'sit' ? [[-13, -52], [-22, -70], [-10, -84]]
-      : [[-12, -40], [-22, -30 + swing]];
-    ctx.lineWidth = 3.5;
-    ctx.beginPath(); ctx.moveTo(armBack[0][0], armBack[0][1]);
-    for (let i = 1; i < armBack.length; i++) ctx.lineTo(armBack[i][0], armBack[i][1]);
-    ctx.stroke();
+    // Back arm (behind the body)
+    const swing = pose === 'run' ? [6, -1, -6][f] : 0;
+    let backArm;
+    if (pose === 'jump') backArm = [[-17, -50], [-28, -56], [-30, -70]];
+    else if (pose === 'sit') backArm = [[-17, -56], [-30, -74], [-14, -92]];
+    else backArm = [[-17, -48], [-26, -44], [-27, -34 + swing]];
+    SPRITES._limb(ctx, backArm);
+    SPRITES._glove(ctx, backArm[2][0], backArm[2][1], gold);
 
-    // Stem (top) and tip (bottom)
-    ctx.fillStyle = st.stem;
+    // Stem
+    ctx.lineJoin = 'round';
+    ctx.fillStyle = st.stem; ctx.strokeStyle = BRAND.outline; ctx.lineWidth = 3;
     ctx.beginPath();
-    ctx.moveTo(-9, -79); ctx.quadraticCurveTo(-13, -90, -9, -97);
-    ctx.lineTo(-3, -96); ctx.quadraticCurveTo(-6, -88, -2, -80); ctx.closePath(); ctx.fill();
-    ctx.fillStyle = '#3B2410'; rr(ctx, -10.5, -100, 8, 5, 2); ctx.fill();
+    ctx.moveTo(-7, -88); ctx.quadraticCurveTo(-8, -98, -4, -106);
+    ctx.lineTo(4, -105); ctx.quadraticCurveTo(1, -97, 4, -89); ctx.closePath();
+    ctx.fill(); ctx.stroke();
+    ctx.fillStyle = BRAND.outline; rr(ctx, -5.5, -110, 10, 6, 2.5); ctx.fill();
 
     // Body
     const body = () => {
       ctx.beginPath();
-      ctx.moveTo(2, -8);
-      ctx.bezierCurveTo(30, -20, 26, -68, -6, -82);
-      ctx.bezierCurveTo(-20, -62, -18, -18, 2, -8);
+      ctx.moveTo(1, -15);
+      ctx.bezierCurveTo(31, -24, 32, -80, -1, -92);
+      ctx.bezierCurveTo(-26, -78, -28, -30, 1, -15);
       ctx.closePath();
     };
     body();
@@ -351,60 +387,81 @@ const SPRITES = {
 
     ctx.save();
     body(); ctx.clip();
-    // back-side shading
-    ctx.fillStyle = st.shade; ctx.globalAlpha *= 0.55;
-    ctx.beginPath(); ctx.ellipse(-17, -45, 11, 42, 0.05, 0, Math.PI * 2); ctx.fill();
-    ctx.globalAlpha /= 0.55;
-    // highlight stripe
-    ctx.strokeStyle = st.light; ctx.lineWidth = 4; ctx.globalAlpha *= 0.85;
-    ctx.beginPath(); ctx.moveTo(13, -20); ctx.quadraticCurveTo(21, -46, 7, -70); ctx.stroke();
-    ctx.globalAlpha /= 0.85;
-    // ripeness spots
-    const stage = o.stage || 0;
+    // soft shade on the back side
+    ctx.fillStyle = st.shade; ctx.globalAlpha *= 0.5;
+    ctx.beginPath(); ctx.ellipse(-22, -52, 10, 44, 0.08, 0, Math.PI * 2); ctx.fill();
+    ctx.globalAlpha /= 0.5;
+    // highlight stripe (the brand art's white sheen)
+    ctx.strokeStyle = '#FFFFFF'; ctx.lineWidth = 4; ctx.lineCap = 'round'; ctx.globalAlpha *= 0.4;
+    ctx.beginPath(); ctx.moveTo(-15, -36); ctx.quadraticCurveTo(-18, -62, -6, -82); ctx.stroke();
+    ctx.globalAlpha /= 0.4;
+    // ripeness spots (kept mostly off the face)
     if (stage >= 2) {
-      ctx.fillStyle = 'rgba(92,56,22,0.85)';
-      for (const [sx, sy, r] of [[4, -30, 2], [10, -50, 1.8], [-6, -58, 2], [14, -27, 1.6], [-2, -42, 2.2],
-        [5, -71, 1.6], [-10, -34, 1.8], [17, -38, 1.5], [0, -18, 1.8], [-12, -68, 1.5], [-8, -22, 1.6]]) {
+      ctx.fillStyle = 'rgba(92,46,20,0.85)';
+      for (const [sx, sy, r] of [[-12, -30, 2], [-17, -50, 1.8], [-8, -82, 2], [4, -24, 1.8], [18, -28, 1.6],
+        [-3, -86, 1.5], [12, -80, 1.6], [-15, -66, 1.8], [20, -76, 1.4], [-6, -27, 1.6], [24, -40, 1.5]]) {
         ctx.beginPath(); ctx.arc(sx, sy, r, 0, Math.PI * 2); ctx.fill();
       }
     }
     if (stage >= 3) {
-      ctx.fillStyle = stage >= 4 ? 'rgba(40,22,8,0.75)' : 'rgba(110,64,24,0.85)';
-      for (const [sx, sy, rx, ry] of [[-5, -50, 5, 4], [10, -33, 4.5, 3.5], [1, -21, 4, 3], [-9, -70, 3.5, 3],
-        [-12, -38, 3, 4], [16, -46, 3, 3]]) {
+      ctx.fillStyle = stage >= 4 ? 'rgba(40,18,8,0.75)' : 'rgba(110,56,22,0.85)';
+      for (const [sx, sy, rx, ry] of [[-12, -42, 5, 4], [8, -26, 4.5, 3.5], [-4, -82, 4, 3], [15, -82, 3.5, 3],
+        [-17, -60, 3, 4], [-6, -22, 3, 2.5]]) {
         ctx.beginPath(); ctx.ellipse(sx, sy, rx, ry, 0.4, 0, Math.PI * 2); ctx.fill();
       }
     }
     ctx.restore();
 
-    // ridge line + outline
-    ctx.strokeStyle = 'rgba(59,42,20,0.35)'; ctx.lineWidth = 1.5;
-    ctx.beginPath(); ctx.moveTo(1, -12); ctx.quadraticCurveTo(-8, -46, -5, -78); ctx.stroke();
     body();
-    ctx.strokeStyle = 'rgba(59,42,20,0.9)'; ctx.lineWidth = 2.5; ctx.stroke();
+    ctx.strokeStyle = BRAND.outline; ctx.lineWidth = 3.5; ctx.stroke();
     // bottom tip
-    ctx.fillStyle = '#3B2410';
-    ctx.beginPath(); ctx.ellipse(2.5, -8.5, 3.2, 2.4, 0.3, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = BRAND.outline;
+    ctx.beginPath(); ctx.ellipse(1, -15, 3.4, 2.6, 0, 0, Math.PI * 2); ctx.fill();
 
-    // Face: shades + smirk
-    SPRITES.sunglasses(ctx, 8, -60, { gold: !!o.glow });
-    ctx.strokeStyle = COLORS.ink; ctx.lineWidth = 2.2;
-    ctx.beginPath(); ctx.moveTo(6, -43); ctx.quadraticCurveTo(13, -37, 19, -46); ctx.stroke();
-    if (stage < 4) {   // rosy cheek
-      ctx.fillStyle = 'rgba(255,120,90,0.35)';
-      ctx.beginPath(); ctx.ellipse(18, -50, 3.5, 2.2, 0, 0, Math.PI * 2); ctx.fill();
-    }
+    // Face: wraparound shades + big open grin with tongue
+    SPRITES.sunglasses(ctx, 4, -65, { gold });
+    const mouth = () => {
+      ctx.beginPath();
+      ctx.moveTo(-6, -52);
+      ctx.quadraticCurveTo(8, -48, 21, -53);
+      ctx.bezierCurveTo(19, -36, -2, -35, -6, -52);
+      ctx.closePath();
+    };
+    mouth(); ctx.fillStyle = BRAND.outline; ctx.fill();
+    ctx.save(); mouth(); ctx.clip();
+    ctx.fillStyle = '#FFFFFF'; ctx.fillRect(-8, -56, 32, 6.5);                 // teeth
+    ctx.fillStyle = '#E8616E';
+    ctx.beginPath(); ctx.ellipse(9, -40, 7, 5, 0, 0, Math.PI * 2); ctx.fill();  // tongue
+    ctx.restore();
+    mouth(); ctx.strokeStyle = BRAND.outline; ctx.lineWidth = 2.5; ctx.stroke();
+    // smile creases
+    ctx.lineWidth = 2; ctx.lineCap = 'round';
+    ctx.beginPath(); ctx.moveTo(-9, -54); ctx.lineTo(-7, -50); ctx.moveTo(22, -56); ctx.lineTo(23, -51); ctx.stroke();
 
-    // Front arm
-    const armFront = pose === 'jump' ? [[18, -38], [30, -52]]
-      : pose === 'sit' ? [[18, -36], [28, -26]]
-      : [[18, -36], [28, -26 - swing]];
-    ctx.strokeStyle = COLORS.ink; ctx.lineWidth = 3.5;
-    ctx.beginPath(); ctx.moveTo(armFront[0][0], armFront[0][1]); ctx.lineTo(armFront[1][0], armFront[1][1]); ctx.stroke();
-    ctx.fillStyle = '#fff';
-    ctx.beginPath(); ctx.arc(armFront[1][0], armFront[1][1], 3.6, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+    // Front arm (in front of the body)
+    let frontArm;
+    if (pose === 'jump') frontArm = [[19, -48], [30, -56], [32, -70]];
+    else if (pose === 'sit') frontArm = [[19, -44], [28, -38], [30, -28]];
+    else frontArm = [[19, -46], [28, -42], [30, -32 - swing]];
+    SPRITES._limb(ctx, frontArm);
+    SPRITES._glove(ctx, frontArm[2][0], frontArm[2][1], gold);
 
     ctx.restore();
+  },
+
+  /* ---------- TITLE ART: the official mascot on his throne ----------
+     anchor: bottom-centre. Uses the site's own illustration
+     (/main-slider/main-banana-first.webp). If it can't load (e.g. the
+     file is opened outside the site), the drawn throne + banana is used. */
+  titleArt(ctx, x, y, o = {}) {
+    const img = ART.throne;
+    if (img.complete && img.naturalWidth) {
+      const size = 330, bob = Math.sin((o.t || 0) * 1.5) * 2;
+      ctx.drawImage(img, x - size / 2, y - size + 6 + bob, size, size);
+      return;
+    }
+    SPRITES.throne(ctx, x, y, { scale: 1.15 });
+    SPRITES.banana(ctx, x - 4, y - 70, { stage: 1, pose: 'sit', scale: 1.1, rot: -0.22 + Math.sin((o.t || 0) * 1.5) * 0.03 });
   },
 
   /* ---------- GAME OVER: banana bread loaf (wearing the shades) ----------
@@ -446,7 +503,7 @@ const SPRITES = {
       }
     }
     // happy face + the iconic shades
-    SPRITES.sunglasses(ctx, 0, -48, { scale: 2.1 });
+    SPRITES.sunglasses(ctx, 0, -50, { scale: 1.7 });
     ctx.strokeStyle = '#4A2A10'; ctx.lineWidth = 3.5; ctx.lineCap = 'round';
     ctx.beginPath(); ctx.moveTo(-14, -26); ctx.quadraticCurveTo(2, -14, 18, -28); ctx.stroke();
     ctx.fillStyle = 'rgba(255,130,90,0.35)';
@@ -987,7 +1044,7 @@ class Player {
   }
 
   /** Forgiving hitbox: noticeably smaller than the drawn banana. */
-  hitbox() { return { x: this.x - 11, y: this.y - 70, w: 26, h: 60 }; }
+  hitbox() { return { x: this.x - 12, y: this.y - 80, w: 28, h: 66 }; }
 
   draw(ctx, time) {
     // ground shadow
@@ -1690,11 +1747,10 @@ class Game {
   drawTitle(ctx) {
     const t = this.time;
     // Throne + lounging banana
-    const tx = W / 2 + 170, ty = GROUND_Y;
+    const tx = W / 2 + 185, ty = GROUND_Y;
     ctx.fillStyle = 'rgba(90,55,20,0.18)';
-    ctx.beginPath(); ctx.ellipse(tx, ty + 3, 90, 8, 0, 0, Math.PI * 2); ctx.fill();
-    SPRITES.throne(ctx, tx, ty, { scale: 1.15 });
-    SPRITES.banana(ctx, tx - 4, ty - 70, { stage: 1, pose: 'sit', scale: 1.15, rot: -0.22 + Math.sin(t * 1.5) * 0.03 });
+    ctx.beginPath(); ctx.ellipse(tx, ty + 3, 110, 9, 0, 0, Math.PI * 2); ctx.fill();
+    SPRITES.titleArt(ctx, tx, ty + 2, { t });
     // twinkles around the throne
     ctx.fillStyle = '#fff';
     for (let i = 0; i < 5; i++) {
