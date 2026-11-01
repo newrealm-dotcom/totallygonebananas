@@ -49,6 +49,8 @@ export interface ConsumeRateLimitInput {
   ipLimit: number;
   userLimit: number;
   windowSeconds: number;
+  /** Sign-in, comments, and other writes deny the request when the limiter cannot run. */
+  failClosed?: boolean;
 }
 
 export type RateLimitDecision = { ok: true; remaining?: number } | { ok: false; retryAfter: number };
@@ -89,7 +91,7 @@ export async function consumeRateLimit(input: ConsumeRateLimitInput): Promise<Ra
       missingKeyWarned = true;
       console.error("Rate limiting is off until SUPABASE_SERVICE_ROLE_KEY is set.");
     }
-    return { ok: true };
+    return input.failClosed ? { ok: false, retryAfter: input.windowSeconds } : { ok: true };
   }
 
   const keys = [await bucketKey(input.scope, "ip", input.ip)];
@@ -108,12 +110,12 @@ export async function consumeRateLimit(input: ConsumeRateLimitInput): Promise<Ra
     });
     if (error) {
       console.error("rate limit check failed", error.message);
-      return { ok: true };
+      return input.failClosed ? { ok: false, retryAfter: input.windowSeconds } : { ok: true };
     }
     return parseDecision(data, input.windowSeconds);
   } catch (error) {
     console.error("rate limit check failed", error instanceof Error ? error.message : "unknown");
-    return { ok: true };
+    return input.failClosed ? { ok: false, retryAfter: input.windowSeconds } : { ok: true };
   }
 }
 
@@ -124,6 +126,7 @@ export async function enforceRequestRateLimit(request: NextRequest, userId: stri
     request.headers.has("next-action"),
   );
   if (!policy) return { ok: true };
+  const failClosed = policy.scope === "auth" || policy.scope === "oauth" || policy.scope === "action";
   return consumeRateLimit({
     scope: policy.scope,
     ip: clientAddress((name) => request.headers.get(name)),
@@ -131,5 +134,6 @@ export async function enforceRequestRateLimit(request: NextRequest, userId: stri
     ipLimit: policy.ipLimit,
     userLimit: policy.userLimit,
     windowSeconds: policy.windowSeconds,
+    failClosed,
   });
 }

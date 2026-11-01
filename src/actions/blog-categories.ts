@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
-import { getViewer, isEditorRole } from "@/lib/queries";
+import { getViewer, isEditorRole, isStaffRole } from "@/lib/queries";
 import { blogCategoryInput, fieldErrors } from "@/lib/validation";
 import { slugify } from "@/lib/format";
 
@@ -21,8 +21,11 @@ export async function saveBlogCategory(raw: unknown, existingId?: string): Promi
   if (!parsed.success) return { ok: false, errors: fieldErrors(parsed.error) };
   const input = parsed.data;
 
-  const { profile } = await getViewer();
-  if (!isEditorRole(profile)) return { ok: false, errors: { form: "Only editors can manage blog categories." } };
+  const { profile, aal } = await getViewer();
+  if (!isStaffRole(profile)) return { ok: false, errors: { form: "Only editors can manage blog categories." } };
+  if (!isEditorRole(profile, aal)) {
+    return { ok: false, errors: { form: "Please complete multi-factor authentication before managing blog categories." } };
+  }
 
   const supabase = await createClient();
   const id = existingId || input.id || slugify(input.name).slice(0, 40);
@@ -43,8 +46,9 @@ export async function saveBlogCategory(raw: unknown, existingId?: string): Promi
 }
 
 export async function deleteBlogCategory(id: string): Promise<{ ok: true } | { ok: false; error: string }> {
-  const { profile } = await getViewer();
-  if (!isEditorRole(profile)) return { ok: false, error: "Only editors can delete blog categories." };
+  const { profile, aal } = await getViewer();
+  if (!isStaffRole(profile)) return { ok: false, error: "Only editors can delete blog categories." };
+  if (!isEditorRole(profile, aal)) return { ok: false, error: "Please complete multi-factor authentication before deleting blog categories." };
   const supabase = await createClient();
 
   // Drop the id from any posts that reference it.

@@ -11,6 +11,7 @@ import {
   withAuthJoinedFlag,
 } from "@/lib/auth-next";
 import { trackButtonClick, trackEvent, trackFormFill } from "@/lib/analytics/datalayer";
+import { gateAuthAttempt } from "@/actions/auth-rate-limit";
 import { createClient } from "@/lib/supabase/client";
 import { TurnstileField } from "@/components/TurnstileField";
 
@@ -71,6 +72,12 @@ export function LoginForm({
       setError("Please complete the captcha and try again.");
       return;
     }
+    const gated = await gateAuthAttempt();
+    if (!gated.ok) {
+      setState("error");
+      setError(gated.error);
+      return;
+    }
     rememberNext();
     trackFormFill("login_email", { intent: intent ?? undefined });
     trackEvent("sign_up_start", { method: "email", intent: intent ?? undefined });
@@ -103,6 +110,12 @@ export function LoginForm({
     }
     setState("verifying");
     setError("");
+    const gated = await gateAuthAttempt();
+    if (!gated.ok) {
+      setState("sent");
+      setError(gated.error);
+      return;
+    }
     const supabase = createClient();
     // Confirmation emails use type "signup"; later sign-ins use "email".
     const emailTry = await supabase.auth.verifyOtp({ email, token, type: "email" });
@@ -119,7 +132,7 @@ export function LoginForm({
     const aal = typeof claimsData?.claims?.aal === "string" ? claimsData.claims.aal : "aal1";
     if (userId) {
       const { data: profile } = await supabase.from("profiles").select("role").eq("id", userId).maybeSingle<{ role: string }>();
-      if (profile?.role === "admin" && aal !== "aal2") {
+      if ((profile?.role === "admin" || profile?.role === "editor") && aal !== "aal2") {
         router.replace(`/login/mfa?next=${encodeURIComponent(next)}`);
         router.refresh();
         return;
@@ -134,6 +147,12 @@ export function LoginForm({
   }
 
   async function google() {
+    const gated = await gateAuthAttempt();
+    if (!gated.ok) {
+      setState("error");
+      setError(gated.error);
+      return;
+    }
     rememberNext();
     trackButtonClick("Continue with Google", { intent: intent ?? undefined });
     trackEvent("sign_up_start", { method: "google", intent: intent ?? undefined });

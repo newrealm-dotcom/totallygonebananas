@@ -1,41 +1,7 @@
-"use client";
-
-import { useEffect, useRef } from "react";
-
 /**
- * Renders trusted admin HTML and re-inserts `<script>` tags so they execute.
- * Do not use this for recipes, comments, or other member-written content.
+ * Retired. Blog HTML is sanitized at render time and must not reinsert scripts.
+ * This file remains so older imports fail loudly instead of executing markup.
  */
-export function HtmlWithScripts({
-  html,
-  className,
-}: {
-  html: string;
-  className?: string;
-}) {
-  const ref = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    const root = ref.current;
-    if (!root) return;
-
-    for (const old of Array.from(root.querySelectorAll("script"))) {
-      const next = document.createElement("script");
-      for (const { name, value } of Array.from(old.attributes)) {
-        next.setAttribute(name, value);
-      }
-      next.textContent = old.textContent;
-      old.replaceWith(next);
-    }
-
-    // Best Practices: cross-origin target=_blank needs noopener/noreferrer.
-    for (const a of Array.from(root.querySelectorAll<HTMLAnchorElement>('a[target="_blank"]'))) {
-      const rel = new Set((a.getAttribute("rel") || "").split(/\s+/).filter(Boolean));
-      rel.add("noopener");
-      rel.add("noreferrer");
-      a.setAttribute("rel", Array.from(rel).join(" "));
-    }
-  }, [html]);
-
-  return <div ref={ref} className={className} dangerouslySetInnerHTML={{ __html: html }} />;
+export function HtmlWithScripts(): never {
+  throw new Error("HtmlWithScripts has been removed. Sanitize HTML before rendering it.");
 }

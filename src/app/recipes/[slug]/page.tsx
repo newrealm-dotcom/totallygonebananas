@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { cookies } from "next/headers";
 import { notFound } from "next/navigation";
 import {
   canEdit,
@@ -11,6 +12,12 @@ import {
   getViewer,
   isEditorRole,
 } from "@/lib/queries";
+import { RecipeSignupGate } from "@/components/RecipeSignupGate";
+import {
+  anonymousRecipeIsBlocked,
+  RECIPE_PREVIEW_COOKIE,
+  recipePreviewSlugFromCookie,
+} from "@/lib/recipe-preview";
 import { createClient } from "@/lib/supabase/server";
 import { publicUrl } from "@/lib/media";
 import { shortDate, tintFor, titleCase } from "@/lib/format";
@@ -80,6 +87,18 @@ export default async function RecipePage({ params, searchParams }: PageProps<"/r
   const { userId, profile, aal } = await getViewer();
   if (r.status !== "published" && !canEdit(r, userId, profile, aal) && !isEditorRole(profile, aal)) {
     notFound();
+  }
+
+  const jar = await cookies();
+  const savedSlug = recipePreviewSlugFromCookie(jar.get(RECIPE_PREVIEW_COOKIE)?.value);
+  if (r.status === "published" && anonymousRecipeIsBlocked(savedSlug, r.slug, Boolean(userId))) {
+    return (
+      <RecipeSignupGate
+        title={titleCase(r.title)}
+        slug={r.slug}
+        googleEnabled={process.env.NEXT_PUBLIC_AUTH_GOOGLE === "true"}
+      />
+    );
   }
 
   const [categories, ratings] = await Promise.all([getCategories(), getRatings([r.id])]);

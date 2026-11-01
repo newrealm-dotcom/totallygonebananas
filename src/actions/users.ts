@@ -10,8 +10,9 @@ export async function updateUserRole(raw: unknown): Promise<{ ok: true; role: Ro
   const parsed = roleInput.safeParse(raw);
   if (!parsed.success) return { ok: false, errors: fieldErrors(parsed.error) };
 
-  const { userId, profile } = await getViewer();
+  const { userId, profile, aal } = await getViewer();
   if (!userId || !isAdminRole(profile)) return { ok: false, errors: { form: "Only admins can change roles." } };
+  if (aal !== "aal2") return { ok: false, errors: { form: "Please complete multi-factor authentication before changing roles." } };
   if (parsed.data.userId === userId && parsed.data.role !== "admin") {
     return { ok: false, errors: { form: "You can't remove your own admin role." } };
   }
