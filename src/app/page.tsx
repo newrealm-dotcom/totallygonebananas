@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import localFont from "next/font/local";
 import Image from "next/image";
 import Link from "next/link";
 import { cookies } from "next/headers";
@@ -15,6 +16,12 @@ import { promoImageSrc } from "@/lib/media";
 import { BlogCoverCard } from "@/components/BlogCoverCard";
 import { TrackedSignupLink } from "@/components/TrackedSignupLink";
 import { getDarkMainSliderImages, getMainSliderImages, FIRST_DARK_SLIDE, FIRST_LIGHT_SLIDE, pickPreferredSlide } from "@/lib/main-slider";
+
+const lazenbyLiquid = localFont({
+  src: "../../public/fonts/LazenbyCompLiquid.ttf",
+  display: "swap",
+  adjustFontFallback: false,
+});
 
 export const metadata: Metadata = {
   title: "Totally Gone Bananas | Banana Recipes & Culture",
@@ -191,6 +198,16 @@ export default async function HomePage({ searchParams }: PageProps<"/">) {
               sizes="(max-width: 900px) 92vw, 65vw"
               quality={75}
             />
+            <div className="finish-sneaker">
+              <a
+                className={`finish-sneaker-btn ${lazenbyLiquid.className}`}
+                href="https://totallygonebananas.com/banana-runner.html"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                Shall We Play A Game?
+              </a>
+            </div>
           </div>
         </div>
       </section>
