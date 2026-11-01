@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useState } from "react";
+import { useCallback, useState, useSyncExternalStore } from "react";
 import { useRouter } from "next/navigation";
 import {
   AUTH_NEXT_COOKIE,
@@ -8,9 +8,12 @@ import {
   HAS_ACCOUNT_MAX_AGE,
   firstLoginDestination,
   isFreshAccount,
+  readHasAccountCookie,
+  subscribeHasAccountCookie,
   withAuthJoinedFlag,
 } from "@/lib/auth-next";
 import { trackButtonClick, trackEvent, trackFormFill } from "@/lib/analytics/datalayer";
+import { gateAuthAttempt } from "@/actions/auth-rate-limit";
 import { createClient } from "@/lib/supabase/client";
 import { TurnstileField } from "@/components/TurnstileField";
 
@@ -21,11 +24,14 @@ export function LoginForm({
   googleEnabled,
   initialEmail = "",
   intent = null,
+  hasAccount: hasAccountProp = false,
 }: {
   next: string;
   googleEnabled: boolean;
   initialEmail?: string;
   intent?: string | null;
+  /** Server-known `tgb_has_account` cookie so the first paint matches. */
+  hasAccount?: boolean;
 }) {
   const router = useRouter();
   const [email, setEmail] = useState(initialEmail);
@@ -35,6 +41,14 @@ export function LoginForm({
   const [turnstileToken, setTurnstileToken] = useState("");
   const [turnstileResetKey, setTurnstileResetKey] = useState(0);
   const onTurnstileToken = useCallback((token: string) => setTurnstileToken(token), []);
+  const hasAccount = useSyncExternalStore(
+    subscribeHasAccountCookie,
+    readHasAccountCookie,
+    () => hasAccountProp,
+  );
+
+  const joinIntent = intent === "join" || intent === "recipe" || intent === "save" || intent === "rate" || intent === "share" || intent === "float" || intent === "newsletter";
+  const submitLabel = hasAccount || !joinIntent ? "Email me a sign-in link" : "Email me a free join link";
 
   // Keep redirectTo free of query params — GoTrue's PKCE redirect can drop `code`
   // when the allow-listed URL already has a query string.
@@ -71,6 +85,12 @@ export function LoginForm({
       setError("Please complete the captcha and try again.");
       return;
     }
+    const gated = await gateAuthAttempt();
+    if (!gated.ok) {
+      setState("error");
+      setError(gated.error);
+      return;
+    }
     rememberNext();
     trackFormFill("login_email", { intent: intent ?? undefined });
     trackEvent("sign_up_start", { method: "email", intent: intent ?? undefined });
@@ -103,6 +123,12 @@ export function LoginForm({
     }
     setState("verifying");
     setError("");
+    const gated = await gateAuthAttempt();
+    if (!gated.ok) {
+      setState("sent");
+      setError(gated.error);
+      return;
+    }
     const supabase = createClient();
     // Confirmation emails use type "signup"; later sign-ins use "email".
     const emailTry = await supabase.auth.verifyOtp({ email, token, type: "email" });
@@ -119,7 +145,7 @@ export function LoginForm({
     const aal = typeof claimsData?.claims?.aal === "string" ? claimsData.claims.aal : "aal1";
     if (userId) {
       const { data: profile } = await supabase.from("profiles").select("role").eq("id", userId).maybeSingle<{ role: string }>();
-      if (profile?.role === "admin" && aal !== "aal2") {
+      if ((profile?.role === "admin" || profile?.role === "editor") && aal !== "aal2") {
         router.replace(`/login/mfa?next=${encodeURIComponent(next)}`);
         router.refresh();
         return;
@@ -134,6 +160,12 @@ export function LoginForm({
   }
 
   async function google() {
+    const gated = await gateAuthAttempt();
+    if (!gated.ok) {
+      setState("error");
+      setError(gated.error);
+      return;
+    }
     rememberNext();
     trackButtonClick("Continue with Google", { intent: intent ?? undefined });
     trackEvent("sign_up_start", { method: "google", intent: intent ?? undefined });
@@ -214,7 +246,7 @@ export function LoginForm({
         )}
         <TurnstileField onTokenChange={onTurnstileToken} resetKey={turnstileResetKey} />
         <button className="btn" type="submit" disabled={state === "sending"}>
-          {state === "sending" ? "Sending…" : "Email me a sign-in link"}
+          {state === "sending" ? "Sending…" : submitLabel}
         </button>
       </form>
       {googleEnabled && (
@@ -227,7 +259,11 @@ export function LoginForm({
           </button>
         </>
       )}
-      <p className="hint">No password needed. New here? The same link creates your account.</p>
+      <p className="hint">
+        {hasAccount
+          ? "No password needed. We'll email you a sign-in link."
+          : "No password needed. New here? The same link creates your free Banana Stand."}
+      </p>
     </div>
   );
 }

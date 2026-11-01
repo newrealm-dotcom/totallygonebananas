@@ -14,8 +14,9 @@ type Fail = { ok: false; error: string };
 type Result = Ok | Fail;
 
 async function requireAdmin(): Promise<{ userId: string } | Fail> {
-  const { userId, profile } = await getViewer();
+  const { userId, profile, aal } = await getViewer();
   if (!userId || !isAdminRole(profile)) return { ok: false, error: "Only admins can do that." };
+  if (aal !== "aal2") return { ok: false, error: "Please complete multi-factor authentication before using admin tools." };
   return { userId };
 }
 

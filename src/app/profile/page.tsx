@@ -31,7 +31,7 @@ export default async function ProfilePage({ searchParams }: PageProps<"/profile"
   const welcome = sp.welcome === "1";
   const subscribed = sp.newsletter === "1";
   const returnTo = sanitizeAuthNext(typeof sp.return === "string" ? sp.return : null);
-  const { userId, profile } = await getViewer();
+  const { userId, profile, aal } = await getViewer();
   if (!userId || !profile) {
     const back = new URLSearchParams();
     if (welcome) back.set("welcome", "1");
@@ -177,7 +177,7 @@ export default async function ProfilePage({ searchParams }: PageProps<"/profile"
               </button>
             </form>
           </div>
-          {isEditorRole(profile) && (
+          {isEditorRole(profile, aal) && (
             <div className="panel invite">
               <p>
                 <b>Invite contributors.</b> Anyone with this link can sign in and submit a recipe for your review.
@@ -226,7 +226,7 @@ export default async function ProfilePage({ searchParams }: PageProps<"/profile"
         {tab === "recipes" && (
           <ProfileMyRecipesCollection
             recipes={mine}
-            canEditPublished={isEditorRole(profile)}
+            canEditPublished={isEditorRole(profile, aal)}
             empty={
               <div className="empty">
                 <span className="big">📝</span>

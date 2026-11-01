@@ -3,25 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useId, useState } from "react";
-
-const LINKS = [
-  { href: "/", label: "Home", match: (p: string) => p === "/" },
-  { href: "/recipes", label: "Recipes", match: (p: string) => p.startsWith("/recipes") && p !== "/recipes/new" },
-  { href: "/blog", label: "Blog", match: (p: string) => p.startsWith("/blog") },
-  { href: "/our-faves", label: "Our Faves", match: (p: string) => p.startsWith("/our-faves") },
-  { href: "/profile", label: "My Banana Stand", match: (p: string) => p.startsWith("/profile") },
-  {
-    href: "https://store.totallygonebananas.com/",
-    label: "Merch",
-    match: () => false,
-    external: true,
-  },
-  { href: "/about", label: "About", match: (p: string) => p === "/about" },
-  { href: "/banana-growing-zones", label: "Grow Zones", match: (p: string) => p === "/banana-growing-zones" },
-] as const;
-
-const SPOTIFY_SHOW_URL =
-  "https://open.spotify.com/show/7z5KxVvy3bUH3hqvbloNl0?si=-_stzhQhQjyH8AtujHqpRg&nd=1&dlsi=4a46fea448f04c42";
+import { mobileNavLinks, SPOTIFY_SHOW_URL } from "@/lib/nav";
 
 function MicIcon() {
   return (
@@ -38,14 +20,17 @@ function MicIcon() {
 export function MobileNav({
   signedIn = false,
   authLabel = "Sign in",
+  authHref = "/login",
 }: {
   signedIn?: boolean;
   authLabel?: string;
+  authHref?: string;
 }) {
   const path = usePathname();
   const panelId = useId();
   const [open, setOpen] = useState(false);
   const [openForPath, setOpenForPath] = useState(path);
+  const links = mobileNavLinks();
 
   if (openForPath !== path) {
     setOpenForPath(path);
@@ -96,8 +81,8 @@ export function MobileNav({
       ) : null}
       <div id={panelId} className="mobile-nav-panel" hidden={!open}>
         <nav className="mobile-nav-links" aria-label="Site">
-          {LINKS.map((l) =>
-            "external" in l && l.external ? (
+          {links.map((l) =>
+            l.external ? (
               <a
                 key={l.href}
                 href={l.href}
@@ -122,7 +107,7 @@ export function MobileNav({
 
         <div className="mobile-nav-actions">
           {!signedIn ? (
-            <Link className="btn ghost" href="/login" onClick={close}>
+            <Link className="btn ghost" href={authHref} onClick={close}>
               {authLabel}
             </Link>
           ) : null}

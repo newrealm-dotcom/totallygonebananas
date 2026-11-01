@@ -80,7 +80,7 @@ export async function GET(request: NextRequest) {
   const aal = typeof claims?.aal === "string" ? claims.aal : "aal1";
   if (userId) {
     const { data: profile } = await supabase.from("profiles").select("role").eq("id", userId).maybeSingle<{ role: string }>();
-    if (profile?.role === "admin" && aal !== "aal2") {
+    if ((profile?.role === "admin" || profile?.role === "editor") && aal !== "aal2") {
       const mfa = new URL("/login/mfa", url.origin);
       mfa.searchParams.set("next", landing);
       response = copyRedirectCookies(response, mfa);

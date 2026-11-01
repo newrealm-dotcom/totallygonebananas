@@ -10,6 +10,8 @@ import { isValidTag, normalizeTag } from "@/lib/tags";
 import { plural, titleCase } from "@/lib/format";
 
 const PAGE_SIZE = 12;
+/** Popular tags shown in the desktop pill rail; the rest live behind “more”. */
+const TOP_TAG_COUNT = 18;
 const str = (v: string | string[] | undefined) => (typeof v === "string" ? v : undefined);
 
 /**
@@ -55,6 +57,16 @@ export default async function RecipesPage({ searchParams }: PageProps<"/recipes"
     return `/recipes${s ? `?${s}` : ""}`;
   };
   const filtered = Boolean(f.q || f.category || f.tag);
+
+  const activeTag = f.tag ? recipeTags.find((t) => t.name === f.tag) : undefined;
+  const topTags = (() => {
+    const head = recipeTags.slice(0, TOP_TAG_COUNT);
+    if (activeTag && !head.some((t) => t.name === activeTag.name)) {
+      return [activeTag, ...head.slice(0, TOP_TAG_COUNT - 1)];
+    }
+    return head;
+  })();
+  const moreTags = recipeTags.filter((t) => !topTags.some((top) => top.name === t.name));
 
   return (
     <div className="recipes-index">
@@ -132,18 +144,44 @@ export default async function RecipesPage({ searchParams }: PageProps<"/recipes"
                 <CategoryStickers small categories={categories} active={f.category} hrefFor={(id) => href({ category: id ?? undefined })} />
               </FilterPillsScroller>
             </div>
-            {recipeTags.length > 0 && (
+            {topTags.length > 0 && (
               <div className="filter-pills-row">
                 <span className="filter-pills-label">Tags:</span>
-                <FilterPillsScroller label="tags">
-                  <nav className="chips" aria-label="Tags">
-                    {recipeTags.map((t) => (
-                      <Link key={t.name} className="chip" href={href({ tag: f.tag === t.name ? undefined : t.name })} aria-current={f.tag === t.name ? "true" : undefined}>{t.name}</Link>
+                <FilterPillsScroller label="tags" moreText="more">
+                  <nav className="chips" aria-label="Popular tags">
+                    {topTags.map((t) => (
+                      <Link
+                        key={t.name}
+                        className="chip"
+                        href={href({ tag: f.tag === t.name ? undefined : t.name })}
+                        aria-current={f.tag === t.name ? "true" : undefined}
+                      >
+                        {t.name}
+                      </Link>
                     ))}
                   </nav>
                 </FilterPillsScroller>
               </div>
             )}
+            {moreTags.length > 0 ? (
+              <details className="filter-tags-more">
+                <summary className="filter-tags-more-summary">
+                  All tags <span aria-hidden="true">({moreTags.length} more)</span>
+                </summary>
+                <nav className="chips filter-tags-more-list" aria-label="More tags">
+                  {moreTags.map((t) => (
+                    <Link
+                      key={t.name}
+                      className="chip"
+                      href={href({ tag: f.tag === t.name ? undefined : t.name })}
+                      aria-current={f.tag === t.name ? "true" : undefined}
+                    >
+                      {t.name}
+                    </Link>
+                  ))}
+                </nav>
+              </details>
+            ) : null}
           </div>
 
           <div className="result-bar">
