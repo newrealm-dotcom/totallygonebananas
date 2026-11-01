@@ -224,8 +224,16 @@ const Sound = {
    still honoured, so squash-and-stretch keeps working.
    ===================================================================== */
 // Official brand art, loaded from the site (same origin, so the site CSP allows it).
-const ART = { throne: new Image() };
+const ART = { throne: new Image(), runner: [] };
 ART.throne.src = 'main-slider/main-banana-first.webp';
+// Official running mascot, one image per ripeness stage (index = STAGES index).
+// runner-green is the yellow art with only its yellow skin hue-shifted to green.
+for (const n of ['green', 'yellow', 'freckled', 'spotty', 'gone']) {
+  const img = new Image();
+  img.src = `game/runner-${n}.webp`;
+  ART.runner.push(img);
+}
+const artReady = img => !!(img && img.complete && img.naturalWidth);
 
 const SPRITES = {
 
@@ -319,6 +327,40 @@ const SPRITES = {
      opts: stage 0-4, pose 'run'|'jump'|'sit', frame 0-2, sx, sy, scale,
            alpha, glow (0-1), rot */
   banana(ctx, x, y, o = {}) {
+    const img = ART.runner[clamp(o.stage || 0, 0, 4)];
+    if ((o.pose || 'run') !== 'sit' && artReady(img)) return SPRITES._runnerArt(ctx, x, y, o, img);
+    return SPRITES.bananaDrawn(ctx, x, y, o);
+  },
+
+  /** Draws the official running-mascot art. Same anchor/opts as banana(). */
+  _runnerArt(ctx, x, y, o, img) {
+    const h = 114, w = h * img.naturalWidth / img.naturalHeight;
+    const f = (o.frame || 0) % 3;
+    const jump = o.pose === 'jump';
+    // Simple run cycle from one pose: bounce + lean. Jump leans back.
+    const bob = jump ? 0 : [0, -5, -2][f];
+    const lean = jump ? -0.14 : [0.04, -0.02, 0.01][f];
+    ctx.save();
+    ctx.translate(x, y);
+    if (o.rot) ctx.rotate(o.rot);
+    const s = o.scale || 1;
+    ctx.scale((o.sx || 1) * s, (o.sy || 1) * s);
+    if (o.alpha !== undefined) ctx.globalAlpha *= o.alpha;
+    if (o.glow) {
+      const g = ctx.createRadialGradient(0, -58, 12, 0, -58, 80);
+      g.addColorStop(0, `rgba(255,215,64,${0.7 * o.glow})`);
+      g.addColorStop(1, 'rgba(255,215,64,0)');
+      ctx.fillStyle = g;
+      ctx.beginPath(); ctx.arc(0, -58, 80, 0, Math.PI * 2); ctx.fill();
+    }
+    ctx.translate(0, bob);
+    ctx.rotate(lean);
+    ctx.drawImage(img, -w / 2, -h + 2, w, h);
+    ctx.restore();
+  },
+
+  /** Hand-drawn fallback (used if the art can't load, and for the sitting pose). */
+  bananaDrawn(ctx, x, y, o = {}) {
     const stage = clamp(o.stage || 0, 0, 4);
     const st = STAGES[stage];
     const pose = o.pose || 'run';
@@ -1044,7 +1086,7 @@ class Player {
   }
 
   /** Forgiving hitbox: noticeably smaller than the drawn banana. */
-  hitbox() { return { x: this.x - 12, y: this.y - 80, w: 28, h: 66 }; }
+  hitbox() { return { x: this.x - 14, y: this.y - 94, w: 28, h: 74 }; }
 
   draw(ctx, time) {
     // ground shadow
