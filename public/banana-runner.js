@@ -226,12 +226,16 @@ const Sound = {
 // Official brand art, loaded from the site (same origin, so the site CSP allows it).
 const ART = { throne: new Image(), runner: [] };
 ART.throne.src = 'main-slider/main-banana-first.webp';
-// Official running mascot, one image per ripeness stage (index = STAGES index).
-// runner-green is the yellow art with only its yellow skin hue-shifted to green.
+// Official running mascot: a 3-frame run cycle (stride, passing, stride) for each
+// ripeness stage. ART.runner[stage][frame]. All frames share one crop, so the
+// character keeps the same scale and ground line between frames. The yellow frames
+// are the supplied art; the other stages are recoloured / spotted from them.
 for (const n of ['green', 'yellow', 'freckled', 'spotty', 'gone']) {
-  const img = new Image();
-  img.src = `game/runner-${n}.webp`;
-  ART.runner.push(img);
+  ART.runner.push([0, 1, 2].map(i => {
+    const img = new Image();
+    img.src = `game/runner-${n}-${i}.webp`;
+    return img;
+  }));
 }
 const artReady = img => !!(img && img.complete && img.naturalWidth);
 
@@ -327,19 +331,17 @@ const SPRITES = {
      opts: stage 0-4, pose 'run'|'jump'|'sit', frame 0-2, sx, sy, scale,
            alpha, glow (0-1), rot */
   banana(ctx, x, y, o = {}) {
-    const img = ART.runner[clamp(o.stage || 0, 0, 4)];
+    // Jumping uses the full-stride frame.
+    const img = ART.runner[clamp(o.stage || 0, 0, 4)][o.pose === 'jump' ? 0 : (o.frame || 0) % 3];
     if ((o.pose || 'run') !== 'sit' && artReady(img)) return SPRITES._runnerArt(ctx, x, y, o, img);
     return SPRITES.bananaDrawn(ctx, x, y, o);
   },
 
   /** Draws the official running-mascot art. Same anchor/opts as banana(). */
   _runnerArt(ctx, x, y, o, img) {
-    const h = 114, w = h * img.naturalWidth / img.naturalHeight;
-    const f = (o.frame || 0) % 3;
-    const jump = o.pose === 'jump';
-    // Simple run cycle from one pose: bounce + lean. Jump leans back.
-    const bob = jump ? 0 : [0, -5, -2][f];
-    const lean = jump ? -0.14 : [0.04, -0.02, 0.01][f];
+    const h = 123, w = h * img.naturalWidth / img.naturalHeight;
+    // The frames carry the run animation; a jump just leans back a little.
+    const lean = o.pose === 'jump' ? -0.12 : 0;
     ctx.save();
     ctx.translate(x, y);
     if (o.rot) ctx.rotate(o.rot);
@@ -353,7 +355,6 @@ const SPRITES = {
       ctx.fillStyle = g;
       ctx.beginPath(); ctx.arc(0, -58, 80, 0, Math.PI * 2); ctx.fill();
     }
-    ctx.translate(0, bob);
     ctx.rotate(lean);
     ctx.drawImage(img, -w / 2, -h + 2, w, h);
     ctx.restore();
@@ -1079,7 +1080,7 @@ class Player {
 
     if (this.onGround) {
       this.animT += dt * 9 * (game.speed / CFG.startSpeed);
-      this.frame = Math.floor(this.animT) % 3;
+      this.frame = [0, 1, 2, 1][Math.floor(this.animT) % 4];   // ping-pong through the run cycle
     }
     this.hurt = Math.max(0, this.hurt - dt);
     this.tooCool = Math.max(0, this.tooCool - dt);
