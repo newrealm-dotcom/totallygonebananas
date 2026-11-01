@@ -16,10 +16,13 @@ jobs:
       NEXT_TELEMETRY_DISABLED: 1
     steps:
       - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v6
+      - uses: actions/checkout@v7
       - uses: pnpm/action-setup@v4
         with:
-          version: 10.28.0
-      - uses: actions/setup-node@v4
+          # Must match package.json "packageManager"
+          version: 11.0.8
+      - uses: actions/setup-node@v7
         with:
           node-version: 22
           cache: pnpm
