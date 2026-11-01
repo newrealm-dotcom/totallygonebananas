@@ -3,7 +3,8 @@
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { fieldErrors, postCommentInput } from "@/lib/validation";
-import { getViewer, isEditorRole } from "@/lib/queries";
+import { formSubmissionBlocked } from "@/lib/form-rate-limit";
+import { getViewer, isEditorRole, isStaffRole } from "@/lib/queries";
 
 type Ok = { ok: true };
 type Fail = { ok: false; errors?: Record<string, string>; error?: string };
@@ -11,6 +12,8 @@ type Fail = { ok: false; errors?: Record<string, string>; error?: string };
 export async function submitPostComment(raw: unknown): Promise<Fail | Ok> {
   const parsed = postCommentInput.safeParse(raw);
   if (!parsed.success) return { ok: false, errors: fieldErrors(parsed.error) };
+  const limited = await formSubmissionBlocked("comment");
+  if (limited) return { ok: false, errors: { form: limited } };
 
   const { userId } = await getViewer();
   const supabase = await createClient();
@@ -44,8 +47,9 @@ export async function reviewPostComment(
   commentId: string,
   decision: "approve" | "deny",
 ): Promise<{ ok: true } | { ok: false; error: string }> {
-  const { profile } = await getViewer();
-  if (!isEditorRole(profile)) return { ok: false, error: "Only editors can review comments." };
+  const { profile, aal } = await getViewer();
+  if (!isStaffRole(profile)) return { ok: false, error: "Only editors can review comments." };
+  if (!isEditorRole(profile, aal)) return { ok: false, error: "Please complete multi-factor authentication before reviewing comments." };
   if (decision !== "approve" && decision !== "deny") return { ok: false, error: "Invalid decision." };
 
   const supabase = await createClient();

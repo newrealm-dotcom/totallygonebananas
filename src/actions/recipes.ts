@@ -4,7 +4,7 @@ import { ensureRecipeCuisine } from "@/actions/cuisines";
 import { revalidatePath } from "next/cache";
 import { cookies } from "next/headers";
 import { createClient } from "@/lib/supabase/server";
-import { getViewer, isAdminRole, isEditorRole } from "@/lib/queries";
+import { getViewer, isEditorRole, isStaffRole } from "@/lib/queries";
 import { fieldErrors, recipeInput } from "@/lib/validation";
 import { slugify } from "@/lib/format";
 import { flattenSteps, normalizeStepGroups } from "@/lib/steps";
@@ -38,8 +38,8 @@ export async function saveRecipe(raw: unknown, recipeId?: string): Promise<SaveR
 
   const { userId, profile, aal } = await getViewer();
   if (!userId) return { ok: false, errors: { form: "Please sign in again, then try saving." } };
-  if (isAdminRole(profile) && aal !== "aal2") {
-    return { ok: false, errors: { form: "Please complete multi-factor authentication before managing recipes as an admin." } };
+  if (isStaffRole(profile) && aal !== "aal2") {
+    return { ok: false, errors: { form: "Please complete multi-factor authentication before managing recipes." } };
   }
   const editor = isEditorRole(profile, aal);
   if (!editor) {
@@ -191,7 +191,7 @@ export async function deleteRecipe(recipeId: string): Promise<{ ok: boolean; err
 
 export async function reviewRecipe(recipeId: string, decision: "publish" | "reject", note = ""): Promise<{ ok: boolean; error?: string }> {
   const { profile, aal } = await getViewer();
-  if (isAdminRole(profile) && aal !== "aal2") return { ok: false, error: "Please complete multi-factor authentication before reviewing recipes." };
+  if (isStaffRole(profile) && aal !== "aal2") return { ok: false, error: "Please complete multi-factor authentication before reviewing recipes." };
   if (!isEditorRole(profile, aal)) return { ok: false, error: "Only editors can review recipes." };
   const supabase = await createClient();
   const { data, error } = await supabase

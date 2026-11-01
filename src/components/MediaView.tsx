@@ -9,5 +9,15 @@ export function MediaView({ path, kind = "image", alt, sizes = "(max-width: 700p
   if (kind === "video") {
     return <video className="media-fill" src={src} controls playsInline preload="metadata" aria-label={alt} />;
   }
-  return <Image className="media-fill" src={src} alt={alt} fill sizes={sizes} priority={priority} unoptimized={isLocalUrl(src)} />;
+  return (
+    <Image
+      className="media-fill"
+      src={src}
+      alt={alt}
+      fill
+      sizes={sizes}
+      priority={priority}
+      unoptimized={src.startsWith("/") || isLocalUrl(src)}
+    />
+  );
 }

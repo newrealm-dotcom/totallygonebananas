@@ -1,4 +1,4 @@
-import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { siteUrl } from "@/lib/env";
 
 const API = "https://open.tiktokapis.com";
@@ -61,7 +61,7 @@ export function tiktokAuthorizeUrl(state: string): string | null {
 }
 
 export async function getTikTokConnection(): Promise<TikTokConnectionRow | null> {
-  const supabase = await createClient();
+  const supabase = createAdminClient();
   const { data } = await supabase.from("social_connections").select("*").eq("network", "tiktok").maybeSingle();
   return (data as TikTokConnectionRow | null) ?? null;
 }
@@ -154,7 +154,7 @@ export async function saveTikTokConnection(input: {
   expiresAt?: string | null;
   meta?: Record<string, unknown>;
 }): Promise<void> {
-  const supabase = await createClient();
+  const supabase = createAdminClient();
   const existing = await getTikTokConnection();
   const { error } = await supabase.from("social_connections").upsert(
     {
@@ -360,7 +360,7 @@ export async function disconnectTikTok(): Promise<void> {
       cache: "no-store",
     }).catch(() => undefined);
   }
-  const supabase = await createClient();
+  const supabase = createAdminClient();
   const { error } = await supabase.from("social_connections").delete().eq("network", "tiktok");
   if (error) throw new Error(error.message);
 }

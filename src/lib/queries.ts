@@ -1,7 +1,7 @@
 import { cache } from "react";
 import { randomInt } from "node:crypto";
 import { createClient } from "@/lib/supabase/server";
-import { createPublicClient } from "@/lib/supabase/public";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { easternDayRange } from "@/lib/format";
 import { pointsFromCounts, standingsFor } from "@/lib/standings";
 import { normalizeEquipment } from "@/lib/equipment";
@@ -74,8 +74,9 @@ export const getViewer = cache(async () => {
   return { userId, profile: created ?? null, aal };
 });
 
-export const isEditorRole = (p: Profile | null, aal?: string) =>
-  p?.role === "editor" || (p?.role === "admin" && (aal === undefined || aal === "aal2"));
+export const isStaffRole = (p: Profile | null) => p?.role === "editor" || p?.role === "admin";
+/** Editor tools, including admin, only after an authenticator prompt (aal2). */
+export const isEditorRole = (p: Profile | null, aal: string) => isStaffRole(p) && aal === "aal2";
 export const isAdminRole = (p: Profile | null) => p?.role === "admin";
 
 /** Saved / made / published counts → points + rank for the signed-in user. */
@@ -86,7 +87,7 @@ export const getViewerStandings = cache(async () => {
   const [saves, made, published] = await Promise.all([
     supabase.from("saves").select("*", { count: "exact", head: true }).eq("user_id", userId),
     supabase.from("cook_logs").select("*", { count: "exact", head: true }).eq("user_id", userId),
-    supabase.from("recipes").select("*", { count: "exact", head: true }).eq("author_id", userId).eq("status", "published"),
+    supabase.from("recipes").select("id", { count: "exact", head: true }).eq("author_id", userId).eq("status", "published"),
   ]);
   return standingsFor(
     pointsFromCounts({
@@ -236,7 +237,12 @@ export async function listRecipes(f: RecipeFilters = {}): Promise<RecipeCardData
   if (f.category) query = query.contains("categories", [f.category]);
   if (f.tag) query = query.contains("tags", [f.tag]);
   if (f.maxMinutes) query = query.lte("total_minutes", f.maxMinutes);
-  if (f.q) query = query.textSearch("search", f.q, { type: "websearch", config: "english" });
+  if (f.q) {
+    const { data: ids } = await supabase.rpc("published_recipe_ids_matching", { query: f.q });
+    const matched = (ids as string[] | null) ?? [];
+    if (!matched.length) return [];
+    query = query.in("id", matched);
+  }
   switch (f.sort) {
     case "quick": query = query.order("total_minutes", { ascending: true, nullsFirst: false }); break;
     case "easy": query = query.order("difficulty", { ascending: true, nullsFirst: false }); break;
@@ -255,7 +261,12 @@ export async function countRecipes(f: RecipeFilters = {}): Promise<number> {
   if (f.category) query = query.contains("categories", [f.category]);
   if (f.tag) query = query.contains("tags", [f.tag]);
   if (f.maxMinutes) query = query.lte("total_minutes", f.maxMinutes);
-  if (f.q) query = query.textSearch("search", f.q, { type: "websearch", config: "english" });
+  if (f.q) {
+    const { data: ids } = await supabase.rpc("published_recipe_ids_matching", { query: f.q });
+    const matched = (ids as string[] | null) ?? [];
+    if (!matched.length) return 0;
+    query = query.in("id", matched);
+  }
   const { count } = await query;
   return count ?? 0;
 }
@@ -293,9 +304,13 @@ function normalizeRecipeRow(data: RecipeWithExtras): RecipeWithExtras {
 const RECIPE_DETAIL_SELECT =
   "*, author:profiles!recipes_author_id_fkey(username, display_name, avatar_path), recipe_media(*)";
 
-/** Published recipe only — cookie-free, safe for static/ISR HTML. */
+/**
+ * Published recipe, including the body. Uses the service role because anonymous
+ * clients are not allowed to select ingredients, steps, or notes. Callers must
+ * still decide whether this response is allowed to include that body.
+ */
 export const getPublishedRecipeBySlug = cache(async (slug: string): Promise<RecipeWithExtras | null> => {
-  const supabase = createPublicClient();
+  const supabase = createAdminClient();
   const { data } = await supabase
     .from("recipes")
     .select(RECIPE_DETAIL_SELECT)
@@ -321,7 +336,7 @@ export const getRecipeBySlug = cache(async (slug: string): Promise<RecipeWithExt
 /** Can this viewer edit this recipe? Mirrors the database policy. */
 export function canEdit(recipe: Pick<Recipe, "author_id" | "status">, userId: string | null, profile: Profile | null, aal?: string) {
   if (!userId) return false;
-  if (isEditorRole(profile, aal)) return true;
+  if (isEditorRole(profile, aal ?? "aal1")) return true;
   return recipe.author_id === userId && recipe.status !== "published";
 }
 
