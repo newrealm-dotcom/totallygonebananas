@@ -88,8 +88,9 @@ export default async function HomePage({ searchParams }: PageProps<"/">) {
               What are we going <br className="hero-h-break" />
               bananas for today?
             </h1>
-            <p className="hero-subhead">Tested banana recipes for every stage of ripeness, from green to gone.</p>
-            <p className="lede">From 5-minute smoothies to weekend bakes. Pick a craving below.</p>
+            <p className="hero-subhead">
+              Tested recipes for every stage of ripeness — from 5-minute smoothies to weekend bakes.
+            </p>
             <form className="hero-search" action="/recipes" role="search">
               <label className="sr-only" htmlFor="hero-q">
                 Search banana recipes
