@@ -36,17 +36,23 @@ function stepName(text: string): string {
   return `${(atWord > 40 ? cut.slice(0, atWord) : cut).trimEnd()}…`;
 }
 
+function mediaUrl(path: string | null | undefined): string | null {
+  const url = publicUrl(path);
+  if (!url) return null;
+  return url.startsWith("/") ? `${siteUrl()}${url}` : url;
+}
+
 function recipeImageUrl(recipe: RecipeWithExtras): string | null {
-  const fromCover = publicUrl(recipe.cover_path);
+  const fromCover = mediaUrl(recipe.cover_path);
   if (fromCover) return fromCover;
   const imageMedia = recipe.recipe_media.find((m) => m.kind === "image");
-  return imageMedia ? publicUrl(imageMedia.path) : null;
+  return imageMedia ? mediaUrl(imageMedia.path) : null;
 }
 
 function recipeVideo(recipe: RecipeWithExtras, image: string | null, title: string) {
   const videoMedia = recipe.recipe_media.find((m) => m.kind === "video");
   if (!videoMedia) return null;
-  const contentUrl = publicUrl(videoMedia.path);
+  const contentUrl = mediaUrl(videoMedia.path);
   if (!contentUrl) return null;
   return {
     "@type": "VideoObject",
@@ -74,16 +80,16 @@ function buildHowToStep(
     position,
   };
 
-  const mediaUrl = stepMedia?.path ? publicUrl(stepMedia.path) : null;
-  if (stepMedia?.kind === "video" && mediaUrl) {
+  const stepMediaUrl = stepMedia?.path ? mediaUrl(stepMedia.path) : null;
+  if (stepMedia?.kind === "video" && stepMediaUrl) {
     entry.video = {
       "@type": "VideoObject",
       name,
-      contentUrl: mediaUrl,
+      contentUrl: stepMediaUrl,
       ...(fallbackImage ? { thumbnailUrl: [fallbackImage] } : {}),
     };
-  } else if (mediaUrl) {
-    entry.image = mediaUrl;
+  } else if (stepMediaUrl) {
+    entry.image = stepMediaUrl;
   } else if (fallbackImage) {
     // Google recommends image or video on each step; use the dish photo when a step has none.
     entry.image = fallbackImage;

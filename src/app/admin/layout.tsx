@@ -1,13 +1,13 @@
 import { redirect } from "next/navigation";
-import { adminCounts, getViewer, isAdminRole, isEditorRole } from "@/lib/queries";
+import { adminCounts, getViewer, isAdminRole, isEditorRole, isStaffRole } from "@/lib/queries";
 import { AdminAlerts } from "@/components/AdminAlerts";
 import { AdminNav } from "@/components/AdminNav";
 
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
   const { userId, profile, aal } = await getViewer();
   if (!userId) redirect("/login?next=/admin");
-  if (!profile || !isEditorRole(profile)) redirect("/");
-  if (isAdminRole(profile) && aal !== "aal2") redirect("/login/mfa?next=/admin");
+  if (!isStaffRole(profile)) redirect("/");
+  if (!isEditorRole(profile, aal)) redirect("/login/mfa?next=/admin");
 
   const counts = await adminCounts();
 

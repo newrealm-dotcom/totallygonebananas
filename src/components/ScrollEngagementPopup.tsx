@@ -7,18 +7,39 @@ import { useCallback, useEffect, useId, useRef, useState, useTransition } from "
 import { subscribeNewsletter } from "@/actions/newsletter";
 import { TurnstileField } from "@/components/TurnstileField";
 import { trackButtonClick, trackEvent, trackFormFill } from "@/lib/analytics/datalayer";
+import {
+  HOME_JOIN_INTERACTED_KEY,
+  NEWSLETTER_SUBSCRIBED_KEY,
+} from "@/lib/auth-next";
 import { newsletterContinuePath } from "@/lib/newsletter-next";
+import { createClient } from "@/lib/supabase/client";
 
 const STORAGE_KEY = "tgb-scroll-engagement-popup";
 const SHOW_AT_SCROLL = 0.33;
 
-type Gate = "eligible" | "done";
+type Gate = "eligible" | "done" | "checking";
 
-function readGate(): Gate {
+function readDismissed(): boolean {
   try {
-    return localStorage.getItem(STORAGE_KEY) === "done" ? "done" : "eligible";
+    return localStorage.getItem(STORAGE_KEY) === "done";
   } catch {
-    return "done";
+    return true;
+  }
+}
+
+function readNewsletterSubscribed(): boolean {
+  try {
+    return localStorage.getItem(NEWSLETTER_SUBSCRIBED_KEY) === "1";
+  } catch {
+    return false;
+  }
+}
+
+function readHomeJoinInteracted(): boolean {
+  try {
+    return sessionStorage.getItem(HOME_JOIN_INTERACTED_KEY) === "1";
+  } catch {
+    return false;
   }
 }
 
@@ -30,13 +51,29 @@ function writeDone() {
   }
 }
 
-export function ScrollEngagementPopup() {
+function writeNewsletterSubscribed() {
+  try {
+    localStorage.setItem(NEWSLETTER_SUBSCRIBED_KEY, "1");
+  } catch {
+    /* ignore */
+  }
+}
+
+function pathSkipsPopup(pathname: string): boolean {
+  return (
+    pathname.startsWith("/login") ||
+    pathname.startsWith("/admin") ||
+    pathname.startsWith("/auth")
+  );
+}
+
+export function ScrollEngagementPopup({ signedIn = false }: { signedIn?: boolean }) {
   const titleId = useId();
   const inputId = useId();
   const closeRef = useRef<HTMLButtonElement>(null);
   const pathname = usePathname();
   const router = useRouter();
-  const [gate, setGate] = useState<Gate>(() => readGate());
+  const [gate, setGate] = useState<Gate>("checking");
   const [open, setOpen] = useState(false);
   const [pending, startTransition] = useTransition();
   const [email, setEmail] = useState("");
@@ -46,9 +83,40 @@ export function ScrollEngagementPopup() {
   const onTurnstileToken = useCallback((token: string) => setTurnstileToken(token), []);
 
   useEffect(() => {
+    let cancelled = false;
+
+    async function resolveGate() {
+      if (signedIn || readDismissed() || readNewsletterSubscribed() || readHomeJoinInteracted() || pathSkipsPopup(pathname)) {
+        if (!cancelled) setGate("done");
+        return;
+      }
+      try {
+        const { data } = await createClient().auth.getSession();
+        if (cancelled) return;
+        if (data.session) {
+          setGate("done");
+          return;
+        }
+      } catch {
+        /* fall through to eligible */
+      }
+      if (!cancelled) setGate("eligible");
+    }
+
+    void resolveGate();
+    return () => {
+      cancelled = true;
+    };
+  }, [signedIn, pathname]);
+
+  useEffect(() => {
     if (gate !== "eligible" || open) return;
 
     const onScroll = () => {
+      if (pathSkipsPopup(pathname) || readHomeJoinInteracted()) {
+        setGate("done");
+        return;
+      }
       const doc = document.documentElement;
       const maxScroll = Math.max(doc.scrollHeight - window.innerHeight, 1);
       const progress = (window.scrollY || doc.scrollTop || 0) / maxScroll;
@@ -62,7 +130,7 @@ export function ScrollEngagementPopup() {
       window.removeEventListener("scroll", onScroll);
       window.removeEventListener("resize", onScroll);
     };
-  }, [gate, open]);
+  }, [gate, open, pathname]);
 
   useEffect(() => {
     if (!open) return;
@@ -111,6 +179,7 @@ export function ScrollEngagementPopup() {
       const clean = email.trim();
       trackEvent("newsletter_signup", { source: "scroll_engagement_popup" });
       trackFormFill("newsletter", { source: "scroll_engagement_popup" });
+      writeNewsletterSubscribed();
       writeDone();
       router.push(newsletterContinuePath(clean));
     });

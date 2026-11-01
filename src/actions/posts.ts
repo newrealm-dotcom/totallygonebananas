@@ -2,7 +2,9 @@
 
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
-import { getViewer, isEditorRole } from "@/lib/queries";
+import { getViewer, isEditorRole, isStaffRole } from "@/lib/queries";
+import { sanitizeUserHtml } from "@/lib/sanitize-html";
+import { renderPostMarkdown } from "@/lib/render-post-markdown";
 import { fieldErrors, postInput } from "@/lib/validation";
 import { slugify } from "@/lib/format";
 import { scheduleSocialShare } from "@/lib/social/share";
@@ -107,8 +109,11 @@ export async function savePost(raw: unknown, postId?: string): Promise<SavePostR
   if (!parsed.success) return { ok: false, errors: fieldErrors(parsed.error) };
   const input = parsed.data;
 
-  const { userId, profile } = await getViewer();
-  if (!userId || !isEditorRole(profile)) return { ok: false, errors: { form: "Only editors can manage blog posts." } };
+  const { userId, profile, aal } = await getViewer();
+  if (!userId || !isStaffRole(profile)) return { ok: false, errors: { form: "Only editors can manage blog posts." } };
+  if (!isEditorRole(profile, aal)) {
+    return { ok: false, errors: { form: "Please complete multi-factor authentication before managing blog posts." } };
+  }
 
   const supabase = await createClient();
   let existing: { id: string; slug: string; cover_path: string | null; status: PostStatus } | null = null;
@@ -146,7 +151,7 @@ export async function savePost(raw: unknown, postId?: string): Promise<SavePostR
   const row = {
     title: input.title,
     excerpt: input.excerpt || null,
-    body: input.body,
+    body: sanitizeUserHtml(renderPostMarkdown(input.body)),
     cover_path: input.coverPath,
     head_json: input.headJson,
     seo_title: input.seoTitle || null,
@@ -199,8 +204,9 @@ export async function savePost(raw: unknown, postId?: string): Promise<SavePostR
 }
 
 export async function deletePost(postId: string): Promise<{ ok: true } | { ok: false; error: string }> {
-  const { profile } = await getViewer();
-  if (!isEditorRole(profile)) return { ok: false, error: "Only editors can delete posts." };
+  const { profile, aal } = await getViewer();
+  if (!isStaffRole(profile)) return { ok: false, error: "Only editors can delete posts." };
+  if (!isEditorRole(profile, aal)) return { ok: false, error: "Please complete multi-factor authentication before deleting posts." };
   const supabase = await createClient();
   const { data, error } = await supabase.from("posts").delete().eq("id", postId).select("slug").maybeSingle();
   if (error) return { ok: false, error: error.message };

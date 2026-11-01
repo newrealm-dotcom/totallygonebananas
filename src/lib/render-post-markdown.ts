@@ -34,7 +34,7 @@ export function looksLikeHtml(source: string): boolean {
 
 /**
  * Convert markdown (or pass through existing HTML) into HTML for blog/recipe notes.
- * CSS and JS from the editor are preserved.
+ * Callers that render this in a page must sanitize it before display.
  */
 export function renderPostMarkdown(source: string): string {
   const trimmed = source.trim();

@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { subscribeNewsletter } from "@/actions/newsletter";
 import { TurnstileField } from "@/components/TurnstileField";
 import { trackEvent, trackFormFill } from "@/lib/analytics/datalayer";
+import { NEWSLETTER_SUBSCRIBED_KEY } from "@/lib/auth-next";
 import { newsletterContinuePath } from "@/lib/newsletter-next";
 
 export function NewsletterSignup() {
@@ -31,6 +32,11 @@ export function NewsletterSignup() {
       const clean = email.trim();
       trackEvent("newsletter_signup", { source: "footer" });
       trackFormFill("newsletter", { source: "footer" });
+      try {
+        localStorage.setItem(NEWSLETTER_SUBSCRIBED_KEY, "1");
+      } catch {
+        /* ignore */
+      }
       router.push(newsletterContinuePath(clean));
     });
   }

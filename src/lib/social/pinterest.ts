@@ -1,4 +1,4 @@
-import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { siteUrl } from "@/lib/env";
 
 const API = "https://api.pinterest.com/v5";
@@ -61,7 +61,7 @@ export async function pinterestConfig(): Promise<PinterestConfig | null> {
 
   let row: PinterestConnectionRow | null = null;
   try {
-    const supabase = await createClient();
+    const supabase = createAdminClient();
     const { data } = await supabase.from("social_connections").select("*").eq("network", "pinterest").maybeSingle();
     row = (data as PinterestConnectionRow | null) ?? null;
   } catch {
@@ -82,7 +82,7 @@ export async function pinterestConfig(): Promise<PinterestConfig | null> {
 }
 
 export async function getPinterestConnection(): Promise<PinterestConnectionRow | null> {
-  const supabase = await createClient();
+  const supabase = createAdminClient();
   const { data } = await supabase.from("social_connections").select("*").eq("network", "pinterest").maybeSingle();
   return (data as PinterestConnectionRow | null) ?? null;
 }
@@ -196,7 +196,7 @@ export async function savePinterestConnection(input: {
   expiresAt?: string | null;
   meta?: Record<string, unknown>;
 }): Promise<void> {
-  const supabase = await createClient();
+  const supabase = createAdminClient();
   const existing = await getPinterestConnection();
   const { error } = await supabase.from("social_connections").upsert(
     {
@@ -214,7 +214,7 @@ export async function savePinterestConnection(input: {
 }
 
 export async function setPinterestBoardId(boardId: string): Promise<void> {
-  const supabase = await createClient();
+  const supabase = createAdminClient();
   const { error } = await supabase
     .from("social_connections")
     .update({ board_id: boardId, updated_at: new Date().toISOString() })
@@ -223,7 +223,7 @@ export async function setPinterestBoardId(boardId: string): Promise<void> {
 }
 
 export async function disconnectPinterest(): Promise<void> {
-  const supabase = await createClient();
+  const supabase = createAdminClient();
   const { error } = await supabase.from("social_connections").delete().eq("network", "pinterest");
   if (error) throw new Error(error.message);
 }
