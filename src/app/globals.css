@@ -78,7 +78,8 @@ button, input, select, textarea { font: inherit; color: inherit; }
   }
   .blog-post,
   .blog-index,
-  .our-faves-page {
+  .our-faves-page,
+  .not-found-page {
     width: 100%;
     max-width: none;
     padding-inline: 150px;
@@ -5383,6 +5384,37 @@ article.blog-post {
 }
 
 /* ---------- about / login ---------- */
+.not-found-page {
+  padding-bottom: clamp(2rem, 4vw, 3.5rem);
+}
+.not-found {
+  display: grid;
+  grid-template-columns: minmax(0, 3fr) minmax(0, 2fr);
+  gap: 2rem 2.5rem;
+  align-items: center;
+  padding: clamp(1.8rem, 4vw, 3rem) 0 2rem;
+}
+.not-found-copy { min-width: 0; }
+.not-found-copy .h1 { margin-bottom: .9rem; }
+.not-found-lede {
+  max-width: none;
+}
+.not-found-actions { margin: 1.2rem 0 0; }
+.not-found-art {
+  justify-self: center;
+  width: min(100%, 460px);
+}
+.not-found-art img {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+@media (min-width: 901px) {
+  .not-found-lede {
+    white-space: nowrap;
+    text-wrap: nowrap;
+  }
+}
 .about { display: grid; grid-template-columns: minmax(0, 3fr) minmax(0, 2fr); gap: 2.5rem; align-items: start; padding: clamp(1.8rem, 4vw, 3rem) 0 2rem; }
 .about-copy { min-width: 0; }
 .about-copy .h1 { margin-bottom: .9rem; }
@@ -5558,7 +5590,8 @@ html[data-theme="dark"] .login-hero-stack .login-hero-dark { display: block; }
   /* Match /recipes first-content top spacing (.page-head) on these index pages. */
   .blog-index > .blog-archive-hero:not(:has(.blog-archive-slide)),
   .about-page .about,
-  .profile-page .stand-hero {
+  .profile-page .stand-hero,
+  .not-found-page .not-found {
     padding-top: clamp(1.8rem, 4vw, 3rem);
   }
   /* Keep the gold band continuous from the header into the hero gradient. */
@@ -5579,7 +5612,8 @@ html[data-theme="dark"] .login-hero-stack .login-hero-dark { display: block; }
 
 /* ---------- responsive ---------- */
 @media (max-width: 900px) {
-  .hero-grid, .stand-hero, .about { grid-template-columns: 1fr; }
+  .hero-grid, .stand-hero, .about, .not-found { grid-template-columns: 1fr; }
+  .not-found-art { order: -1; width: min(100%, 360px); margin-inline: auto; }
   .d-hero {
     grid-template-columns: 1fr;
     grid-template-areas:
