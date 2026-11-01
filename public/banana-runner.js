@@ -1280,8 +1280,8 @@ class Game {
     this.bgDist = 0;                              // drives parallax (also on title screen)
     this.player = new Player();
     this.buttons = {
-      pause: { x: W - 106, y: 92, w: 42, h: 42 },
-      mute:  { x: W - 56,  y: 92, w: 42, h: 42 },
+      pause: { x: W - 176, y: 92, w: 42, h: 42 },
+      mute:  { x: W - 126, y: 92, w: 42, h: 42 },
       again: { x: W / 2 - 120, y: 404, w: 240, h: 60 },
     };
     this.hover = null;
@@ -1744,7 +1744,7 @@ class Game {
     }
 
     // Ripeness meter (top-right): five bananas, green -> gone
-    const mx = W - 262;
+    const mx = W - 330;   // leaves room for the HTML close (X) button in the corner
     this.drawPanel(ctx, mx, 12, 248, 72);
     for (let i = 0; i < 5; i++) {
       const on = i <= p.stage;
@@ -1914,6 +1914,7 @@ function toLogical(e) {
 // Keyboard
 const JUMP_KEYS = new Set(['Space', 'ArrowUp', 'KeyW']);
 window.addEventListener('keydown', e => {
+  if (e.target instanceof Element && e.target.closest('a, button')) return;   // let the close link handle its own keys
   if (JUMP_KEYS.has(e.code)) {
     e.preventDefault();
     if (!e.repeat) game.onPress();

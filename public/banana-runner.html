@@ -21,6 +21,22 @@
     font: bold 15px "Arial Rounded MT Bold", "Trebuchet MS", system-ui, sans-serif; color: #8A6A1E;
     pointer-events: none;
   }
+  /* Wrapper takes the canvas's size so the close button can sit on its corner. */
+  #stage { position: relative; }
+  /* Big "X" close button: a real link back to the homepage.
+     Sized/placed as a fraction of the 960x540 game so it scales with the canvas. */
+  #close {
+    position: absolute; top: calc(12 / 540 * 100%); right: calc(14 / 960 * 100%);
+    width: calc(56 / 960 * 100%); min-width: 40px; aspect-ratio: 1;
+    display: flex; align-items: center; justify-content: center; box-sizing: border-box;
+    background: #fff; border: 3px solid #F5C842; border-radius: 50%;
+    box-shadow: 0 3px 0 #C9A030; color: #462018;
+    transition: transform .12s ease; touch-action: manipulation;
+  }
+  #close:hover { transform: scale(1.08) rotate(90deg); }
+  #close:active { transform: scale(0.95); }
+  #close:focus-visible { outline: 3px solid #462018; outline-offset: 3px; }
+  #close svg { width: 55%; height: 55%; }
   @media (orientation: portrait) and (max-width: 700px) { #hint { display: block; } }
   @media (max-width: 700px), (max-height: 420px) {
     canvas { border-radius: 0; box-shadow: none; }
@@ -29,7 +45,12 @@
 </head>
 <body>
 <div id="hint">Turn your phone sideways for a bigger view 📱↻</div>
-<canvas id="game" role="img" aria-label="Totally Gone Bananas: an endless runner game. Press Space or tap to jump."></canvas>
+<div id="stage">
+  <canvas id="game" role="img" aria-label="Totally Gone Bananas: an endless runner game. Press Space or tap to jump."></canvas>
+  <a id="close" href="/" aria-label="Close game and return to the homepage" title="Close game">
+    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 5 L19 19 M19 5 L5 19" stroke="currentColor" stroke-width="4" stroke-linecap="round" fill="none"/></svg>
+  </a>
+</div>
 <script src="banana-runner.js" defer></script>
 </body>
 </html>
