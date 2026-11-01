@@ -4,16 +4,22 @@ import { getViewer, isEditorRole } from "@/lib/queries";
 
 export const dynamic = "force-dynamic";
 
-/** Serves a recipe file when it is published, owned by the caller, or opened by an editor with MFA. */
+/** Serves a storage file when it is a published recipe/post cover, the homepage promo, owned by the caller, or opened by an editor with MFA. */
 export async function GET(_request: Request, { params }: { params: Promise<{ path: string[] }> }) {
   const joined = (await params).path.join("/");
   if (!MEDIA_PATH_RE.test(joined)) return new Response("Not found", { status: 404 });
 
   const admin = createAdminClient();
-  const { data: published, error } = await admin.rpc("recipe_storage_path_is_published", { object_name: joined });
-  if (error) return new Response("Not found", { status: 404 });
+  const [recipeFile, postCover, homepagePromo] = await Promise.all([
+    admin.rpc("recipe_storage_path_is_published", { object_name: joined }),
+    admin.rpc("post_cover_path_is_published", { object_name: joined }),
+    admin.rpc("homepage_promo_path_is_public", { object_name: joined }),
+  ]);
+  if (recipeFile.error) return new Response("Not found", { status: 404 });
 
-  let allowed = published === true;
+  const published =
+    recipeFile.data === true || postCover.data === true || homepagePromo.data === true;
+  let allowed = published;
   if (!allowed) {
     const { userId, profile, aal } = await getViewer();
     const owner = joined.startsWith(`${userId}/`);

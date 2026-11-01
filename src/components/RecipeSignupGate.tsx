@@ -1,19 +1,28 @@
 import Link from "next/link";
 import { LoginForm } from "@/components/LoginForm";
+import { MediaView } from "@/components/MediaView";
 import { RecipePreviewGateBeacon } from "@/components/RecipePreviewGateBeacon";
 
 export function RecipeSignupGate({
   title,
   slug,
+  coverPath,
   googleEnabled,
 }: {
   title: string;
   slug: string;
+  /** Published cover stays visible; only the recipe body stays behind the gate. */
+  coverPath?: string | null;
   googleEnabled: boolean;
 }) {
   return (
     <div className="wrap narrow recipe-gate">
       <RecipePreviewGateBeacon slug={slug} />
+      {coverPath ? (
+        <div className="recipe-gate-art" aria-hidden="true">
+          <MediaView path={coverPath} alt="" sizes="(max-width: 640px) 100vw, 560px" priority />
+        </div>
+      ) : null}
       <div className="page-head">
         <h1>Sign up free to read more recipes</h1>
         <p className="lede">

@@ -92,10 +92,12 @@ export default async function RecipePage({ params, searchParams }: PageProps<"/r
   const jar = await cookies();
   const savedSlug = recipePreviewSlugFromCookie(jar.get(RECIPE_PREVIEW_COOKIE)?.value);
   if (r.status === "published" && anonymousRecipeIsBlocked(savedSlug, r.slug, Boolean(userId))) {
+    const coverPath = r.cover_path ?? r.recipe_media.find((m) => m.kind === "image")?.path ?? null;
     return (
       <RecipeSignupGate
         title={titleCase(r.title)}
         slug={r.slug}
+        coverPath={coverPath}
         googleEnabled={process.env.NEXT_PUBLIC_AUTH_GOOGLE === "true"}
       />
     );
