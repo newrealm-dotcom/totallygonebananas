@@ -1938,11 +1938,9 @@ html:not([data-theme="dark"]) .home-join-actions .btn.ghost:hover,
   pointer-events: auto;
   transform: translateY(0);
 }
-@media (hover: none) {
-  .finish-sneaker-btn {
-    opacity: 1;
-    pointer-events: auto;
-    transform: none;
+@media (max-width: 900px) {
+  .finish-sneaker {
+    display: none;
   }
 }
 .finish-sneaker-btn:hover {
