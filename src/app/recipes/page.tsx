@@ -71,6 +71,9 @@ export default async function RecipesPage({ searchParams }: PageProps<"/recipes"
   return (
     <div className="recipes-index">
       <div className="wrap">
+        <div className="recipes-index-hero-bg" aria-hidden="true">
+          <video autoPlay muted loop playsInline preload="auto" src="/video/bg-recipe.mp4" />
+        </div>
         <div className="page-head recipes-index-hero">
           <div className="recipes-index-hero-copy">
             <h1>{titleCase(cat ? cat.name : "Every banana recipe")}</h1>

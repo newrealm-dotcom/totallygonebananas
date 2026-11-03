@@ -5,6 +5,7 @@ import localFont from "next/font/local";
 import { Analytics } from "@vercel/analytics/next";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import "./globals.css";
+import { HeaderCompactMode } from "@/components/HeaderCompactMode";
 import { SiteHeader } from "@/components/SiteHeader";
 import { SiteFooter } from "@/components/SiteFooter";
 import {
@@ -216,6 +217,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         <script nonce={nonce} type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
         <a className="skip" href="#main">Skip to content</a>
         <SiteHeader />
+        <HeaderCompactMode />
         <main id="main">{children}</main>
         <SiteFooter />
         <DeferredScrollEngagementPopup signedIn={Boolean(viewer.userId)} />
