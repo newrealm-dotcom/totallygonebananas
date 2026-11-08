@@ -30,7 +30,7 @@
     "@vercel/speed-insights": "^2.0.0",
     "d3-geo": "^3.1.1",
     "marked": "^18.1.2",
-    "next": "16.4.3",
+    "next": "16.4.5",
     "parse-ingredient": "^3.1.0",
     "react": "19.3.1",
     "react-dom": "19.3.1",
