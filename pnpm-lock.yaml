@@ -60,8 +60,8 @@ importers:
         specifier: 16.4.3
         version: 16.4.3(@babel/core@7.29.7)(@playwright/test@1.64.1)(@types/node@26.6.6)(react-dom@19.3.1(react@19.3.1))(react@19.3.1)
       parse-ingredient:
-        specifier: ^3.1.0
-        version: 3.1.0
+        specifier: ^3.2.0
+        version: 3.2.0
       react:
         specifier: 19.3.1
         version: 19.3.1
@@ -2186,8 +2186,8 @@ packages:
     resolution: {integrity: sha512-kQK9LGGFiHtrWiNhZtA7Qbw17AQz+dmsEKODRIVTXA9+e5MS/2gZEBhYJt13GrAz5/IOZKddH/0Z3TP/Zgo+yw==}
     engines: {node: '>=18'}
 
-  numeric-quantity@3.3.3:
-    resolution: {integrity: sha512-XICjnIs8Q8vUlOvVOFI8Xe3kte8fknfpzASHjwy4R2GtRm4Q5lI+d62JqFe54X4kqj/xdsucWxYe8G+OD9O8Uw==}
+  numeric-quantity@3.3.4:
+    resolution: {integrity: sha512-mYzGsK+5jEK3DM3iAxC8ACKp6k1qH2lxvbTQxfIb6FL+meXx4yrwUTiAQtXik7ZnCj8R5pMIY63Ra0wPP3SW/A==}
     engines: {node: '>=16'}
 
   object-assign@4.1.1:
@@ -2249,8 +2249,8 @@ packages:
     resolution: {integrity: sha512-GQ2EWRpQV8/o+Aw8YqtfZZPfNRWZYkbidE9k5rpl/hC3vtHHBfGm2Ifi6qWV+coDGkrUKZAxE3Lot5kcsRlh+g==}
     engines: {node: '>=6'}
 
-  parse-ingredient@3.1.0:
-    resolution: {integrity: sha512-qMaidXMC/3Awb4sS0ZAc+EtXHmah8L+bGoMAOjjcB16C6Z7AD8NhASbwVrDLnRCjBf+XSW1ZG5nqDNKNAK/r4A==}
+  parse-ingredient@3.2.0:
+    resolution: {integrity: sha512-0c/MP81gkUqXtzBnaU4L7PwVaASB00bMdhJKLnl6dqd1vGydQ4UYh08ZaLQGkh30+Viy8DGooMjVeY7rBIcTLg==}
     engines: {node: '>=20'}
 
   parse-srcset@1.0.2:
@@ -4123,7 +4123,7 @@ snapshots:
       eslint: 9.39.5
       eslint-import-resolver-node: 0.3.10
       eslint-import-resolver-typescript: 3.10.1(eslint-plugin-import@2.32.0(@typescript-eslint/parser@8.71.0(eslint@9.39.5)(typescript@6.0.3))(eslint@9.39.5))(eslint@9.39.5)
-      eslint-plugin-import: 2.32.0(@typescript-eslint/parser@8.71.0(eslint@9.39.5)(typescript@6.0.3))(eslint-import-resolver-typescript@3.10.1(eslint-plugin-import@2.32.0(@typescript-eslint/parser@8.71.0(eslint@9.39.5)(typescript@6.0.3))(eslint@9.39.5))(eslint@9.39.5))(eslint@9.39.5)
+      eslint-plugin-import: 2.32.0(@typescript-eslint/parser@8.71.0(eslint@9.39.5)(typescript@6.0.3))(eslint-import-resolver-typescript@3.10.1)(eslint@9.39.5)
       eslint-plugin-jsx-a11y: 6.10.2(eslint@9.39.5)
       eslint-plugin-react: 7.37.5(eslint@9.39.5)
       eslint-plugin-react-hooks: 7.1.1(eslint@9.39.5)
@@ -4156,7 +4156,7 @@ snapshots:
       tinyglobby: 0.2.17
       unrs-resolver: 1.12.2
     optionalDependencies:
-      eslint-plugin-import: 2.32.0(@typescript-eslint/parser@8.71.0(eslint@9.39.5)(typescript@6.0.3))(eslint-import-resolver-typescript@3.10.1(eslint-plugin-import@2.32.0(@typescript-eslint/parser@8.71.0(eslint@9.39.5)(typescript@6.0.3))(eslint@9.39.5))(eslint@9.39.5))(eslint@9.39.5)
+      eslint-plugin-import: 2.32.0(@typescript-eslint/parser@8.71.0(eslint@9.39.5)(typescript@6.0.3))(eslint-import-resolver-typescript@3.10.1)(eslint@9.39.5)
     transitivePeerDependencies:
       - supports-color
 
@@ -4171,7 +4171,7 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  eslint-plugin-import@2.32.0(@typescript-eslint/parser@8.71.0(eslint@9.39.5)(typescript@6.0.3))(eslint-import-resolver-typescript@3.10.1(eslint-plugin-import@2.32.0(@typescript-eslint/parser@8.71.0(eslint@9.39.5)(typescript@6.0.3))(eslint@9.39.5))(eslint@9.39.5))(eslint@9.39.5):
+  eslint-plugin-import@2.32.0(@typescript-eslint/parser@8.71.0(eslint@9.39.5)(typescript@6.0.3))(eslint-import-resolver-typescript@3.10.1)(eslint@9.39.5):
     dependencies:
       '@rtsao/scc': 1.1.0
       array-includes: 3.2.0
@@ -4814,7 +4814,7 @@ snapshots:
 
   node-releases@2.0.57: {}
 
-  numeric-quantity@3.3.3: {}
+  numeric-quantity@3.3.4: {}
 
   object-assign@4.1.1: {}
 
@@ -4890,9 +4890,9 @@ snapshots:
     dependencies:
       callsites: 3.1.0
 
-  parse-ingredient@3.1.0:
+  parse-ingredient@3.2.0:
     dependencies:
-      numeric-quantity: 3.3.3
+      numeric-quantity: 3.3.4
 
   parse-srcset@1.0.2: {}
 
