@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { renderPostMarkdown, stripInlineMarkdown } from "@/lib/render-post-markdown";
-import { sanitizeUserHtml } from "@/lib/sanitize-html";
+import { sanitizePostHtml, sanitizeUserHtml } from "@/lib/sanitize-html";
 
 describe("renderPostMarkdown", () => {
   it("renders markdown and normalizes inline copy", () => {
@@ -34,5 +34,45 @@ describe("sanitizeUserHtml", () => {
 
     expect(sanitized).toContain('href="https://example.com"');
     expect(sanitized).toContain('src="/banana.webp"');
+  });
+
+  it("drops blog tables from member HTML", () => {
+    const sanitized = sanitizeUserHtml(
+      '<style>.x{color:red}</style><table class="tgb-scorecard"><tr><td>7</td></tr></table>',
+    );
+
+    expect(sanitized).not.toContain("<style");
+    expect(sanitized).not.toContain("<table");
+    expect(sanitized).toContain("7");
+  });
+});
+
+describe("sanitizePostHtml", () => {
+  it("keeps scorecard styles and table markup", () => {
+    const sanitized = sanitizePostHtml(
+      '<style>.tgb-scorecard td { font-weight: 700; }</style><div class="tgb-scorecard-wrap"><table class="tgb-scorecard"><thead><tr><th scope="col">Banana</th></tr></thead><tbody><tr><td data-label="Price" style="text-align: left">7</td></tr></tbody></table></div>',
+    );
+
+    expect(sanitized).toContain("<style>");
+    expect(sanitized).toContain(".tgb-scorecard");
+    expect(sanitized).toContain('class="tgb-scorecard"');
+    expect(sanitized).toContain('scope="col"');
+    expect(sanitized).toContain('data-label="Price"');
+    expect(sanitized).toContain("text-align:left");
+    expect(sanitized).not.toContain("<script");
+  });
+
+  it("strips scripts and active CSS from post HTML", () => {
+    const sanitized = sanitizePostHtml(
+      '<style>.x{background:url(javascript:alert(1));behavior:url(x)}</style><p onclick="alert(1)">Hi<script>alert(1)</script></p><table><tr><td style="background:url(https://evil.test/x)">1</td></tr></table>',
+    );
+
+    expect(sanitized).not.toContain("<script");
+    expect(sanitized).not.toContain("onclick");
+    expect(sanitized).not.toContain("javascript:");
+    expect(sanitized).not.toContain("url(");
+    expect(sanitized).not.toContain("behavior:");
+    expect(sanitized).toContain("<table>");
+    expect(sanitized).toContain(">1<");
   });
 });

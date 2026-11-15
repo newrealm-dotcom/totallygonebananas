@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { getViewer, isEditorRole, isStaffRole } from "@/lib/queries";
-import { sanitizeUserHtml } from "@/lib/sanitize-html";
+import { sanitizePostHtml } from "@/lib/sanitize-html";
 import { renderPostMarkdown } from "@/lib/render-post-markdown";
 import { fieldErrors, postInput } from "@/lib/validation";
 import { slugify } from "@/lib/format";
@@ -151,7 +151,7 @@ export async function savePost(raw: unknown, postId?: string): Promise<SavePostR
   const row = {
     title: input.title,
     excerpt: input.excerpt || null,
-    body: sanitizeUserHtml(renderPostMarkdown(input.body)),
+    body: sanitizePostHtml(renderPostMarkdown(input.body)),
     cover_path: input.coverPath,
     head_json: input.headJson,
     seo_title: input.seoTitle || null,

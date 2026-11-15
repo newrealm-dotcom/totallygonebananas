@@ -7,7 +7,7 @@ import { getBlogCategories, getPostBySlug, getViewer, isEditorRole, listApproved
 import { easternDateKey, longDate } from "@/lib/format";
 import { mediaSrc } from "@/lib/media";
 import { BlogCoverCard } from "@/components/BlogCoverCard";
-import { sanitizeUserHtml } from "@/lib/sanitize-html";
+import { sanitizePostHtml } from "@/lib/sanitize-html";
 import { PostCommentForm } from "@/components/PostCommentForm";
 import { renderPostMarkdown } from "@/lib/render-post-markdown";
 
@@ -69,7 +69,7 @@ export default async function BlogPostPage({ params }: PageProps<"/blog/[slug]">
   });
 
   const cover = mediaSrc(post.cover_path);
-  const bodyHtml = sanitizeUserHtml(renderPostMarkdown(post.body));
+  const bodyHtml = sanitizePostHtml(renderPostMarkdown(post.body));
   const headJson = headJsonScript(post.head_json);
   const categoryNames = Object.fromEntries(blogCategories.map((c) => [c.id, c.name]));
   const authorName = post.author?.display_name || "Totally Gone Bananas";
