@@ -106,19 +106,35 @@ async function ensureBlogCategoryIds(
 }
 
 export async function savePost(raw: unknown, postId?: string): Promise<SavePostResult> {
-  // JSON is sent as text so the server-action payload stays a string. Nested objects
-  // in the action body were failing the save before a row was written.
-  const payload =
-    raw && typeof raw === "object"
-      ? { ...(raw as Record<string, unknown>) }
-      : raw;
-  if (payload && typeof payload === "object" && "headJson" in payload) {
-    const head = coerceHeadJson(payload.headJson);
-    if (!head.ok) return { ok: false, errors: { headJson: head.error } };
-    payload.headJson = head.value;
+  // The client sends one JSON string so React's server-action serializer never has to
+  // walk nested JSON-LD objects (that path was dropping the publish with no row written).
+  let payload: unknown = raw;
+  if (typeof raw === "string") {
+    try {
+      payload = JSON.parse(raw);
+    } catch {
+      return { ok: false, errors: { form: "Couldn't read the post data. Try publishing again." } };
+    }
+  }
+  if (payload && typeof payload === "object") {
+    payload = { ...(payload as Record<string, unknown>) };
+    if ("headJson" in (payload as Record<string, unknown>)) {
+      const head = coerceHeadJson((payload as Record<string, unknown>).headJson);
+      if (!head.ok) return { ok: false, errors: { headJson: head.error } };
+      (payload as Record<string, unknown>).headJson = head.value;
+    }
   }
   const parsed = postInput.safeParse(payload);
-  if (!parsed.success) return { ok: false, errors: fieldErrors(parsed.error) };
+  if (!parsed.success) {
+    const errors = fieldErrors(parsed.error);
+    const headMessage = Object.entries(errors).find(([key]) => key === "headJson" || key.startsWith("headJson."))?.[1];
+    if (headMessage) errors.headJson = headMessage;
+    if (!errors.form) {
+      const first = Object.values(errors)[0];
+      if (first) errors.form = first;
+    }
+    return { ok: false, errors };
+  }
   const input = parsed.data;
 
   const { userId, profile, aal } = await getViewer();
@@ -165,7 +181,6 @@ export async function savePost(raw: unknown, postId?: string): Promise<SavePostR
     excerpt: input.excerpt || null,
     body: sanitizePostHtml(renderPostMarkdown(input.body)),
     cover_path: input.coverPath,
-    head_json: input.headJson,
     seo_title: input.seoTitle || null,
     meta_description: input.metaDescription || null,
     categories: ensured.ids,
@@ -175,12 +190,23 @@ export async function savePost(raw: unknown, postId?: string): Promise<SavePostR
     published_at: publishedAt,
   };
 
+  async function writeHeadJson(id: string): Promise<void> {
+    // New rows already start with null head_json; only write when attaching JSON or clearing an edit.
+    if (input.headJson == null && !existing) return;
+    const { error } = await supabase.from("posts").update({ head_json: input.headJson }).eq("id", id);
+    if (error) {
+      // Keep the post itself — editors can re-attach JSON on the edit screen.
+      console.error("[savePost] head_json update failed", error.message);
+    }
+  }
+
   if (existing) {
     const { error } = await supabase.from("posts").update(row).eq("id", existing.id);
     if (error) {
       if (error.code === "23505") return { ok: false, errors: { slug: "That URL slug is already taken." } };
       return { ok: false, errors: { form: error.message } };
     }
+    await writeHeadJson(existing.id);
     revalidatePath("/admin");
     revalidatePath("/admin/posts");
     revalidatePath("/admin/our-faves");
@@ -201,8 +227,11 @@ export async function savePost(raw: unknown, postId?: string): Promise<SavePostR
     .single();
   if (error || !data) {
     if (error?.code === "23505") return { ok: false, errors: { slug: "That URL slug is already taken." } };
+    console.error("[savePost] insert failed", error?.message);
     return { ok: false, errors: { form: error?.message || "Couldn't save the post." } };
   }
+
+  await writeHeadJson(data.id);
 
   revalidatePath("/admin");
   revalidatePath("/admin/posts");

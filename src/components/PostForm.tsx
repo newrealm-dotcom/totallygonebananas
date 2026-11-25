@@ -102,6 +102,7 @@ export function PostForm({
   );
   const [headJsonIssue, setHeadJsonIssue] = useState("");
   const [readingHeadJson, setReadingHeadJson] = useState(false);
+  const formTopRef = useRef<HTMLDivElement>(null);
   const [uploading, setUploading] = useState(false);
   const isPublished = post?.status === "published";
   const publishLabel = isPublished ? "Update" : "Publish";
@@ -307,21 +308,46 @@ export function PostForm({
     return coverPath;
   }
 
+  function showErrors(next: Record<string, string>) {
+    const cleaned = Object.fromEntries(Object.entries(next).filter(([, message]) => Boolean(message)));
+    if (!cleaned.form) {
+      const first = Object.values(cleaned)[0];
+      if (first) cleaned.form = first;
+    }
+    setErrors(cleaned);
+    formTopRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+  }
+
   function submit(intent: "draft" | "publish") {
-    if (readingHeadJson) return;
+    if (readingHeadJson) {
+      showErrors({ headJson: "Still reading the JSON file — wait a moment, then publish again." });
+      return;
+    }
     if (headJsonIssue) {
-      setErrors({ headJson: headJsonIssue });
+      showErrors({ headJson: headJsonIssue });
+      return;
+    }
+    if (headJsonName && !headJson) {
+      showErrors({ headJson: "That JSON file didn't load. Remove it or choose another file." });
       return;
     }
     setErrors({});
     const nextCover = resolvedCoverPath();
     if (coverMode === "url" && nextCover && !nextCover.startsWith("/") && !/^https?:\/\//i.test(nextCover)) {
-      setErrors({ coverPath: "URL must start with https://, http://, or /" });
+      showErrors({ coverPath: "URL must start with https://, http://, or /" });
       return;
     }
     const publishedAt = easternDatetimeLocalToIso(publishedAtLocal);
     if (!publishedAt) {
-      setErrors({ publishedAt: "Pick a valid publish date and time." });
+      showErrors({ publishedAt: "Pick a valid publish date and time." });
+      return;
+    }
+    if (!title.trim()) {
+      showErrors({ title: "Give your post a title" });
+      return;
+    }
+    if (!body.trim()) {
+      showErrors({ body: "Write something" });
       return;
     }
     const draftName = categoryDraft.trim().replace(/\s+/g, " ");
@@ -344,8 +370,9 @@ export function PostForm({
     });
     startTransition(async () => {
       try {
+        // One JSON string keeps nested head JSON out of the React server-action serializer.
         const result = await savePost(
-          {
+          JSON.stringify({
             seoTitle,
             metaDescription,
             slug,
@@ -355,10 +382,10 @@ export function PostForm({
             tags,
             body,
             coverPath: nextCover,
-            headJson: headJson ? JSON.stringify(headJson) : null,
+            headJson,
             publishedAt,
             intent,
-          },
+          }),
           post?.id,
         );
         if (!result.ok) {
@@ -369,14 +396,14 @@ export function PostForm({
             setTagsOpen(true);
             if (tagsAccordionRef.current) tagsAccordionRef.current.open = true;
           }
-          setErrors(nextErrors);
+          showErrors(nextErrors);
           return;
         }
         router.push(result.status === "published" ? `/blog/${result.slug}` : listHref);
         router.refresh();
       } catch (error) {
-        const message = error instanceof Error ? error.message : "Couldn't save the post.";
-        setErrors({
+        const message = error instanceof Error ? error.message : typeof error === "string" ? error : "Couldn't save the post.";
+        showErrors({
           form: /body exceeded|413/i.test(message)
             ? "That post is too large to save. Remove the JSON file or shorten the body."
             : message.slice(0, 300) || "Couldn't save the post.",
@@ -398,8 +425,21 @@ export function PostForm({
     });
   }
 
+  const visibleErrors = Object.entries(errors).filter(([, message]) => Boolean(message));
+
   return (
     <form className="panel stack" onSubmit={(e) => { e.preventDefault(); submit("publish"); }} noValidate>
+      <div ref={formTopRef} />
+      {visibleErrors.length > 0 && (
+        <div className="f-err" role="alert" style={{ marginBottom: "0.75rem" }}>
+          <p style={{ margin: 0, fontWeight: 900 }}>Couldn&apos;t publish yet</p>
+          <ul style={{ margin: "0.35rem 0 0", paddingLeft: "1.1rem" }}>
+            {[...new Set(visibleErrors.map(([, message]) => message))].map((message) => (
+              <li key={message}>{message}</li>
+            ))}
+          </ul>
+        </div>
+      )}
       <div className="f">
         <label htmlFor="post-seo-title">SEO title</label>
         <input

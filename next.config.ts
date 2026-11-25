@@ -4,6 +4,12 @@ import type { NextConfig } from "next";
 const supabase = process.env.NEXT_PUBLIC_SUPABASE_URL ? new URL(process.env.NEXT_PUBLIC_SUPABASE_URL) : null;
 
 const nextConfig: NextConfig = {
+  experimental: {
+    serverActions: {
+      // Post body HTML + optional head JSON can exceed the 1 MB default.
+      bodySizeLimit: "2mb",
+    },
+  },
   images: {
     formats: ["image/avif", "image/webp"],
     deviceSizes: [640, 750, 828, 1080, 1200, 1920],

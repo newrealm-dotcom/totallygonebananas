@@ -213,11 +213,24 @@ export const postInput = z.object({
         v.startsWith("https://"),
       "Use an image URL or upload a file",
     ),
-  headJson: z
-    .union([z.record(z.string(), z.unknown()), z.array(z.unknown())])
-    .nullable()
-    .default(null)
-    .refine((v) => v === null || JSON.stringify(v).length <= 100_000, "Keep the JSON under 100 KB"),
+  headJson: z.preprocess(
+    (value) => {
+      if (value == null || value === "") return null;
+      if (typeof value === "string") {
+        try {
+          return JSON.parse(value);
+        } catch {
+          return value;
+        }
+      }
+      return value;
+    },
+    z
+      .union([z.record(z.string(), z.unknown()), z.array(z.unknown())])
+      .nullable()
+      .default(null)
+      .refine((v) => v === null || JSON.stringify(v).length <= 100_000, "Keep the JSON under 100 KB"),
+  ),
   publishedAt: z
     .string()
     .trim()

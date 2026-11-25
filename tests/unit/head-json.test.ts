@@ -62,4 +62,41 @@ describe("save payload", () => {
     expect(parsed.success).toBe(true);
     if (parsed.success) expect(parsed.data.headJson).toMatchObject({ "@type": "FAQPage" });
   });
+
+  it("accepts a stringified envelope the way the form submits", () => {
+    const envelope = JSON.parse(
+      JSON.stringify({
+        title: "A fave",
+        excerpt: "",
+        slug: "a-fave",
+        categories: ["Favorites"],
+        tags: [],
+        body: "Hello",
+        coverPath: null,
+        headJson: faq,
+        publishedAt: "2026-11-25T18:00:00.000Z",
+        intent: "publish",
+      }),
+    );
+    const parsed = postInput.safeParse(envelope);
+    expect(parsed.success).toBe(true);
+    if (parsed.success) expect(parsed.data.headJson).toMatchObject({ "@type": "FAQPage" });
+  });
+
+  it("accepts headJson still encoded as a string", () => {
+    const parsed = postInput.safeParse({
+      title: "A fave",
+      excerpt: "",
+      slug: "a-fave",
+      categories: ["Favorites"],
+      tags: [],
+      body: "Hello",
+      coverPath: null,
+      headJson: JSON.stringify(faq),
+      publishedAt: "2026-11-25T18:00:00.000Z",
+      intent: "publish",
+    });
+    expect(parsed.success).toBe(true);
+    if (parsed.success) expect(parsed.data.headJson).toMatchObject({ "@type": "FAQPage" });
+  });
 });
