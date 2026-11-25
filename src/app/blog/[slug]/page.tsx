@@ -10,6 +10,7 @@ import { BlogCoverCard } from "@/components/BlogCoverCard";
 import { sanitizePostHtml } from "@/lib/sanitize-html";
 import { PostCommentForm } from "@/components/PostCommentForm";
 import { renderPostMarkdown } from "@/lib/render-post-markdown";
+import { coerceHeadJson } from "@/lib/head-json";
 
 export async function generateMetadata({ params }: PageProps<"/blog/[slug]">): Promise<Metadata> {
   const { slug } = await params;
@@ -41,8 +42,9 @@ export async function generateMetadata({ params }: PageProps<"/blog/[slug]">): P
 }
 
 function headJsonScript(value: unknown): string | null {
-  if (value === null || typeof value !== "object") return null;
-  return JSON.stringify(value).replace(/</g, "\\u003c");
+  const parsed = coerceHeadJson(value);
+  if (!parsed.ok || !parsed.value) return null;
+  return JSON.stringify(parsed.value).replace(/</g, "\\u003c");
 }
 
 export default async function BlogPostPage({ params }: PageProps<"/blog/[slug]">) {

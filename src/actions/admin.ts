@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { normalizeEquipment } from "@/lib/equipment";
+import { coerceHeadJson } from "@/lib/head-json";
 import { getViewer, isAdminRole } from "@/lib/queries";
 import { slugify } from "@/lib/format";
 import { normalizeIngredientGroups } from "@/lib/ingredients";
@@ -143,6 +144,7 @@ export async function adminClonePost(postId: string): Promise<Result> {
 
   const title = `${post.title} (copy)`.slice(0, 120);
   const slug = await uniqueSlug("posts", title, supabase);
+  const head = coerceHeadJson(post.head_json);
   const { data: created, error: insertError } = await supabase
     .from("posts")
     .insert({
@@ -151,7 +153,7 @@ export async function adminClonePost(postId: string): Promise<Result> {
       excerpt: post.excerpt,
       body: post.body,
       cover_path: post.cover_path,
-      head_json: post.head_json,
+      head_json: head.ok ? head.value : post.head_json,
       seo_title: post.seo_title,
       meta_description: post.meta_description,
       categories: post.categories ?? [],

@@ -5,6 +5,7 @@ import { createClient } from "@/lib/supabase/server";
 import { getViewer, isEditorRole, isStaffRole } from "@/lib/queries";
 import { sanitizePostHtml } from "@/lib/sanitize-html";
 import { renderPostMarkdown } from "@/lib/render-post-markdown";
+import { coerceHeadJson } from "@/lib/head-json";
 import { fieldErrors, postInput } from "@/lib/validation";
 import { slugify } from "@/lib/format";
 import { scheduleSocialShare } from "@/lib/social/share";
@@ -105,7 +106,18 @@ async function ensureBlogCategoryIds(
 }
 
 export async function savePost(raw: unknown, postId?: string): Promise<SavePostResult> {
-  const parsed = postInput.safeParse(raw);
+  // JSON is sent as text so the server-action payload stays a string. Nested objects
+  // in the action body were failing the save before a row was written.
+  const payload =
+    raw && typeof raw === "object"
+      ? { ...(raw as Record<string, unknown>) }
+      : raw;
+  if (payload && typeof payload === "object" && "headJson" in payload) {
+    const head = coerceHeadJson(payload.headJson);
+    if (!head.ok) return { ok: false, errors: { headJson: head.error } };
+    payload.headJson = head.value;
+  }
+  const parsed = postInput.safeParse(payload);
   if (!parsed.success) return { ok: false, errors: fieldErrors(parsed.error) };
   const input = parsed.data;
 

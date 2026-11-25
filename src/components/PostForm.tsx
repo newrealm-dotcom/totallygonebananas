@@ -8,6 +8,7 @@ import { checkFile, isRemoteMediaPath, kindOf, mediaSrc, RECIPE_BUCKET } from "@
 import { savePost, deletePost } from "@/actions/posts";
 import { PostBodyEditor } from "@/components/PostBodyEditor";
 import { slugify, toEasternDatetimeLocal, easternDatetimeLocalToIso } from "@/lib/format";
+import { coerceHeadJson, parseHeadJsonText, readJsonFile } from "@/lib/head-json";
 import { normalizeTag, tagIssue } from "@/lib/tags";
 import type { BlogCategory, Post } from "@/lib/types";
 import { TAGS } from "@/lib/types";
@@ -18,10 +19,6 @@ type CoverMode = "upload" | "url";
 
 function uid() {
   return crypto.randomUUID();
-}
-
-function isJsonObjectOrArray(value: unknown): value is Record<string, unknown> | unknown[] {
-  return value !== null && typeof value === "object";
 }
 
 function initialCoverMode(path: string | null | undefined): CoverMode {
@@ -83,6 +80,7 @@ export function PostForm({
   const [tagError, setTagError] = useState("");
   const [tagsOpen, setTagsOpen] = useState(false);
   const tagsAccordionRef = useRef<HTMLDetailsElement>(null);
+  const headJsonInputRef = useRef<HTMLInputElement>(null);
   const [body, setBody] = useState(post?.body ?? "");
   const [publishedAtLocal, setPublishedAtLocal] = useState(() =>
     toEasternDatetimeLocal(post?.published_at),
@@ -95,10 +93,15 @@ export function PostForm({
     isRemoteMediaPath(post?.cover_path) ? (post?.cover_path ?? "") : "",
   );
   const [coverPreview, setCoverPreview] = useState<string | null>(mediaSrc(post?.cover_path));
+  const initialHead = coerceHeadJson(post?.head_json ?? null);
   const [headJson, setHeadJson] = useState<Record<string, unknown> | unknown[] | null>(
-    isJsonObjectOrArray(post?.head_json) ? post.head_json : null,
+    initialHead.ok ? initialHead.value : null,
   );
-  const [headJsonName, setHeadJsonName] = useState<string | null>(post?.head_json ? "Attached JSON" : null);
+  const [headJsonName, setHeadJsonName] = useState<string | null>(
+    initialHead.ok && initialHead.value ? "Attached JSON" : null,
+  );
+  const [headJsonIssue, setHeadJsonIssue] = useState("");
+  const [readingHeadJson, setReadingHeadJson] = useState(false);
   const [uploading, setUploading] = useState(false);
   const isPublished = post?.status === "published";
   const publishLabel = isPublished ? "Update" : "Publish";
@@ -250,33 +253,50 @@ export function PostForm({
 
   async function onHeadJson(file: File | null) {
     if (!file) return;
+    setHeadJsonName(file.name);
+    setHeadJson(null);
+    setHeadJsonIssue("");
     setErrors((e) => ({ ...e, headJson: "" }));
     if (file.size > MAX_HEAD_JSON_BYTES) {
-      setErrors({ headJson: "Keep the JSON file under 100 KB." });
+      const message = "Keep the JSON file under 100 KB.";
+      setHeadJsonIssue(message);
+      setErrors({ headJson: message });
       return;
     }
-    const name = file.name.toLowerCase();
+    const name = file.name.trim().toLowerCase();
     if (!name.endsWith(".json") && file.type !== "application/json" && file.type !== "text/json") {
-      setErrors({ headJson: "Upload a .json file." });
+      const message = "Upload a .json file.";
+      setHeadJsonIssue(message);
+      setErrors({ headJson: message });
       return;
     }
+    setReadingHeadJson(true);
     try {
-      const text = await file.text();
-      const parsed: unknown = JSON.parse(text);
-      if (!isJsonObjectOrArray(parsed)) {
-        setErrors({ headJson: "JSON must be an object or an array." });
+      const text = await readJsonFile(file);
+      const parsed = parseHeadJsonText(text);
+      if (!parsed.ok) {
+        setHeadJsonIssue(parsed.error);
+        setErrors({ headJson: parsed.error });
         return;
       }
-      setHeadJson(parsed);
+      setHeadJson(parsed.value);
       setHeadJsonName(file.name);
+      setHeadJsonIssue("");
     } catch {
-      setErrors({ headJson: "That file isn't valid JSON." });
+      const message = "That file isn't valid JSON.";
+      setHeadJsonIssue(message);
+      setErrors({ headJson: message });
+    } finally {
+      setReadingHeadJson(false);
     }
   }
 
   function clearHeadJson() {
     setHeadJson(null);
     setHeadJsonName(null);
+    setHeadJsonIssue("");
+    if (headJsonInputRef.current) headJsonInputRef.current.value = "";
+    setErrors((e) => ({ ...e, headJson: "" }));
   }
 
   function resolvedCoverPath(): string | null {
@@ -288,6 +308,11 @@ export function PostForm({
   }
 
   function submit(intent: "draft" | "publish") {
+    if (readingHeadJson) return;
+    if (headJsonIssue) {
+      setErrors({ headJson: headJsonIssue });
+      return;
+    }
     setErrors({});
     const nextCover = resolvedCoverPath();
     if (coverMode === "url" && nextCover && !nextCover.startsWith("/") && !/^https?:\/\//i.test(nextCover)) {
@@ -318,33 +343,45 @@ export function PostForm({
       return known?.name ?? id;
     });
     startTransition(async () => {
-      const result = await savePost(
-        {
-          seoTitle,
-          metaDescription,
-          slug,
-          title,
-          excerpt,
-          categories: categoryPayload,
-          tags,
-          body,
-          coverPath: nextCover,
-          headJson,
-          publishedAt,
-          intent,
-        },
-        post?.id,
-      );
-      if (!result.ok) {
-        if (result.errors.tags) {
-          setTagsOpen(true);
-          if (tagsAccordionRef.current) tagsAccordionRef.current.open = true;
+      try {
+        const result = await savePost(
+          {
+            seoTitle,
+            metaDescription,
+            slug,
+            title,
+            excerpt,
+            categories: categoryPayload,
+            tags,
+            body,
+            coverPath: nextCover,
+            headJson: headJson ? JSON.stringify(headJson) : null,
+            publishedAt,
+            intent,
+          },
+          post?.id,
+        );
+        if (!result.ok) {
+          const nextErrors = { ...result.errors };
+          const headMessage = Object.entries(nextErrors).find(([key]) => key === "headJson" || key.startsWith("headJson."))?.[1];
+          if (headMessage) nextErrors.headJson = headMessage;
+          if (nextErrors.tags) {
+            setTagsOpen(true);
+            if (tagsAccordionRef.current) tagsAccordionRef.current.open = true;
+          }
+          setErrors(nextErrors);
+          return;
         }
-        setErrors(result.errors);
-        return;
+        router.push(result.status === "published" ? `/blog/${result.slug}` : listHref);
+        router.refresh();
+      } catch (error) {
+        const message = error instanceof Error ? error.message : "Couldn't save the post.";
+        setErrors({
+          form: /body exceeded|413/i.test(message)
+            ? "That post is too large to save. Remove the JSON file or shorten the body."
+            : message.slice(0, 300) || "Couldn't save the post.",
+        });
       }
-      router.push(result.status === "published" ? `/blog/${result.slug}` : listHref);
-      router.refresh();
     });
   }
 
@@ -610,27 +647,31 @@ export function PostForm({
           Upload a <code>.json</code> file to inject into the blog post&apos;s document head
           (for example JSON-LD structured data).
         </p>
-        {headJson ? (
-          <div className="row-actions" style={{ justifyContent: "flex-start" }}>
-            <p className="hint" style={{ margin: 0 }}>
-              Attached{headJsonName ? `: ${headJsonName}` : ""} — will be injected into the post head.
+        <input
+          ref={headJsonInputRef}
+          id="post-head-json"
+          className="post-cover-input"
+          type="file"
+          accept=".json,application/json,text/json"
+          onChange={(e) => void onHeadJson(e.target.files?.[0] ?? null)}
+        />
+        {headJsonName ? (
+          <div className="post-json-attached">
+            <p className="hint">
+              {headJson ? `Attached: ${headJsonName}` : headJsonName}
             </p>
-            <button type="button" className="linkbtn" onClick={clearHeadJson}>Remove</button>
+            <button type="button" className="linkbtn" onClick={clearHeadJson}>Remove JSON</button>
+            <button type="button" className="icon-btn danger" aria-label="Remove JSON" onClick={clearHeadJson}>
+              ×
+            </button>
           </div>
-        ) : (
-          <input
-            id="post-head-json"
-            type="file"
-            accept=".json,application/json"
-            onChange={(e) => void onHeadJson(e.target.files?.[0] ?? null)}
-          />
-        )}
+        ) : null}
         {errors.headJson && <p className="f-err">{errors.headJson}</p>}
       </div>
       {errors.form && <p className="f-err" role="alert">{errors.form}</p>}
       <div className="row-actions">
-        <button type="submit" className="btn" disabled={pending || uploading}>{pending ? "Saving…" : publishLabel}</button>
-        <button type="button" className="btn ghost" disabled={pending || uploading} onClick={() => submit("draft")}>Save draft</button>
+        <button type="submit" className="btn" disabled={pending || uploading || readingHeadJson}>{pending ? "Saving…" : publishLabel}</button>
+        <button type="button" className="btn ghost" disabled={pending || uploading || readingHeadJson} onClick={() => submit("draft")}>Save draft</button>
         {post && <button type="button" className="btn danger" disabled={pending} onClick={onDelete}>Delete</button>}
       </div>
     </form>
